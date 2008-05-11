@@ -7,7 +7,6 @@
  * http://www.gnu.org/licenses/lgpl.html
  */
 
-#include "AppVersion.h"
 #include "Timeline.h"
 #include "TimelineWidget.h"
 #include "DesktopServices.h"

@@ -12,10 +12,26 @@
 
 #include "AnimationToolBar.h"
 #include "AttachmentPtr.h"
+#include <QtGui/QGraphicsRectItem>
 #include <QtGui/QWidget>
 
+class Animation;
 class AnimationController;
-class QwtSlider;
+class QGraphicsScene;
+class QGraphicsView;
+
+class QGraphicsAnimationItem : public QGraphicsRectItem
+{
+public:
+   QGraphicsAnimationItem(Animation *pAnimation, QGraphicsItem *pParent = NULL);
+   virtual ~QGraphicsAnimationItem();
+
+protected:
+   virtual void mouseMoveEvent(QGraphicsSceneMouseEvent *pEvent);
+   
+private:
+   Animation *mpAnimation;
+};
 
 class TimelineWidget : public QWidget
 {
@@ -32,7 +48,8 @@ private:
 
    AttachmentPtr<AnimationToolBar> mpToolbar;
    AnimationController *mpController;
-   QwtSlider *mpScale;
+   QGraphicsView *mpView;
+   QGraphicsScene *mpScene;
 };
 
 #endif
