@@ -10,30 +10,19 @@
 #ifndef TIMELINEWIDGET_H__
 #define TIMELINEWIDGET_H__
 
+#include "AnimationController.h"
 #include "AnimationToolBar.h"
 #include "AttachmentPtr.h"
-#include <QtGui/QGraphicsRectItem>
 #include <QtGui/QWidget>
+#include <qwt_abstract_scale.h>
 
 class Animation;
 class AnimationController;
-class QGraphicsScene;
-class QGraphicsView;
+class QHBoxLayout;
+class QVBoxLayout;
+class QwtScaleDraw;
 
-class QGraphicsAnimationItem : public QGraphicsRectItem
-{
-public:
-   QGraphicsAnimationItem(Animation *pAnimation, QGraphicsItem *pParent = NULL);
-   virtual ~QGraphicsAnimationItem();
-
-protected:
-   virtual void mouseMoveEvent(QGraphicsSceneMouseEvent *pEvent);
-   
-private:
-   Animation *mpAnimation;
-};
-
-class TimelineWidget : public QWidget
+class TimelineWidget : public QWidget, public QwtAbstractScale
 {
    Q_OBJECT
 
@@ -42,14 +31,32 @@ public:
    virtual ~TimelineWidget();
 
    void controllerChanged(Subject &subject, const std::string &signal, const boost::any &v);
+   void currentFrameChanged(Subject &subject, const std::string &signal, const boost::any &v);
+
+   void setRange(double vmin, double vmax, bool lg=false);
+
+   virtual QSize sizeHint() const;
+   virtual QSize minimumSizeHint() const;
+
+   void setScaleDraw(QwtScaleDraw *pScaleDraw);
+   const QwtScaleDraw *scaleDraw() const;
+
+protected:
+   void draw(QPainter *pPainter, const QRect &update_rect);
+   void layout(bool update_geometry=true);
+   virtual void paintEvent(QPaintEvent *pEvent);
+   virtual void resizeEvent(QResizeEvent *pEvent);
+   QwtScaleDraw *scaleDraw() ;
 
 private:
+   int transform(double value) const;
    void setAnimationController(AnimationController *pController);
 
+   class PrivateData;
+   PrivateData *pD;
+  
    AttachmentPtr<AnimationToolBar> mpToolbar;
-   AnimationController *mpController;
-   QGraphicsView *mpView;
-   QGraphicsScene *mpScene;
+   AttachmentPtr<AnimationController> mpControllerAttachments;
 };
 
 #endif
