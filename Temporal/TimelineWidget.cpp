@@ -14,13 +14,49 @@
 #include "DesktopServices.h"
 #include "TimelineWidget.h"
 #include <boost/any.hpp>
+#include <boost/rational.hpp>
+#include <QtCore/QDateTime>
+#include <QtGui/QContextMenuEvent>
+#include <QtGui/QDateTimeEdit>
+#include <QtGui/QDialogButtonBox>
+#include <QtGui/QHBoxLayout>
+#include <QtGui/QLabel>
+#include <QtGui/QMenu>
 #include <QtGui/QPainter>
 #include <QtGui/QPaintEvent>
 #include <QtGui/QResizeEvent>
+#include <QtGui/QVBoxLayout>
 #include <qwt_abstract_scale_draw.h>
 #include <qwt_scale_draw.h>
 #include <qwt_scale_engine.h>
 #include <qwt_scale_map.h>
+
+namespace
+{
+   QDateTime timetToQDateTime(double val)
+   {
+      double seconds = floor(val);
+      int milliseconds = static_cast<int>((val - seconds) * 1000.0);
+      QDateTime dateTime = QDateTime::fromTime_t(static_cast<unsigned int>(seconds));
+      dateTime.setTime(dateTime.time().addMSecs(milliseconds));
+      dateTime = dateTime.toUTC();
+      return dateTime;
+   }
+}
+
+class QwtTimeScaleDraw : public QwtScaleDraw
+{
+public:
+   QwtTimeScaleDraw() {}
+   QwtTimeScaleDraw(const QwtTimeScaleDraw &other) : QwtScaleDraw(other) {}
+   virtual~QwtTimeScaleDraw() {}
+
+   virtual QwtText label(double val) const
+   {
+      QDateTime dateTime = timetToQDateTime(val);
+      return QwtText(dateTime.toString("yyyy/MM/dd\nhh:mm:ss.zzz") + "Z");
+   }
+};
 
 class TimelineWidget::PrivateData
 {
@@ -133,15 +169,25 @@ void TimelineWidget::setAnimationController(AnimationController *pController)
    mpControllerAttachments.reset(pD->mpController);
    if(pD->mpController == NULL)
    {
+      setScaleDraw(new QwtScaleDraw);
       setRange(0.0, 1.0);
       pD->animCount = 0;
    }
    else
    {
+      if(pD->mpController->getFrameType() == FRAME_TIME)
+      {
+        setScaleDraw(new QwtTimeScaleDraw);
+      }
+      else
+      {
+         setScaleDraw(new QwtScaleDraw);
+      }
       setRange(pD->mpController->getStartFrame(), pD->mpController->getStopFrame());
       pD->animCount = pD->mpController->getNumAnimations();
    }
    layout();
+   update();
 }
 
 void TimelineWidget::paintEvent(QPaintEvent *pEvent)
@@ -210,10 +256,85 @@ void TimelineWidget::resizeEvent(QResizeEvent *pEvent)
    layout(false);
 }
 
+void TimelineWidget::contextMenuEvent(QContextMenuEvent *pEvent)
+{
+   QMenu *pPopup = new QMenu(this);
+   pPopup->addAction("Rescale", this, SLOT(rescaleController()));
+   pPopup->popup(pEvent->globalPos());
+   pEvent->accept();
+}
+
+void TimelineWidget::rescaleController()
+{
+   RescaleDialog dlg(pD->mpController);
+   dlg.exec();
+}
+
 int TimelineWidget::transform(double value) const
 {
    const double min = qwtMin(pD->map.s1(), pD->map.s2());
    const double max = qwtMax(pD->map.s1(), pD->map.s2());
    value = qwtMax(qwtMin(value, max), min);
    return pD->map.transform(value);
+}
+
+RescaleDialog::RescaleDialog(AnimationController *pController, QWidget *pParent) : QDialog(pParent), mpController(pController)
+{
+   setWindowTitle("Rescale animations");
+   QLabel *pInfo = new QLabel(QString("All animations associated with the current controller will be rescaled.%1")
+      .arg(pController->getFrameType() == FRAME_ID ? "\nThe controller will be changed from frame based to time based." : ""),
+      this);
+   QLabel *pStartLabel = new QLabel("Controller start time:", this);
+   QLabel *pStopLabel = new QLabel("Controller stop time:", this);
+   mpStart = new QDateTimeEdit(this);
+   mpStart->setCalendarPopup(true);
+   mpStop = new QDateTimeEdit(this);
+   mpStop->setCalendarPopup(true);
+   QDialogButtonBox *pButtons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, Qt::Horizontal, this);
+   connect(pButtons, SIGNAL(acceptValues()), this, SLOT(acceptValues()));
+   connect(pButtons, SIGNAL(rejected()), this, SLOT(reject()));
+
+   QVBoxLayout *pTop = new QVBoxLayout(this);
+   pTop->addWidget(pInfo);
+   pTop->addSpacing(5);
+   QHBoxLayout *pStart = new QHBoxLayout;
+   pTop->addLayout(pStart);
+   pStart->addWidget(pStartLabel);
+   pStart->addWidget(mpStart, 5);
+   QHBoxLayout *pStop = new QHBoxLayout;
+   pTop->addLayout(pStop);
+   pStop->addWidget(pStopLabel);
+   pStop->addWidget(mpStop, 5);
+   pTop->addSpacing(5);
+   pTop->addWidget(pButtons);
+   pTop->addStretch();
+
+   if(mpController->getFrameType() == FRAME_TIME)
+   {
+      QDateTime startDateTime = timetToQDateTime(mpController->getStartFrame());
+      QDateTime stopDateTime = timetToQDateTime(mpController->getStopFrame());
+      mpStart->setDateTime(startDateTime);
+      mpStop->setDateTime(stopDateTime);
+   }
+   else
+   {
+      QDateTime startDateTime = QDateTime::currentDateTime();
+      startDateTime.toUTC();
+      double totalSeconds = boost::rational_cast<double>(mpController->getMinimumFrameRate())
+         * (mpController->getStopFrame() - mpController->getStartFrame());
+      QDateTime stopDateTime = startDateTime.addSecs(totalSeconds);
+      stopDateTime.toUTC();
+      mpStart->setDateTime(startDateTime);
+      mpStop->setDateTime(stopDateTime);
+   }
+}
+
+RescaleDialog::~RescaleDialog()
+{
+}
+
+void RescaleDialog::acceptValues()
+{
+   // rescale frames here
+   accept();
 }

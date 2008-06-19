@@ -13,13 +13,13 @@
 #include "AnimationController.h"
 #include "AnimationToolBar.h"
 #include "AttachmentPtr.h"
+#include <QtGui/QDialog>
 #include <QtGui/QWidget>
 #include <qwt_abstract_scale.h>
 
 class Animation;
 class AnimationController;
-class QHBoxLayout;
-class QVBoxLayout;
+class QDateTimeEdit;
 class QwtScaleDraw;
 
 class TimelineWidget : public QWidget, public QwtAbstractScale
@@ -46,7 +46,11 @@ protected:
    void layout(bool update_geometry=true);
    virtual void paintEvent(QPaintEvent *pEvent);
    virtual void resizeEvent(QResizeEvent *pEvent);
-   QwtScaleDraw *scaleDraw() ;
+   virtual void contextMenuEvent(QContextMenuEvent *pEvent);
+   QwtScaleDraw *scaleDraw();
+
+private slots:
+   void rescaleController();
 
 private:
    int transform(double value) const;
@@ -57,6 +61,23 @@ private:
   
    AttachmentPtr<AnimationToolBar> mpToolbar;
    AttachmentPtr<AnimationController> mpControllerAttachments;
+};
+
+class RescaleDialog : public QDialog
+{
+   Q_OBJECT
+
+public:
+   RescaleDialog(AnimationController *pController, QWidget *pParent = NULL);
+   virtual ~RescaleDialog();
+
+private slots:
+   void acceptValues();
+
+private:
+   AnimationController *mpController;
+   QDateTimeEdit *mpStart;
+   QDateTimeEdit *mpStop;
 };
 
 #endif
