@@ -13,14 +13,19 @@
 #include "AnimationController.h"
 #include "AnimationToolBar.h"
 #include "AttachmentPtr.h"
+#include "SessionExplorer.h"
+#include <QtGui/QAbstractSpinBox>
 #include <QtGui/QDialog>
 #include <QtGui/QWidget>
 #include <qwt_abstract_scale.h>
 
 class Animation;
 class AnimationController;
+class QButtonGroup;
 class QDateTimeEdit;
+class QLineEdit;
 class QwtScaleDraw;
+class RasterLayer;
 
 class TimelineWidget : public QWidget, public QwtAbstractScale
 {
@@ -32,6 +37,8 @@ public:
 
    void controllerChanged(Subject &subject, const std::string &signal, const boost::any &v);
    void currentFrameChanged(Subject &subject, const std::string &signal, const boost::any &v);
+   void polishSessionExplorerContextMenu(Subject &subject, const std::string &signal, const boost::any &v);
+   void rasterElementDropped(Subject &subject, const std::string &signal, const boost::any &v);
 
    void setRange(double vmin, double vmax, bool lg=false);
 
@@ -46,38 +53,39 @@ protected:
    void layout(bool update_geometry=true);
    virtual void paintEvent(QPaintEvent *pEvent);
    virtual void resizeEvent(QResizeEvent *pEvent);
-   virtual void contextMenuEvent(QContextMenuEvent *pEvent);
    QwtScaleDraw *scaleDraw();
 
 private slots:
-   void rescaleController();
+   void createNewController();
 
 private:
+   bool createAnimationForRasterLayer(RasterLayer *pRasterLayer);
    int transform(double value) const;
    void setAnimationController(AnimationController *pController);
 
    class PrivateData;
-   PrivateData *pD;
+   PrivateData *mpD;
   
    AttachmentPtr<AnimationToolBar> mpToolbar;
    AttachmentPtr<AnimationController> mpControllerAttachments;
+   AttachmentPtr<SessionExplorer> mpSessionExplorer;
+   QAction *mpNewAnimationAction;
 };
 
-class RescaleDialog : public QDialog
+class NewControllerDialog : public QDialog
 {
    Q_OBJECT
 
 public:
-   RescaleDialog(AnimationController *pController, QWidget *pParent = NULL);
-   virtual ~RescaleDialog();
+   NewControllerDialog(QWidget *pParent = NULL);
+   virtual ~NewControllerDialog();
 
-private slots:
-   void acceptValues();
+   QString name() const;
+   bool isTimeBased() const;
 
 private:
-   AnimationController *mpController;
-   QDateTimeEdit *mpStart;
-   QDateTimeEdit *mpStop;
+   QLineEdit *mpName;
+   QButtonGroup *mpType;
 };
 
 #endif

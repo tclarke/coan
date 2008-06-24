@@ -9,21 +9,35 @@
 
 #include "Animation.h"
 #include "AnimationController.h"
+#include "AnimationServices.h"
 #include "AppConfig.h"
 #include "AppVerify.h"
+#include "ContextMenu.h"
 #include "DesktopServices.h"
+#include "LayerList.h"
+#include "RasterDataDescriptor.h"
+#include "RasterElement.h"
+#include "RasterLayer.h"
+#include "SessionExplorer.h"
+#include "SpatialDataView.h"
+#include "SpatialDataWindow.h"
 #include "TimelineWidget.h"
+#include <cmath>
 #include <boost/any.hpp>
+#include <boost/integer/static_log2.hpp>
 #include <boost/rational.hpp>
 #include <QtCore/QDateTime>
+#include <QtGui/QButtonGroup>
 #include <QtGui/QContextMenuEvent>
 #include <QtGui/QDateTimeEdit>
 #include <QtGui/QDialogButtonBox>
 #include <QtGui/QHBoxLayout>
 #include <QtGui/QLabel>
+#include <QtGui/QLineEdit>
 #include <QtGui/QMenu>
 #include <QtGui/QPainter>
 #include <QtGui/QPaintEvent>
+#include <QtGui/QRadioButton>
 #include <QtGui/QResizeEvent>
 #include <QtGui/QVBoxLayout>
 #include <qwt_abstract_scale_draw.h>
@@ -41,6 +55,10 @@ namespace
       dateTime.setTime(dateTime.time().addMSecs(milliseconds));
       dateTime = dateTime.toUTC();
       return dateTime;
+   }
+   double QDateTimeToTimet(const QDateTime &dt)
+   {
+      return dt.toTime_t() + (dt.time().msec() / 1000.0);
    }
 }
 
@@ -91,20 +109,30 @@ public:
 
 TimelineWidget::TimelineWidget(QWidget *pParent) : QWidget(pParent),
       mpToolbar(SIGNAL_NAME(AnimationToolBar, ControllerChanged), Slot(this, &TimelineWidget::controllerChanged)),
-      mpControllerAttachments(SIGNAL_NAME(AnimationController, FrameChanged), Slot(this, &TimelineWidget::currentFrameChanged))
+      mpControllerAttachments(SIGNAL_NAME(AnimationController, FrameChanged), Slot(this, &TimelineWidget::currentFrameChanged)),
+      mpSessionExplorer(SIGNAL_NAME(DockWindow, AboutToShowContextMenu), Slot(this, &TimelineWidget::polishSessionExplorerContextMenu))
 {
-   pD = new PrivateData;
-   setRange(pD->minValue, pD->maxValue, false);
+   mpControllerAttachments.addSignal(SIGNAL_NAME(AnimationController, AnimationAdded), Slot(this, &TimelineWidget::currentFrameChanged));
+
+   mpD = new PrivateData;
+   setRange(mpD->minValue, mpD->maxValue, false);
    setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
 
    AnimationToolBar *pToolBar = static_cast<AnimationToolBar*>(Service<DesktopServices>()->getWindow("Animation", TOOLBAR));
    mpToolbar.reset(pToolBar);
    setAnimationController(pToolBar->getAnimationController());
+
+   // install context menu listeners
+   SessionExplorer *pSes = static_cast<SessionExplorer*>(Service<DesktopServices>()->getWindow("Session Explorer", DOCK_WINDOW));
+   mpSessionExplorer.reset(pSes);
+   mpNewAnimationAction = new QAction("New Animation", this);
+   mpNewAnimationAction->setStatusTip("Create an empty animation controller of a specified type.");
+   VERIFYNR(connect(mpNewAnimationAction, SIGNAL(triggered()), this, SLOT(createNewController())));
 }
 
 TimelineWidget::~TimelineWidget()
 {
-   delete pD;
+   delete mpD;
 }
 
 void TimelineWidget::controllerChanged(Subject &subject, const std::string &signal, const boost::any &v)
@@ -118,16 +146,101 @@ void TimelineWidget::currentFrameChanged(Subject &subject, const std::string &si
    update();
 }
 
+void TimelineWidget::polishSessionExplorerContextMenu(Subject &subject, const std::string &signal, const boost::any &v)
+{
+   SessionExplorer &ses = dynamic_cast<SessionExplorer&>(subject);
+   if(ses.getItemViewType() == SessionExplorer::ANIMATION_ITEMS)
+   {
+      ContextMenu *pMenu = boost::any_cast<ContextMenu*>(v);
+      VERIFYNRV(pMenu);
+      pMenu->addAction(mpNewAnimationAction, "TIMELINEWIDGET_NEW_ANIMATION_ACTION");
+   }
+}
+
+void TimelineWidget::rasterElementDropped(Subject &subject, const std::string &signal, const boost::any &v)
+{
+   SessionItem *pItem = boost::any_cast<SessionItem*>(v);
+   if(pItem == NULL || mpD->mpController == NULL)
+   {
+      return;
+   }
+   RasterElement *pRasterElement = dynamic_cast<RasterElement*>(pItem);
+   RasterLayer *pRasterLayer = dynamic_cast<RasterLayer*>(pItem);
+   if(pRasterElement != NULL)
+   {
+      std::vector<Window*> windows;
+      Service<DesktopServices>()->getWindows(SPATIAL_DATA_WINDOW, windows);
+      for(std::vector<Window*>::iterator window = windows.begin(); window != windows.end(); ++window)
+      {
+         SpatialDataView *pView = static_cast<SpatialDataWindow*>(*window)->getSpatialDataView();
+         std::vector<Layer*> layers;
+         pView->getLayerList()->getLayers(RASTER, layers);
+         for(std::vector<Layer*>::iterator layer = layers.begin(); layer != layers.end(); ++layer)
+         {
+            RasterLayer *pLayer = static_cast<RasterLayer*>(*layer);
+            RasterElement *pElement = static_cast<RasterElement*>(pLayer->getDataElement());
+            if(pElement == pRasterElement)
+            {
+               createAnimationForRasterLayer(pLayer);
+            }
+         }
+      }
+   }
+   else if(pRasterLayer != NULL)
+   {
+      createAnimationForRasterLayer(pRasterLayer);
+   }
+   setAnimationController(mpD->mpController);
+}
+
+bool TimelineWidget::createAnimationForRasterLayer(RasterLayer *pRasterLayer)
+{
+   Animation *pAnim = mpD->mpController->createAnimation(pRasterLayer->getName());
+   VERIFY(pAnim != NULL);
+
+   unsigned int numFrames = 0;
+   RasterElement *pRasterElement = dynamic_cast<RasterElement*>(pRasterLayer->getDataElement());
+   if(pRasterElement != NULL)
+   {
+      const RasterDataDescriptor *pDescriptor =
+         dynamic_cast<RasterDataDescriptor*>(pRasterElement->getDataDescriptor());
+      if(pDescriptor != NULL)
+      {
+         numFrames = pDescriptor->getBandCount();
+      }
+   }
+   double frameTime = mpD->mpController->getStartFrame();
+   if(frameTime < 0.0)
+   {
+      frameTime = QDateTime::currentDateTime().toUTC().toTime_t();
+   }
+   std::vector<AnimationFrame> frames;
+   for(unsigned int i = 0; i < numFrames; ++i)
+   {
+      AnimationFrame frame;
+      frame.mFrameNumber = i;
+      if(pAnim->getFrameType() == FRAME_TIME)
+      {
+         frame.mTime = frameTime;
+         frameTime += 1.0;
+      }
+      frames.push_back(frame);
+   }
+   pAnim->setFrames(frames);
+   pRasterLayer->setAnimation(pAnim);
+   return true;
+}
+
 void TimelineWidget::setRange(double vmin, double vmax, bool lg)
 {
-   pD->minValue = vmin;
-   pD->maxValue = vmax;
+   mpD->minValue = vmin;
+   mpD->maxValue = vmax;
    setScaleEngine(new QwtLinearScaleEngine);
-   pD->map.setTransformation(scaleEngine()->transformation());
-   pD->map.setScaleInterval(pD->minValue, pD->maxValue);
+   mpD->map.setTransformation(scaleEngine()->transformation());
+   mpD->map.setScaleInterval(mpD->minValue, mpD->maxValue);
    if(autoScale())
    {
-      rescale(pD->minValue, pD->maxValue);
+      rescale(mpD->minValue, mpD->maxValue);
    }
    layout();
 }
@@ -141,9 +254,9 @@ QSize TimelineWidget::minimumSizeHint() const
 {
    int scaleWidth = scaleDraw()->minLength(QPen(), font());
    int scaleHeight = scaleDraw()->extent(QPen(), font());
-   int animHeight = pD->animRect.height();
+   int animHeight = mpD->animRect.height();
    int w = qwtMin(scaleWidth, 200); // at least 200 pixels wide
-   int h = scaleHeight + animHeight + pD->scaleDist + 2 * pD->borderWidth;
+   int h = scaleHeight + animHeight + mpD->scaleDist + 2 * mpD->borderWidth;
    return QSize(w, h);
 }
 
@@ -164,18 +277,18 @@ QwtScaleDraw *TimelineWidget::scaleDraw()
 
 void TimelineWidget::setAnimationController(AnimationController *pController)
 {
-   pD->mpController = pController;
-   setEnabled(pD->mpController != NULL);
-   mpControllerAttachments.reset(pD->mpController);
-   if(pD->mpController == NULL)
+   mpD->mpController = pController;
+   setEnabled(mpD->mpController != NULL);
+   mpControllerAttachments.reset(mpD->mpController);
+   if(mpD->mpController == NULL)
    {
       setScaleDraw(new QwtScaleDraw);
       setRange(0.0, 1.0);
-      pD->animCount = 0;
+      mpD->animCount = 0;
    }
    else
    {
-      if(pD->mpController->getFrameType() == FRAME_TIME)
+      if(mpD->mpController->getFrameType() == FRAME_TIME)
       {
         setScaleDraw(new QwtTimeScaleDraw);
       }
@@ -183,8 +296,8 @@ void TimelineWidget::setAnimationController(AnimationController *pController)
       {
          setScaleDraw(new QwtScaleDraw);
       }
-      setRange(pD->mpController->getStartFrame(), pD->mpController->getStopFrame());
-      pD->animCount = pD->mpController->getNumAnimations();
+      setRange(mpD->mpController->getStartFrame(), mpD->mpController->getStopFrame());
+      mpD->animCount = mpD->mpController->getNumAnimations();
    }
    layout();
    update();
@@ -204,23 +317,25 @@ void TimelineWidget::draw(QPainter *pPainter, const QRect &update_rect)
 {
    scaleDraw()->draw(pPainter, palette());
 
-   if(pD->animCount > 0)
+   if(mpD->animCount > 0)
    {
-      const std::vector<Animation*> &animations = pD->mpController->getAnimations();
-      int ypos = pD->animRect.y();
+      const std::vector<Animation*> &animations = mpD->mpController->getAnimations();
+      int ypos = mpD->animRect.y();
       for(std::vector<Animation*>::const_iterator animation = animations.begin(); animation != animations.end(); ++animation)
       {
          int xpos = transform((*animation)->getStartValue());
          int xend = transform((*animation)->getStopValue());
-         qDrawShadePanel(pPainter, xpos, ypos, xend - xpos, pD->animHeight, palette());
-         int textXpos = xpos + pD->borderWidth;
-         int textYpos = ypos + (fontMetrics().height() + pD->animHeight) / 2;
+         pPainter->setBrush(palette().brush(QPalette::Base));
+         pPainter->drawRect(xpos, ypos, xend - xpos, mpD->animHeight);
+         qDrawShadePanel(pPainter, xpos, ypos, xend - xpos, mpD->animHeight, palette());
+         int textXpos = xpos + mpD->borderWidth;
+         int textYpos = ypos + (fontMetrics().height() + mpD->animHeight) / 2;
          pPainter->drawText(textXpos, textYpos, QString::fromStdString((*animation)->getName()));
-         ypos += pD->animHeight + pD->animSpacing;
+         ypos += mpD->animHeight + mpD->animSpacing;
       }
-     int lineX = transform(pD->mpController->getCurrentFrame());
+     int lineX = transform(mpD->mpController->getCurrentFrame());
      pPainter->setPen(QPen(QBrush(Qt::darkGreen), 1, Qt::DashLine, Qt::RoundCap));
-     pPainter->drawLine(lineX, pD->borderWidth, lineX, pD->animRect.bottom());
+     pPainter->drawLine(lineX, mpD->borderWidth, lineX, mpD->animRect.bottom());
    }
 }
 
@@ -232,17 +347,17 @@ void TimelineWidget::layout(bool update_geometry)
    int mbd = qwtMax(d1, d2);
    int scaleHeight = scaleDraw()->extent(QPen(), font());
 
-   pD->animRect.setRect(
-      r.x() + mbd + pD->borderWidth,
-      r.y() + scaleHeight + pD->borderWidth + pD->scaleDist,
-      r.width() - 2 * (pD->borderWidth + mbd),
-      pD->animCount * (pD->animHeight + pD->animSpacing));
+   mpD->animRect.setRect(
+      r.x() + mbd + mpD->borderWidth,
+      r.y() + scaleHeight + mpD->borderWidth + mpD->scaleDist,
+      r.width() - 2 * (mpD->borderWidth + mbd),
+      mpD->animCount * (mpD->animHeight + mpD->animSpacing));
    scaleDraw()->setAlignment(QwtScaleDraw::TopScale);
-   scaleDraw()->move(pD->animRect.x(), pD->animRect.y() - pD->scaleDist);
-   scaleDraw()->setLength(pD->animRect.width());
+   scaleDraw()->move(mpD->animRect.x(), mpD->animRect.y() - mpD->scaleDist);
+   scaleDraw()->setLength(mpD->animRect.width());
 
    // paint the scale in this area
-   pD->map.setPaintInterval(pD->animRect.x(), pD->animRect.x() + pD->animRect.width() - 1);
+   mpD->map.setPaintInterval(mpD->animRect.x(), mpD->animRect.x() + mpD->animRect.width() - 1);
 
    if(update_geometry)
    {
@@ -256,85 +371,70 @@ void TimelineWidget::resizeEvent(QResizeEvent *pEvent)
    layout(false);
 }
 
-void TimelineWidget::contextMenuEvent(QContextMenuEvent *pEvent)
+void TimelineWidget::createNewController()
 {
-   QMenu *pPopup = new QMenu(this);
-   pPopup->addAction("Rescale", this, SLOT(rescaleController()));
-   pPopup->popup(pEvent->globalPos());
-   pEvent->accept();
-}
-
-void TimelineWidget::rescaleController()
-{
-   RescaleDialog dlg(pD->mpController);
-   dlg.exec();
+   NewControllerDialog dlg(this);
+   if(dlg.exec() == QDialog::Accepted)
+   {
+      AnimationController *pController = Service<AnimationServices>()->createAnimationController(
+         dlg.name().toStdString(), dlg.isTimeBased() ? FRAME_TIME : FRAME_ID);
+      if(pController == NULL)
+      {
+         Service<DesktopServices>()->showMessageBox("Create Animation Constoler", "Unable to create animation controller.", "Ok");
+      }
+      else if(mpToolbar.get() != NULL)
+      {
+         mpToolbar.get()->setAnimationController(pController);
+      }
+   }
 }
 
 int TimelineWidget::transform(double value) const
 {
-   const double min = qwtMin(pD->map.s1(), pD->map.s2());
-   const double max = qwtMax(pD->map.s1(), pD->map.s2());
+   const double min = qwtMin(mpD->map.s1(), mpD->map.s2());
+   const double max = qwtMax(mpD->map.s1(), mpD->map.s2());
    value = qwtMax(qwtMin(value, max), min);
-   return pD->map.transform(value);
+   return mpD->map.transform(value);
 }
 
-RescaleDialog::RescaleDialog(AnimationController *pController, QWidget *pParent) : QDialog(pParent), mpController(pController)
+NewControllerDialog::NewControllerDialog(QWidget *pParent) : QDialog(pParent)
 {
-   setWindowTitle("Rescale animations");
-   QLabel *pInfo = new QLabel(QString("All animations associated with the current controller will be rescaled.%1")
-      .arg(pController->getFrameType() == FRAME_ID ? "\nThe controller will be changed from frame based to time based." : ""),
-      this);
-   QLabel *pStartLabel = new QLabel("Controller start time:", this);
-   QLabel *pStopLabel = new QLabel("Controller stop time:", this);
-   mpStart = new QDateTimeEdit(this);
-   mpStart->setCalendarPopup(true);
-   mpStop = new QDateTimeEdit(this);
-   mpStop->setCalendarPopup(true);
+   QLabel *pNameLabel = new QLabel("Controller Name: ", this);
+   mpName = new QLineEdit(this);
+   mpType = new QButtonGroup(this);
+   QRadioButton *pFrame = new QRadioButton("Frame Based", this);
+   mpType->addButton(pFrame, 0);
+   QRadioButton *pTime = new QRadioButton("Time Based", this);
+   mpType->addButton(pTime, 1);
+   pTime->setChecked(true);
    QDialogButtonBox *pButtons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, Qt::Horizontal, this);
-   connect(pButtons, SIGNAL(acceptValues()), this, SLOT(acceptValues()));
+   connect(pButtons, SIGNAL(accepted()), this, SLOT(accept()));
    connect(pButtons, SIGNAL(rejected()), this, SLOT(reject()));
 
    QVBoxLayout *pTop = new QVBoxLayout(this);
-   pTop->addWidget(pInfo);
-   pTop->addSpacing(5);
-   QHBoxLayout *pStart = new QHBoxLayout;
-   pTop->addLayout(pStart);
-   pStart->addWidget(pStartLabel);
-   pStart->addWidget(mpStart, 5);
-   QHBoxLayout *pStop = new QHBoxLayout;
-   pTop->addLayout(pStop);
-   pStop->addWidget(pStopLabel);
-   pStop->addWidget(mpStop, 5);
-   pTop->addSpacing(5);
+   QHBoxLayout *pName = new QHBoxLayout;
+   pTop->addLayout(pName);
+   pName->addWidget(pNameLabel);
+   pName->addWidget(mpName, 5);
+   QHBoxLayout *pType = new QHBoxLayout;
+   pTop->addLayout(pType);
+   pType->addWidget(pFrame);
+   pType->addWidget(pTime);
    pTop->addWidget(pButtons);
    pTop->addStretch();
-
-   if(mpController->getFrameType() == FRAME_TIME)
-   {
-      QDateTime startDateTime = timetToQDateTime(mpController->getStartFrame());
-      QDateTime stopDateTime = timetToQDateTime(mpController->getStopFrame());
-      mpStart->setDateTime(startDateTime);
-      mpStop->setDateTime(stopDateTime);
-   }
-   else
-   {
-      QDateTime startDateTime = QDateTime::currentDateTime();
-      startDateTime.toUTC();
-      double totalSeconds = boost::rational_cast<double>(mpController->getMinimumFrameRate())
-         * (mpController->getStopFrame() - mpController->getStartFrame());
-      QDateTime stopDateTime = startDateTime.addSecs(totalSeconds);
-      stopDateTime.toUTC();
-      mpStart->setDateTime(startDateTime);
-      mpStop->setDateTime(stopDateTime);
-   }
+   setFixedSize(sizeHint());
 }
 
-RescaleDialog::~RescaleDialog()
+NewControllerDialog::~NewControllerDialog()
 {
 }
 
-void RescaleDialog::acceptValues()
+QString NewControllerDialog::name() const
 {
-   // rescale frames here
-   accept();
+   return mpName->text();
+}
+
+bool NewControllerDialog::isTimeBased() const
+{
+   return mpType->checkedId() == 1;
 }

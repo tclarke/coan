@@ -12,11 +12,27 @@
 #include "DesktopServices.h"
 #include "DockWindow.h"
 #include "MenuBar.h"
+#include "RasterElement.h"
 #include "SessionManager.h"
 #include "Slot.h"
 
 #include <QtGui/QAction>
 #include <QtGui/QMenu>
+
+namespace
+{
+   class DropFilter : public Window::SessionItemDropFilter
+   {
+   public:
+      DropFilter() {}
+      virtual ~DropFilter() {}
+
+      virtual bool accept(SessionItem *pItem) const
+      {
+         return dynamic_cast<RasterElement*>(pItem) != NULL;
+      }
+   };
+}
 
 Timeline::Timeline() : mpWindowAction(NULL)
 {
@@ -157,10 +173,12 @@ void Timeline::attachToEditorWindow(DockWindow *pDockWindow)
       pDockWindow->attach(SIGNAL_NAME(DockWindow, Shown), Slot(this, &Timeline::windowShown));
       pDockWindow->attach(SIGNAL_NAME(DockWindow, Hidden), Slot(this, &Timeline::windowHidden));
 
-      QWidget *pWidget = new TimelineWidget(Service<DesktopServices>()->getMainWidget());
+      TimelineWidget *pWidget = new TimelineWidget(Service<DesktopServices>()->getMainWidget());
       if(pWidget != NULL)
       {
          pDockWindow->setWidget(pWidget);
+         pDockWindow->enableSessionItemDrops(new DropFilter);
+         pDockWindow->attach(SIGNAL_NAME(Window, SessionItemDropped), Slot(pWidget, &TimelineWidget::rasterElementDropped));
       }
    }
 }
