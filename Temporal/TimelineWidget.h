@@ -49,22 +49,47 @@ public:
    const QwtScaleDraw *scaleDraw() const;
 
 protected:
+   enum DragTypeEnum {
+      DRAGGING_NONE,
+      DRAGGING_SCRUB,
+      DRAGGING_MOVE,
+      DRAGGING_LEFT,
+      DRAGGING_RIGHT,
+   };
+
+   QCursor dragTypeToQCursor(DragTypeEnum dragType, bool mouseDown) const;
+
    void draw(QPainter *pPainter, const QRect &update_rect);
    void layout(bool update_geometry=true);
+   QwtScaleDraw *scaleDraw();
+   Animation *hit(QPoint loc, DragTypeEnum &dragType) const;
+
+   virtual void mouseMoveEvent(QMouseEvent *pEvent);
+   virtual void mousePressEvent(QMouseEvent *pEvent);
+   virtual void mouseReleaseEvent(QMouseEvent *pEvent);
    virtual void paintEvent(QPaintEvent *pEvent);
    virtual void resizeEvent(QResizeEvent *pEvent);
-   QwtScaleDraw *scaleDraw();
 
 private slots:
-   void createNewController();
+   void createNewController(bool skipGui = false, bool timeBased = true, std::string name = std::string());
+   void updateThrow();
 
 private:
+   void moveAnimation(Animation *pAnim, double newStart) const;
+   void rescaleAnimation(Animation *pAnim, double newVal, bool scaleEnd) const;
    bool createAnimationForRasterLayer(RasterLayer *pRasterLayer);
    int transform(double value) const;
    void setAnimationController(AnimationController *pController);
+   bool saveAnimationTimes(Animation  *pAnim);
 
    class PrivateData;
    PrivateData *mpD;
+
+   DragTypeEnum mDragType;
+   Animation *mpDragging;
+   QPoint mDragStartPos;
+   QPoint mDragPos;
+   double mDragAccel;
   
    AttachmentPtr<AnimationToolBar> mpToolbar;
    AttachmentPtr<AnimationController> mpControllerAttachments;
