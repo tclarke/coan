@@ -14,18 +14,24 @@
 #include "AnimationToolBar.h"
 #include "AttachmentPtr.h"
 #include "SessionExplorer.h"
+#include <QtCore/QDateTime>
 #include <QtGui/QAbstractSpinBox>
-#include <QtGui/QDialog>
 #include <QtGui/QWidget>
 #include <qwt_abstract_scale.h>
 
 class Animation;
 class AnimationController;
-class QButtonGroup;
 class QDateTimeEdit;
-class QLineEdit;
 class QwtScaleDraw;
 class RasterLayer;
+
+namespace TimelineUtils
+{
+   QDateTime timetToQDateTime(double val);
+   double QDateTimeToTimet(const QDateTime &dt);
+   void rescaleAnimation(Animation *pAnim, double newVal, bool scaleEnd);
+   void moveAnimation(Animation *pAnim, double newStart);
+}
 
 class TimelineWidget : public QWidget, public QwtAbstractScale
 {
@@ -95,22 +101,6 @@ private:
    AttachmentPtr<AnimationController> mpControllerAttachments;
    AttachmentPtr<SessionExplorer> mpSessionExplorer;
    QAction *mpNewAnimationAction;
-};
-
-class NewControllerDialog : public QDialog
-{
-   Q_OBJECT
-
-public:
-   NewControllerDialog(QWidget *pParent = NULL);
-   virtual ~NewControllerDialog();
-
-   QString name() const;
-   bool isTimeBased() const;
-
-private:
-   QLineEdit *mpName;
-   QButtonGroup *mpType;
 };
 
 #endif

@@ -9,6 +9,7 @@
 
 #include "Animation.h"
 #include "AnimationController.h"
+#include "AnimationPropertiesDialog.h"
 #include "AnimationServices.h"
 #include "AppConfig.h"
 #include "AppVerify.h"
@@ -16,6 +17,7 @@
 #include "DesktopServices.h"
 #include "DynamicObject.h"
 #include "LayerList.h"
+#include "NewControllerDialog.h"
 #include "RasterDataDescriptor.h"
 #include "RasterElement.h"
 #include "RasterLayer.h"
@@ -30,19 +32,12 @@
 #include <boost/rational.hpp>
 #include <QtCore/QDateTime>
 #include <QtCore/QTimer>
-#include <QtGui/QButtonGroup>
 #include <QtGui/QContextMenuEvent>
 #include <QtGui/QDateTimeEdit>
-#include <QtGui/QDialogButtonBox>
-#include <QtGui/QHBoxLayout>
-#include <QtGui/QLabel>
-#include <QtGui/QLineEdit>
 #include <QtGui/QMenu>
 #include <QtGui/QPainter>
 #include <QtGui/QPaintEvent>
-#include <QtGui/QRadioButton>
 #include <QtGui/QResizeEvent>
-#include <QtGui/QVBoxLayout>
 #include <qwt_abstract_scale_draw.h>
 #include <qwt_scale_draw.h>
 #include <qwt_scale_engine.h>
@@ -50,20 +45,6 @@
 
 namespace
 {
-   QDateTime timetToQDateTime(double val)
-   {
-      double seconds = floor(val);
-      int milliseconds = static_cast<int>((val - seconds) * 1000.0);
-      QDateTime dateTime = QDateTime::fromTime_t(static_cast<unsigned int>(seconds));
-      dateTime.setTime(dateTime.time().addMSecs(milliseconds));
-      dateTime = dateTime.toUTC();
-      return dateTime;
-   }
-   double QDateTimeToTimet(const QDateTime &dt)
-   {
-      return dt.toTime_t() + (dt.time().msec() / 1000.0);
-   }
-
    AnimationFrame adjustFrameTime(AnimationFrame frame, double adjust)
    {
       frame.mTime += adjust;
@@ -89,6 +70,76 @@ namespace
    }
 }
 
+namespace TimelineUtils
+{
+   QDateTime timetToQDateTime(double val)
+   {
+      double seconds = floor(val);
+      int milliseconds = static_cast<int>((val - seconds) * 1000.0);
+      QDateTime dateTime = QDateTime::fromTime_t(static_cast<unsigned int>(seconds));
+      dateTime.setTime(dateTime.time().addMSecs(milliseconds));
+      dateTime = dateTime.toUTC();
+      return dateTime;
+   }
+   double QDateTimeToTimet(const QDateTime &dt)
+   {
+      return dt.toTime_t() + (dt.time().msec() / 1000.0);
+   }
+
+   void rescaleAnimation(Animation *pAnim, double newVal, bool scaleEnd)
+   {
+      if(pAnim == NULL)
+      {
+         return;
+      }
+      std::vector<AnimationFrame> frames = pAnim->getFrames();
+      if(pAnim->getFrameType() == FRAME_TIME)
+      {
+         double start = pAnim->getStartValue();
+         double scale = 1.0;
+         if(scaleEnd)
+         {
+            scale = (newVal - start) / (pAnim->getStopValue() - start);
+         }
+         else
+         {
+            scale = (pAnim->getStopValue() - newVal) / (pAnim->getStopValue() - start);
+         }
+         std::transform(frames.begin(), frames.end(), frames.begin(), boost::bind(scaleFrameTime, _1, start, scale));
+         if(!scaleEnd)
+         {
+            double diff = newVal - pAnim->getStartValue();
+            std::transform(frames.begin(), frames.end(), frames.begin(), boost::bind(adjustFrameTime, _1, diff));
+         }
+      }
+      else
+      {
+         // not currently supported
+      }
+      pAnim->setFrames(frames);
+   }
+
+   void moveAnimation(Animation *pAnim, double newStart)
+   {
+      if(pAnim == NULL)
+      {
+         return;
+      }
+      std::vector<AnimationFrame> frames = pAnim->getFrames();
+      if(pAnim->getFrameType() == FRAME_TIME)
+      {
+         double diff = newStart - pAnim->getStartValue();
+         std::transform(frames.begin(), frames.end(), frames.begin(), boost::bind(adjustFrameTime, _1, diff));
+      }
+      else
+      {
+         int diff = static_cast<int>(newStart - 0.5) - pAnim->getStartValue();
+         std::transform(frames.begin(), frames.end(), frames.begin(), boost::bind(adjustFrameId, _1, diff));
+      }
+      pAnim->setFrames(frames);
+   }
+}
+
 class QwtTimeScaleDraw : public QwtScaleDraw
 {
 public:
@@ -98,8 +149,8 @@ public:
 
    virtual QwtText label(double val) const
    {
-      QDateTime dateTime = timetToQDateTime(val);
-      return QwtText(dateTime.toString("yyyy/MM/dd\nhh:mm:ss.zzz") + "Z");
+      QDateTime dateTime = TimelineUtils::timetToQDateTime(val);
+      return QwtText(dateTime.toString("yyyy/MM/dd\nhh:mm:ss.zzzZ"));
    }
 };
 
@@ -526,6 +577,11 @@ void TimelineWidget::mousePressEvent(QMouseEvent *pEvent)
             Service<DesktopServices>()->showMessageBox("Timeline", "Unable saved frame times.");
          }
       }
+      else if(pChoice == pProps)
+      {
+         AnimationPropertiesDialog dlg(pAnim, this);
+         dlg.exec();
+      }
    }
    setCursor(dragTypeToQCursor(mDragType, true));
 }
@@ -540,14 +596,14 @@ void TimelineWidget::mouseReleaseEvent(QMouseEvent *pEvent)
          {
             int xpos = transform(mpDragging->getStartValue());
             double xdiff = pEvent->pos().x() - mDragStartPos.x();
-            moveAnimation(mpDragging, mpD->map.invTransform(xpos + xdiff));
+            TimelineUtils::moveAnimation(mpDragging, mpD->map.invTransform(xpos + xdiff));
             break;
          }
       case DRAGGING_LEFT:
-         rescaleAnimation(mpDragging, mpD->map.invTransform(pEvent->pos().x()), false);
+         TimelineUtils::rescaleAnimation(mpDragging, mpD->map.invTransform(pEvent->pos().x()), false);
          break;
       case DRAGGING_RIGHT:
-         rescaleAnimation(mpDragging, mpD->map.invTransform(pEvent->pos().x()), true);
+         TimelineUtils::rescaleAnimation(mpDragging, mpD->map.invTransform(pEvent->pos().x()), true);
          break;
       }
    }
@@ -690,59 +746,6 @@ void TimelineWidget::resizeEvent(QResizeEvent *pEvent)
 
 #pragma message(__FILE__ "(" STRING(__LINE__) ") : warning : TODO: add zooming and panning (inherit from scroll area?) (tclarke)")
 
-void TimelineWidget::moveAnimation(Animation *pAnim, double newStart) const
-{
-   if(pAnim == NULL)
-   {
-      return;
-   }
-   std::vector<AnimationFrame> frames = pAnim->getFrames();
-   if(pAnim->getFrameType() == FRAME_TIME)
-   {
-      double diff = newStart - pAnim->getStartValue();
-      std::transform(frames.begin(), frames.end(), frames.begin(), boost::bind(adjustFrameTime, _1, diff));
-   }
-   else
-   {
-      int diff = static_cast<int>(newStart - 0.5) - pAnim->getStartValue();
-      std::transform(frames.begin(), frames.end(), frames.begin(), boost::bind(adjustFrameId, _1, diff));
-   }
-   pAnim->setFrames(frames);
-}
-
-void TimelineWidget::rescaleAnimation(Animation *pAnim, double newVal, bool scaleEnd) const
-{
-   if(pAnim == NULL)
-   {
-      return;
-   }
-   std::vector<AnimationFrame> frames = pAnim->getFrames();
-   if(pAnim->getFrameType() == FRAME_TIME)
-   {
-      double start = pAnim->getStartValue();
-      double scale = 1.0;
-      if(scaleEnd)
-      {
-         scale = (newVal - start) / (pAnim->getStopValue() - start);
-      }
-      else
-      {
-         scale = (pAnim->getStopValue() - newVal) / (pAnim->getStopValue() - start);
-      }
-      std::transform(frames.begin(), frames.end(), frames.begin(), boost::bind(scaleFrameTime, _1, start, scale));
-      if(!scaleEnd)
-      {
-         double diff = newVal - pAnim->getStartValue();
-         std::transform(frames.begin(), frames.end(), frames.begin(), boost::bind(adjustFrameTime, _1, diff));
-      }
-   }
-   else
-   {
-      // not currently supported
-   }
-   pAnim->setFrames(frames);
-}
-
 void TimelineWidget::createNewController(bool skipGui, bool timeBased, std::string name)
 {
    if(!skipGui)
@@ -797,46 +800,4 @@ int TimelineWidget::transform(double value) const
    const double max = qwtMax(mpD->map.s1(), mpD->map.s2());
    value = qwtMax(qwtMin(value, max), min);
    return mpD->map.transform(value);
-}
-
-NewControllerDialog::NewControllerDialog(QWidget *pParent) : QDialog(pParent)
-{
-   QLabel *pNameLabel = new QLabel("Controller Name: ", this);
-   mpName = new QLineEdit(this);
-   mpType = new QButtonGroup(this);
-   QRadioButton *pFrame = new QRadioButton("Frame Based", this);
-   mpType->addButton(pFrame, 0);
-   QRadioButton *pTime = new QRadioButton("Time Based", this);
-   mpType->addButton(pTime, 1);
-   pTime->setChecked(true);
-   QDialogButtonBox *pButtons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, Qt::Horizontal, this);
-   connect(pButtons, SIGNAL(accepted()), this, SLOT(accept()));
-   connect(pButtons, SIGNAL(rejected()), this, SLOT(reject()));
-
-   QVBoxLayout *pTop = new QVBoxLayout(this);
-   QHBoxLayout *pName = new QHBoxLayout;
-   pTop->addLayout(pName);
-   pName->addWidget(pNameLabel);
-   pName->addWidget(mpName, 5);
-   QHBoxLayout *pType = new QHBoxLayout;
-   pTop->addLayout(pType);
-   pType->addWidget(pFrame);
-   pType->addWidget(pTime);
-   pTop->addWidget(pButtons);
-   pTop->addStretch();
-   setFixedSize(sizeHint());
-}
-
-NewControllerDialog::~NewControllerDialog()
-{
-}
-
-QString NewControllerDialog::name() const
-{
-   return mpName->text();
-}
-
-bool NewControllerDialog::isTimeBased() const
-{
-   return mpType->checkedId() == 1;
 }
