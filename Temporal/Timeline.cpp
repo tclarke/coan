@@ -38,7 +38,7 @@ Timeline::Timeline() : mpWindowAction(NULL)
 {
    AlgorithmShell::setName("Animation Timeline");
    setCreator("Ball Aerospace & Technologies Corp.");
-   setCopyright("");
+   setCopyright("Copyright 2008 BATC");
    setVersion("0.1");
    setDescription("Advanced animation timeline display.");
    executeOnStartup(true);
