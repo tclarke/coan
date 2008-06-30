@@ -86,6 +86,70 @@ namespace TimelineUtils
       return dt.toTime_t() + (dt.time().msec() / 1000.0);
    }
 
+   bool createAnimationForRasterLayer(RasterLayer *pRasterLayer, AnimationController *pController)
+   {
+      if(pRasterLayer == NULL || pController == NULL)
+      {
+         return false;
+      }
+      std::vector<double> frameTimes;
+      unsigned int numFrames = 0;
+      RasterElement *pRasterElement = dynamic_cast<RasterElement*>(pRasterLayer->getDataElement());
+      if(pRasterElement != NULL)
+      {
+         const RasterDataDescriptor *pDescriptor =
+            dynamic_cast<RasterDataDescriptor*>(pRasterElement->getDataDescriptor());
+         if(pDescriptor != NULL)
+         {
+            numFrames = pDescriptor->getBandCount();
+            const DynamicObject *pMetadata = pDescriptor->getMetadata();
+            try
+            {
+               frameTimes = dv_cast<std::vector<double> >(pMetadata->getAttribute(FRAME_TIMES_METADATA_PATH));
+               if(frameTimes.size() < numFrames)
+               {
+                  frameTimes.clear();
+               }
+            }
+            catch(const std::bad_cast&)
+            {
+               // do nothing
+            }
+         }
+      }
+      if(frameTimes.empty())
+      {
+         double frameTime = pController->getStartFrame();
+         if(frameTime < 0.0)
+         {
+            frameTime = QDateTime::currentDateTime().toUTC().toTime_t();
+         }
+         frameTimes.reserve(numFrames);
+         for(unsigned int i = 0; i < numFrames; i++)
+         {
+            frameTimes.push_back(frameTime);
+            frameTime += 1.0;
+         }
+      }
+      Animation *pAnim = pController->createAnimation(pRasterLayer->getName());
+      VERIFY(pAnim != NULL);
+
+      std::vector<AnimationFrame> frames;
+      for(unsigned int i = 0; i < numFrames; ++i)
+      {
+         AnimationFrame frame;
+         frame.mFrameNumber = i;
+         if(pAnim->getFrameType() == FRAME_TIME)
+         {
+            frame.mTime = frameTimes[i];
+         }
+         frames.push_back(frame);
+      }
+      pAnim->setFrames(frames);
+      pRasterLayer->setAnimation(pAnim);
+      return true;
+   }
+
    void rescaleAnimation(Animation *pAnim, double newVal, bool scaleEnd)
    {
       if(pAnim == NULL)
@@ -263,84 +327,24 @@ void TimelineWidget::rasterElementDropped(Subject &subject, const std::string &s
             RasterElement *pElement = static_cast<RasterElement*>(pLayer->getDataElement());
             if(pElement == pRasterElement)
             {
-               createAnimationForRasterLayer(pLayer);
+               if(mpD->mpController == NULL)
+               {
+                  createNewController(true, true, pRasterLayer->getName());
+               }
+               TimelineUtils::createAnimationForRasterLayer(pLayer, mpD->mpController);
             }
          }
       }
    }
    else if(pRasterLayer != NULL)
    {
-      createAnimationForRasterLayer(pRasterLayer);
+      if(mpD->mpController == NULL)
+      {
+         createNewController(true, true, pRasterLayer->getName());
+      }
+      TimelineUtils::createAnimationForRasterLayer(pRasterLayer, mpD->mpController);
    }
    layout(true);
-}
-
-bool TimelineWidget::createAnimationForRasterLayer(RasterLayer *pRasterLayer)
-{
-   std::vector<double> frameTimes;
-   unsigned int numFrames = 0;
-   RasterElement *pRasterElement = dynamic_cast<RasterElement*>(pRasterLayer->getDataElement());
-   if(pRasterElement != NULL)
-   {
-      const RasterDataDescriptor *pDescriptor =
-         dynamic_cast<RasterDataDescriptor*>(pRasterElement->getDataDescriptor());
-      if(pDescriptor != NULL)
-      {
-         numFrames = pDescriptor->getBandCount();
-         const DynamicObject *pMetadata = pDescriptor->getMetadata();
-         try
-         {
-            frameTimes = dv_cast<std::vector<double> >(pMetadata->getAttribute("frameTimes"));
-            if(frameTimes.size() < numFrames)
-            {
-               frameTimes.clear();
-            }
-         }
-         catch(const std::bad_cast&)
-         {
-            // do nothing
-         }
-      }
-   }
-   if(mpD->mpController == NULL)
-   {
-      createNewController(true, !frameTimes.empty(), pRasterLayer->getName());
-   }
-   if(mpD->mpController == NULL)
-   {
-      return false;
-   }
-   if(frameTimes.empty())
-   {
-      double frameTime = mpD->mpController->getStartFrame();
-      if(frameTime < 0.0)
-      {
-         frameTime = QDateTime::currentDateTime().toUTC().toTime_t();
-      }
-      frameTimes.reserve(numFrames);
-      for(unsigned int i = 0; i < numFrames; i++)
-      {
-         frameTimes.push_back(frameTime);
-         frameTime += 1.0;
-      }
-   }
-   Animation *pAnim = mpD->mpController->createAnimation(pRasterLayer->getName());
-   VERIFY(pAnim != NULL);
-
-   std::vector<AnimationFrame> frames;
-   for(unsigned int i = 0; i < numFrames; ++i)
-   {
-      AnimationFrame frame;
-      frame.mFrameNumber = i;
-      if(pAnim->getFrameType() == FRAME_TIME)
-      {
-         frame.mTime = frameTimes[i];
-      }
-      frames.push_back(frame);
-   }
-   pAnim->setFrames(frames);
-   pRasterLayer->setAnimation(pAnim);
-   return true;
 }
 
 void TimelineWidget::setRange(double vmin, double vmax, bool lg)
@@ -424,7 +428,7 @@ bool TimelineWidget::saveAnimationTimes(Animation  *pAnim)
             DynamicObject *pMetadata = static_cast<RasterDataDescriptor*>(pElement->getDataDescriptor())->getMetadata();
             if(pMetadata != NULL)
             {
-               success = success || pMetadata->setAttribute("frameTimes", times);
+               success = success || pMetadata->setAttribute(FRAME_TIMES_METADATA_PATH, times);
             }
          }
       }

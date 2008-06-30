@@ -14,6 +14,7 @@
 #include "AnimationToolBar.h"
 #include "AttachmentPtr.h"
 #include "SessionExplorer.h"
+#include "SpecialMetadata.h"
 #include <QtCore/QDateTime>
 #include <QtGui/QAbstractSpinBox>
 #include <QtGui/QWidget>
@@ -25,10 +26,13 @@ class QDateTimeEdit;
 class QwtScaleDraw;
 class RasterLayer;
 
+#define FRAME_TIMES_METADATA_NAME (std::string("FrameTimes"))
+#define FRAME_TIMES_METADATA_PATH (SPECIAL_METADATA_NAME + "/" + BAND_METADATA_NAME + "/" + FRAME_TIMES_METADATA_NAME)
 namespace TimelineUtils
 {
    QDateTime timetToQDateTime(double val);
    double QDateTimeToTimet(const QDateTime &dt);
+   bool createAnimationForRasterLayer(RasterLayer *pRasterLayer, AnimationController *pController);
    void rescaleAnimation(Animation *pAnim, double newVal, bool scaleEnd);
    void moveAnimation(Animation *pAnim, double newStart);
 }
@@ -83,7 +87,6 @@ private slots:
 private:
    void moveAnimation(Animation *pAnim, double newStart) const;
    void rescaleAnimation(Animation *pAnim, double newVal, bool scaleEnd) const;
-   bool createAnimationForRasterLayer(RasterLayer *pRasterLayer);
    int transform(double value) const;
    void setAnimationController(AnimationController *pController);
    bool saveAnimationTimes(Animation  *pAnim);
