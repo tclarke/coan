@@ -30,6 +30,7 @@
 #include "TypeConverter.h"
 #include "VideoImporter.h"
 #include <boost/rational.hpp>
+#include <QtCore/QMutexLocker>
 #include <QtCore/QString>
 #include <string>
 #include <vector>
@@ -48,7 +49,56 @@ extern "C" static void av_log_callback(void *pPtr, int level, const char *pFmt, 
    logBuffer.vsprintf(pFmt, vl);
 }
 
-FfmpegRasterPager::FfmpegRasterPager() : mBytesRemaining(0), mpRawPacketData(NULL),
+FfmpegRasterPage::FfmpegRasterPage(unsigned int key,
+                                   FfmpegRasterPage::Unit &data,
+                                   int64_t offset,
+                                   unsigned int rows,
+                                   unsigned int columns,
+                                   unsigned int bands) :
+            mData(data), mKey(key), mOffset(offset), mRows(rows), mColumns(columns), mBands(bands)
+{
+   mData.inc();
+}
+
+FfmpegRasterPage::~FfmpegRasterPage()
+{
+   mData.dec();
+}
+
+void *FfmpegRasterPage::getRawData()
+{
+   return mData.mpData + mOffset;
+}
+
+unsigned int FfmpegRasterPage::getNumRows()
+{
+   return mRows;
+}
+
+unsigned int FfmpegRasterPage::getNumColumns()
+{
+   return mColumns;
+}
+
+unsigned int FfmpegRasterPage::getNumBands()
+{
+   return mBands;
+}
+
+unsigned int FfmpegRasterPage::getInterlineBytes()
+{
+   return 0;
+}
+
+int64_t FfmpegRasterPage::size() const
+{
+   return mData.mSize;
+}
+
+FfmpegRasterPager::FfmpegRasterPager() : mpRaster(NULL), mpDescriptor(NULL),
+                                         mInactivePages(100 * 1024 * 1024), // 100MiB - this should be user tunable
+                                         mPrevFrameNum(-1),
+                                         mBytesRemaining(0), mpRawPacketData(NULL),
                                          mpFormatCtx(NULL), mpCodecCtx(NULL), mStreamId(-1)
 {
    mPacket.data = NULL;
@@ -73,89 +123,156 @@ FfmpegRasterPager::~FfmpegRasterPager()
 
 bool FfmpegRasterPager::getInputSpecification(PlugInArgList *&pArgList)
 {
-   if(!CachedPager::getInputSpecification(pArgList))
-   {
-      return false;
-   }
+   VERIFY(pArgList = Service<PlugInManagerServices>()->getPlugInArgList());
+   pArgList->addArg<RasterElement>(PagedElementArg(), NULL);
    pArgList->addArg("Format Context", NULL);
    pArgList->addArg("Codec Context", NULL);
    return true;
 }
 
-bool FfmpegRasterPager::parseInputArgs(PlugInArgList *pInputArgList)
+bool FfmpegRasterPager::execute(PlugInArgList *pInputArgList, PlugInArgList *pOutArgList)
 {
-   if(!CachedPager::parseInputArgs(pInputArgList))
+   if(pInputArgList == NULL)
    {
       return false;
    }
-   mpFormatCtx = pInputArgList->getPlugInArgValueUnsafe<AVFormatContext>("Format Context");
-   mpCodecCtx = pInputArgList->getPlugInArgValueUnsafe<AVCodecContext>("Codec Context");
-   mStreamId = QString::fromStdString(getRasterElement()->getDataDescriptor()->getFileDescriptor()->getDatasetLocation()).toInt();
+
+   mpRaster = pInputArgList->getPlugInArgValue<RasterElement>(PagedElementArg());
+   if(mpRaster == NULL)
+   {
+      return false;
+   }
+   mpDescriptor = dynamic_cast<RasterDataDescriptor*>(mpRaster->getDataDescriptor());
+   if(mpDescriptor == NULL)
+   {
+      return false;
+   }
+   mpFormatCtx = NULL;
+   mpCodecCtx = NULL;
+   mStreamId = QString::fromStdString(mpDescriptor->getFileDescriptor()->getDatasetLocation()).toInt();
+   if(av_open_input_file(&mpFormatCtx, mpDescriptor->getFileDescriptor()->getFilename().getFullPathAndName().c_str(), NULL, 0, NULL) != 0 ||
+      av_find_stream_info(mpFormatCtx) < 0)
+   {
+      return false;
+   }
+   mpCodecCtx = mpFormatCtx->streams[mStreamId]->codec;
+   AVCodec *pCodec = avcodec_find_decoder(mpCodecCtx->codec_id);
+   VERIFY(pCodec != NULL);
+   if(pCodec->capabilities & CODEC_CAP_TRUNCATED)
+   {
+      mpCodecCtx->flags |= CODEC_FLAG_TRUNCATED;
+   }
+   if(avcodec_open(mpCodecCtx, pCodec) < 0)
+   {
+      return false;
+   }
    return (mpFormatCtx != NULL) && (mpCodecCtx != NULL);
 }
 
-bool FfmpegRasterPager::openFile(const std::string& filename)
+RasterPage *FfmpegRasterPager::getPage(DataRequest *pOriginalRequest,
+                                       DimensionDescriptor startRow,
+                                       DimensionDescriptor startColumn,
+                                       DimensionDescriptor startBand)
 {
-   return true;
-}
+   QMutexLocker locker(&mLock);
 
-CachedPage::UnitPtr FfmpegRasterPager::fetchUnit(DataRequest *pOriginalRequest)
-{
-   unsigned int startRow = pOriginalRequest->getStartRow().getOriginalNumber();
-   unsigned int startColumn = pOriginalRequest->getStartColumn().getOriginalNumber();
-   int frameNum = pOriginalRequest->getStartBand().getOriginalNumber();
-   int64_t frameOffset = startRow * mpCodecCtx->width + startColumn;
-   int64_t fullFrameSize = mpCodecCtx->width * mpCodecCtx->height;
-   int64_t frameSize = fullFrameSize - frameOffset;
-   boost::shared_ptr<CachedPage::CacheUnit> pUnit;
-
-   if(frameNum != mpCodecCtx->frame_number)
+   if(!startBand.isOriginalNumberValid() || !startRow.isOriginalNumberValid() || !startColumn.isOriginalNumberValid())
    {
-      if(mFrameTimes.empty())
+      return NULL;
+   }
+   unsigned int frameNum = startBand.getOriginalNumber();
+   unsigned int frameKey = (frameNum / mpCodecCtx->gop_size) * mpCodecCtx->gop_size;
+   unsigned bandsLeft = mpCodecCtx->gop_size - (frameNum - frameKey);
+   if(pOriginalRequest->getConcurrentBands() != 1)
+   {
+      return NULL;
+   }
+   int64_t offset = startRow.getOriginalNumber() * mpCodecCtx->width + startColumn.getOriginalNumber();
+
+   if(mInactivePages.contains(frameKey))
+   {
+      // activate a cached GOP
+      FfmpegRasterPage::Unit *pUnit = mInactivePages.take(frameKey);
+      mActivePages[frameKey] = pUnit;
+   }
+   if(mActivePages.contains(frameKey))
+   {
+      offset += (frameNum - frameKey) * avpicture_get_size(PIX_FMT_GRAY8, mpCodecCtx->width, mpCodecCtx->height);
+      return new FfmpegRasterPage(frameKey, *mActivePages[frameKey], offset, mpCodecCtx->height, mpCodecCtx->width, bandsLeft);
+   }
+
+   // create a new page unit
+   //
+   int64_t unitDataSize = avpicture_get_size(PIX_FMT_GRAY8, mpCodecCtx->width, mpCodecCtx->height) * mpCodecCtx->gop_size;
+   uint8_t *pUnitData = new uint8_t[unitDataSize];
+   std::auto_ptr<FfmpegRasterPage::Unit> pUnit(new FfmpegRasterPage::Unit(pUnitData, unitDataSize));
+   
+   // seek to the beginning of the GOP
+   if(frameKey != (mPrevFrameNum + 1))
+   {
+      if(av_seek_frame(mpFormatCtx, mStreamId, calculateSeekPosition(frameKey), 0) < 0)
       {
-         const DynamicObject *pMetadata = getRasterElement()->getDataDescriptor()->getMetadata();
-         mFrameTimes = dv_cast<std::vector<double> >(pMetadata->getAttributeByPath(FRAME_TIMES_METADATA_PATH));
-      }
-      if(mFrameTimes.empty())
-      {
-         return pUnit;
-      }
-      double timeInSeconds = mFrameTimes[frameNum];
-      AVRational bq = AV_TIME_BASE_Q;
-      int64_t seekTarget = av_rescale_q(timeInSeconds * AV_TIME_BASE, bq, mpFormatCtx->streams[mStreamId]->time_base);
-      if(av_seek_frame(mpFormatCtx, mStreamId, seekTarget, AVSEEK_FLAG_BACKWARD) < 0)
-      {
-         return pUnit;
+         return NULL;
       }
    }
-   do
+   AVPicture *pFrameGray = reinterpret_cast<AVPicture*>(avcodec_alloc_frame());
+   for(int frm = 0; frm < mpCodecCtx->gop_size; frm++)
    {
       if(!getNextFrame())
       {
-         return pUnit;
+         return NULL;
+      }
+      int64_t frmOffset = avpicture_get_size(PIX_FMT_GRAY8, mpCodecCtx->width, mpCodecCtx->height) * frm;
+      avpicture_fill(pFrameGray, pUnit->mpData + frmOffset, PIX_FMT_GRAY8, mpCodecCtx->width, mpCodecCtx->height);
+      img_convert(pFrameGray, PIX_FMT_GRAY8, reinterpret_cast<AVPicture*>(&mNextFrame),
+            mpCodecCtx->pix_fmt, mpCodecCtx->width, mpCodecCtx->height);
+   }
+   av_free(pFrameGray);
+   mPrevFrameNum = frameKey + mpCodecCtx->gop_size - 1;
+
+   mActivePages[frameKey] = pUnit.release();
+   return new FfmpegRasterPage(frameKey, *mActivePages[frameKey], offset, mpCodecCtx->height, mpCodecCtx->width, bandsLeft);
+}
+
+void FfmpegRasterPager::releasePage(RasterPage *pPage)
+{
+   QMutexLocker locker(&mLock);
+
+   FfmpegRasterPage *pPg = dynamic_cast<FfmpegRasterPage*>(pPage);
+   if(pPg == NULL)
+   {
+      return;
+   }
+   unsigned int frameKey = pPg->mKey;
+   FfmpegRasterPage::Unit &unit = pPg->mData;
+   delete pPg;
+
+   if(unit.mRefCount <= 0)
+   {
+      FfmpegRasterPage::Unit *pOwnedUnit = mActivePages.take(frameKey);
+      if(pOwnedUnit != NULL)
+      {
+         mInactivePages.insert(frameKey, pOwnedUnit, pOwnedUnit->mSize);
       }
    }
-   while(mpCodecCtx->frame_number <= frameNum);
-   char *pData = new char[frameSize];
+}
 
-   AVPicture *pFrameGray = reinterpret_cast<AVPicture*>(avcodec_alloc_frame());
-   uint8_t *pBuf = new uint8_t[avpicture_get_size(PIX_FMT_GRAY8, mpCodecCtx->width, mpCodecCtx->height)];
-   avpicture_fill(pFrameGray, pBuf, PIX_FMT_GRAY8, mpCodecCtx->width, mpCodecCtx->height);
-   img_convert(pFrameGray, PIX_FMT_GRAY8, reinterpret_cast<AVPicture*>(&mNextFrame),
-         mpCodecCtx->pix_fmt, mpCodecCtx->width, mpCodecCtx->height);
+int FfmpegRasterPager::getSupportedRequestVersion() const
+{
+   return 1;
+}
 
-   // copy the data to the page
-   memcpy(pData, pFrameGray->data[0] + frameOffset, frameSize);
+int64_t FfmpegRasterPager::calculateSeekPosition(unsigned int frame) const
+{
+   double frameTime =frame * mpFormatCtx->streams[mStreamId]->r_frame_rate.den /
+            static_cast<double>(mpFormatCtx->streams[mStreamId]->r_frame_rate.num);
+   return calculateSeekPosition(frameTime);
+}
 
-   av_free(pFrameGray);
-   pFrameGray = NULL;
-
-   pUnit.reset(new CachedPage::CacheUnit(pData,
-                                         pOriginalRequest->getStartRow(),
-                                         mpCodecCtx->height - startRow,
-                                         frameSize,
-                                         pOriginalRequest->getStartBand()));
-   return pUnit;
+int64_t FfmpegRasterPager::calculateSeekPosition(double timeInSeconds) const
+{
+   AVRational bq = AV_TIME_BASE_Q;
+   return av_rescale_q(timeInSeconds * AV_TIME_BASE, bq, mpFormatCtx->streams[mStreamId]->time_base);
 }
 
 bool FfmpegRasterPager::getNextFrame()
@@ -285,11 +402,11 @@ std::vector<ImportDescriptor*> VideoImporter::getImportDescriptors(const std::st
             frameCnt = static_cast<unsigned int>(boost::rational_cast<double>(minFrameRate * duration) + 0.5);
          }
          frameTimes.reserve(frameCnt);
-         double startTime = boost::rational_cast<double>(mpFormatCtx->streams[streamId]->start_time * timeBase);
+         double frameTime = 0.0;
          for(unsigned int frameNum = 0; frameNum < frameCnt; frameNum++)
          {
-            double offset = boost::rational_cast<double>(frameNum * minFrameTime);
-            frameTimes.push_back(startTime + offset);
+            frameTimes.push_back(frameTime);
+            frameTime += boost::rational_cast<double>(minFrameTime);
          }
 
          RasterDataDescriptor *pDesc = 
@@ -491,21 +608,8 @@ bool VideoImporter::createRasterPager(RasterElement *pRaster) const
    pFilename->setFullPathAndName(filename);
 
    ExecutableResource pagerPlugIn("FfmpegRasterPager", std::string(), pProgress);
-   pagerPlugIn->getInArgList().setPlugInArgValue(CachedPager::PagedElementArg(), pRaster);
-   pagerPlugIn->getInArgList().setPlugInArgValue(CachedPager::PagedFilenameArg(), pFilename.get());
-   PlugInArg *pArg = NULL;
-   pagerPlugIn->getInArgList().getArg("Format Context", pArg);
-   if(pArg == NULL)
-   {
-      return false;
-   }
-   pArg->setActualValue(mpFormatCtx, false);
-   pagerPlugIn->getInArgList().getArg("Codec Context", pArg);
-   if(pArg == NULL)
-   {
-      return false;
-   }
-   pArg->setActualValue(mpCodecCtx, false);
+   pagerPlugIn->getInArgList().setPlugInArgValue(FfmpegRasterPager::PagedElementArg(), pRaster);
+   pagerPlugIn->getInArgList().setPlugInArgValue(FfmpegRasterPager::PagedFilenameArg(), pFilename.get());
 
    bool success = pagerPlugIn->execute();
 
@@ -520,10 +624,6 @@ bool VideoImporter::createRasterPager(RasterElement *pRaster) const
 
    pRaster->setPager(pPager);
    pagerPlugIn->releasePlugIn();
-
-   // we've passed ownership onto the pager, so we can reset these to NULL so they are not freed
-   mpFormatCtx = NULL;
-   mpCodecCtx = NULL;
 
    pStep->finalize();
    return true;

@@ -79,6 +79,7 @@ protected:
    virtual void mouseReleaseEvent(QMouseEvent *pEvent);
    virtual void paintEvent(QPaintEvent *pEvent);
    virtual void resizeEvent(QResizeEvent *pEvent);
+   virtual void wheelEvent(QWheelEvent *pEvent);
 
 private slots:
    void createNewController(bool skipGui = false, bool timeBased = true, std::string name = std::string());

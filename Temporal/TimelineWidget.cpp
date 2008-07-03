@@ -38,6 +38,7 @@
 #include <QtGui/QPainter>
 #include <QtGui/QPaintEvent>
 #include <QtGui/QResizeEvent>
+#include <QtGui/QWheelEvent>
 #include <qwt_abstract_scale_draw.h>
 #include <qwt_scale_draw.h>
 #include <qwt_scale_engine.h>
@@ -105,7 +106,7 @@ namespace TimelineUtils
             const DynamicObject *pMetadata = pDescriptor->getMetadata();
             try
             {
-               frameTimes = dv_cast<std::vector<double> >(pMetadata->getAttribute(FRAME_TIMES_METADATA_PATH));
+               frameTimes = dv_cast<std::vector<double> >(pMetadata->getAttributeByPath(FRAME_TIMES_METADATA_PATH));
                if(frameTimes.size() < numFrames)
                {
                   frameTimes.clear();
@@ -746,6 +747,37 @@ void TimelineWidget::layout(bool update_geometry)
 void TimelineWidget::resizeEvent(QResizeEvent *pEvent)
 {
    layout(false);
+}
+
+void TimelineWidget::wheelEvent(QWheelEvent *pEvent)
+{
+   if(mpD->mpController == NULL)
+   {
+      return;
+   }
+
+   int frames = pEvent->delta() / 120;
+   if(pEvent->modifiers() == Qt::ShiftModifier)
+   {
+      frames *= 10;
+   }
+   else if(pEvent->modifiers() == Qt::ControlModifier)
+   {
+      frames *= 100;
+   }
+   while(frames != 0)
+   {
+      if(frames < 0)
+      {
+         mpD->mpController->stepBackward();
+         frames++;
+      }
+      else
+      {
+         mpD->mpController->stepForward();
+         frames--;
+      }
+   }
 }
 
 #pragma message(__FILE__ "(" STRING(__LINE__) ") : warning : TODO: add zooming and panning (inherit from scroll area?) (tclarke)")
