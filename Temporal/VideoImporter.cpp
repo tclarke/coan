@@ -366,6 +366,7 @@ std::vector<ImportDescriptor*> VideoImporter::getImportDescriptors(const std::st
    if(av_open_input_file(&mpFormatCtx, filename.c_str(), NULL, 0, NULL) != 0 ||
       av_find_stream_info(mpFormatCtx) < 0)
    {
+
       return descriptors;
    }
    for(int streamId = 0; streamId < mpFormatCtx->nb_streams; streamId++)

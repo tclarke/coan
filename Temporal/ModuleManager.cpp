@@ -11,8 +11,8 @@
 * 22 CFR 120-130
 */
 
+#include "AmfBackgroundSuppression.h"
 #include "ModuleManager.h"
-#include "BackgroundRunningAverage.h"
 #include "Timeline.h"
 #include "VideoImporter.h"
 
@@ -34,7 +34,7 @@ PlugIn* ModuleManager::getPlugIn(unsigned int plugInNumber)
    switch(plugInNumber)
    {
    case 0:
-      pPlugIn = new BackgroundRunningAverage();
+      pPlugIn = new AmfBackgroundSuppression();
       break;
    case 1:
       pPlugIn = new Timeline();
