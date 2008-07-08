@@ -13,8 +13,10 @@
 #include "DockWindow.h"
 #include "MenuBar.h"
 #include "RasterElement.h"
+#include "RasterLayer.h"
 #include "SessionManager.h"
 #include "Slot.h"
+#include "ThresholdLayer.h"
 
 #include <QtGui/QAction>
 #include <QtGui/QMenu>
@@ -29,7 +31,9 @@ namespace
 
       virtual bool accept(SessionItem *pItem) const
       {
-         return dynamic_cast<RasterElement*>(pItem) != NULL;
+         return dynamic_cast<RasterElement*>(pItem) != NULL ||
+                dynamic_cast<RasterLayer*>(pItem) != NULL ||
+                dynamic_cast<ThresholdLayer*>(pItem) != NULL;
       }
    };
 }
@@ -178,7 +182,7 @@ void Timeline::attachToEditorWindow(DockWindow *pDockWindow)
       {
          pDockWindow->setWidget(pWidget);
          pDockWindow->enableSessionItemDrops(new DropFilter);
-         pDockWindow->attach(SIGNAL_NAME(Window, SessionItemDropped), Slot(pWidget, &TimelineWidget::rasterElementDropped));
+         pDockWindow->attach(SIGNAL_NAME(Window, SessionItemDropped), Slot(pWidget, &TimelineWidget::sessionItemDropped));
       }
    }
 }

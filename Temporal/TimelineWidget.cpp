@@ -24,6 +24,7 @@
 #include "SessionExplorer.h"
 #include "SpatialDataView.h"
 #include "SpatialDataWindow.h"
+#include "ThresholdLayer.h"
 #include "TimelineWidget.h"
 #include <cmath>
 #include <boost/any.hpp>
@@ -148,6 +149,70 @@ namespace TimelineUtils
       }
       pAnim->setFrames(frames);
       pRasterLayer->setAnimation(pAnim);
+      return true;
+   }
+
+   bool createAnimationForThresholdLayer(ThresholdLayer *pThresholdLayer, AnimationController *pController)
+   {
+      if(pThresholdLayer == NULL || pController == NULL)
+      {
+         return false;
+      }
+      std::vector<double> frameTimes;
+      unsigned int numFrames = 0;
+      RasterElement *pRasterElement = dynamic_cast<RasterElement*>(pThresholdLayer->getDataElement());
+      if(pRasterElement != NULL)
+      {
+         const RasterDataDescriptor *pDescriptor =
+            dynamic_cast<RasterDataDescriptor*>(pRasterElement->getDataDescriptor());
+         if(pDescriptor != NULL)
+         {
+            numFrames = pDescriptor->getBandCount();
+            const DynamicObject *pMetadata = pDescriptor->getMetadata();
+            try
+            {
+               frameTimes = dv_cast<std::vector<double> >(pMetadata->getAttributeByPath(FRAME_TIMES_METADATA_PATH));
+               if(frameTimes.size() < numFrames)
+               {
+                  frameTimes.clear();
+               }
+            }
+            catch(const std::bad_cast&)
+            {
+               // do nothing
+            }
+         }
+      }
+      if(frameTimes.empty())
+      {
+         double frameTime = pController->getStartFrame();
+         if(frameTime < 0.0)
+         {
+            frameTime = QDateTime::currentDateTime().toUTC().toTime_t();
+         }
+         frameTimes.reserve(numFrames);
+         for(unsigned int i = 0; i < numFrames; i++)
+         {
+            frameTimes.push_back(frameTime);
+            frameTime += 1.0;
+         }
+      }
+      Animation *pAnim = pController->createAnimation(pThresholdLayer->getName());
+      VERIFY(pAnim != NULL);
+
+      std::vector<AnimationFrame> frames;
+      for(unsigned int i = 0; i < numFrames; ++i)
+      {
+         AnimationFrame frame;
+         frame.mFrameNumber = i;
+         if(pAnim->getFrameType() == FRAME_TIME)
+         {
+            frame.mTime = frameTimes[i];
+         }
+         frames.push_back(frame);
+      }
+      pAnim->setFrames(frames);
+      pThresholdLayer->setAnimation(pAnim);
       return true;
    }
 
@@ -304,7 +369,7 @@ void TimelineWidget::polishSessionExplorerContextMenu(Subject &subject, const st
    }
 }
 
-void TimelineWidget::rasterElementDropped(Subject &subject, const std::string &signal, const boost::any &v)
+void TimelineWidget::sessionItemDropped(Subject &subject, const std::string &signal, const boost::any &v)
 {
    SessionItem *pItem = boost::any_cast<SessionItem*>(v);
    if(pItem == NULL)
@@ -313,6 +378,7 @@ void TimelineWidget::rasterElementDropped(Subject &subject, const std::string &s
    }
    RasterElement *pRasterElement = dynamic_cast<RasterElement*>(pItem);
    RasterLayer *pRasterLayer = dynamic_cast<RasterLayer*>(pItem);
+   ThresholdLayer *pThresholdLayer = dynamic_cast<ThresholdLayer*>(pItem);
    if(pRasterElement != NULL)
    {
       std::vector<Window*> windows;
@@ -321,18 +387,26 @@ void TimelineWidget::rasterElementDropped(Subject &subject, const std::string &s
       {
          SpatialDataView *pView = static_cast<SpatialDataWindow*>(*window)->getSpatialDataView();
          std::vector<Layer*> layers;
-         pView->getLayerList()->getLayers(RASTER, layers);
+         pView->getLayerList()->getLayers(layers);
          for(std::vector<Layer*>::iterator layer = layers.begin(); layer != layers.end(); ++layer)
          {
-            RasterLayer *pLayer = static_cast<RasterLayer*>(*layer);
-            RasterElement *pElement = static_cast<RasterElement*>(pLayer->getDataElement());
-            if(pElement == pRasterElement)
+            RasterLayer *pRasterLayer = dynamic_cast<RasterLayer*>(*layer);
+            ThresholdLayer *pThresholdLayer = dynamic_cast<ThresholdLayer*>(*layer);
+            RasterElement *pElement = static_cast<RasterElement*>((*layer)->getDataElement());
+            if(pElement == pRasterElement && (pRasterLayer != NULL || pThresholdLayer != NULL))
             {
                if(mpD->mpController == NULL)
                {
-                  createNewController(true, true, pRasterLayer->getName());
+                  createNewController(true, true, (*layer)->getName());
                }
-               TimelineUtils::createAnimationForRasterLayer(pLayer, mpD->mpController);
+               if(pRasterLayer != NULL)
+               {
+                  TimelineUtils::createAnimationForRasterLayer(pRasterLayer, mpD->mpController);
+               }
+               else
+               {
+                  TimelineUtils::createAnimationForThresholdLayer(pThresholdLayer, mpD->mpController);
+               }
             }
          }
       }
@@ -344,6 +418,14 @@ void TimelineWidget::rasterElementDropped(Subject &subject, const std::string &s
          createNewController(true, true, pRasterLayer->getName());
       }
       TimelineUtils::createAnimationForRasterLayer(pRasterLayer, mpD->mpController);
+   }
+   else if(pThresholdLayer != NULL)
+   {
+      if(mpD->mpController == NULL)
+      {
+         createNewController(true, true, pThresholdLayer->getName());
+      }
+      TimelineUtils::createAnimationForThresholdLayer(pThresholdLayer, mpD->mpController);
    }
    layout(true);
 }

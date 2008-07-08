@@ -25,6 +25,7 @@ class AnimationController;
 class QDateTimeEdit;
 class QwtScaleDraw;
 class RasterLayer;
+class ThresholdLayer;
 
 #define FRAME_TIMES_METADATA_NAME (std::string("FrameTimes"))
 #define FRAME_TIMES_METADATA_PATH (SPECIAL_METADATA_NAME + "/" + BAND_METADATA_NAME + "/" + FRAME_TIMES_METADATA_NAME)
@@ -33,6 +34,7 @@ namespace TimelineUtils
    QDateTime timetToQDateTime(double val);
    double QDateTimeToTimet(const QDateTime &dt);
    bool createAnimationForRasterLayer(RasterLayer *pRasterLayer, AnimationController *pController);
+   bool createAnimationForThresholdLayer(ThresholdLayer *pThresholdLayer, AnimationController *pController);
    void rescaleAnimation(Animation *pAnim, double newVal, bool scaleEnd);
    void moveAnimation(Animation *pAnim, double newStart);
 }
@@ -48,7 +50,7 @@ public:
    void controllerChanged(Subject &subject, const std::string &signal, const boost::any &v);
    void currentFrameChanged(Subject &subject, const std::string &signal, const boost::any &v);
    void polishSessionExplorerContextMenu(Subject &subject, const std::string &signal, const boost::any &v);
-   void rasterElementDropped(Subject &subject, const std::string &signal, const boost::any &v);
+   void sessionItemDropped(Subject &subject, const std::string &signal, const boost::any &v);
 
    void setRange(double vmin, double vmax, bool lg=false);
 

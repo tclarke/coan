@@ -12,6 +12,7 @@
 #include "DataAccessor.h"
 #include "DataAccessorImpl.h"
 #include "DataRequest.h"
+#include "DynamicObject.h"
 #include "ObjectResource.h"
 #include "ProgressTracker.h"
 #include "RasterDataDescriptor.h"
@@ -19,6 +20,8 @@
 #include "RasterUtilities.h"
 #include "SpatialDataView.h"
 #include "switchOnEncoding.h"
+#include "ThresholdLayer.h"
+#include "TimelineWidget.h"
 
 namespace
 {
@@ -76,6 +79,19 @@ BackgroundSuppressionShell::InitializeReturnType AmfBackgroundSuppression::initi
    {
       mProgress.report("Unable to initialize background model.", 0, ERRORS, true);
       return INIT_ERROR;
+   }
+   DynamicObject *pForeMeta = mForeground->getMetadata();
+   DynamicObject *pFrameMeta = pDesc->getMetadata();
+   if(pForeMeta != NULL && pFrameMeta != NULL)
+   {
+      try
+      {
+         std::vector<double> frameTimes = dv_cast<std::vector<double> >(pFrameMeta->getAttributeByPath(FRAME_TIMES_METADATA_PATH));
+         pForeMeta->setAttributeByPath(FRAME_TIMES_METADATA_PATH, frameTimes);
+      }
+      catch(const std::bad_cast&)
+      {
+      }
    }
    FactoryResource<DataRequest> request;
    request->setWritable(true);
@@ -170,8 +186,14 @@ bool AmfBackgroundSuppression::displayResults()
 {
    if(getView() != NULL)
    {
-      //getView()->createLayer(RASTER, mForeground.release());
-      getView()->createLayer(RASTER, mBackground.release());
+      ThresholdLayer *pLayer = static_cast<ThresholdLayer*>(getView()->createLayer(THRESHOLD, mForeground.release()));
+      if(pLayer == NULL)
+      {
+         return false;
+      }
+      pLayer->setPassArea(UPPER);
+      pLayer->setRegionUnits(RAW_VALUE);
+      pLayer->setFirstThreshold(25);
    }
    return true;
 }
