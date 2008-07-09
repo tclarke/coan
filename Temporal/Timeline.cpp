@@ -40,6 +40,7 @@ namespace
 
 Timeline::Timeline() : mpWindowAction(NULL)
 {
+   Q_INIT_RESOURCE(temporal);
    AlgorithmShell::setName("Animation Timeline");
    setCreator("Ball Aerospace & Technologies Corp.");
    setCopyright("Copyright 2008 BATC");
@@ -50,6 +51,7 @@ Timeline::Timeline() : mpWindowAction(NULL)
    allowMultipleInstances(false);
    destroyAfterExecute(false);
    setProductionStatus(false);
+   addDependencyCopyright("Timeline", "Some Icons by http://dryicons.com");
 }
 
 Timeline::~Timeline()
@@ -74,6 +76,7 @@ Timeline::~Timeline()
       pWindow->detach(SIGNAL_NAME(DockWindow, Hidden), Slot(this, &Timeline::windowHidden));
       Service<DesktopServices>()->deleteWindow(pWindow);
    }
+   Q_CLEANUP_RESOURCE(temporal);
 }
 
 void Timeline::windowHidden(Subject &subject, const std::string &signal, const boost::any &v)
@@ -138,13 +141,26 @@ void Timeline::createMenuItem()
       mpWindowAction = pMenuBar->addCommand("&View/&" + getWindowName(), getName(), pBeforeAction);
       if(mpWindowAction != NULL)
       {
+         mpWindowAction->setIcon(getIcon());
          mpWindowAction->setAutoRepeat(false);
          mpWindowAction->setCheckable(true);
          mpWindowAction->setToolTip(QString::fromStdString(getWindowName()));
          mpWindowAction->setStatusTip("Toggles the display of the " + QString::fromStdString(getWindowName()));
          connect(mpWindowAction, SIGNAL(triggered(bool)), this, SLOT(displayEditorWindow(bool)));
+
+         ToolBar *pToolBar = static_cast<ToolBar*>(Service<DesktopServices>()->getWindow("Temporal", TOOLBAR));
+         if(pToolBar != NULL)
+         {
+            pToolBar->addButton(mpWindowAction);
+         }
       }
    }
+}
+
+const QIcon &Timeline::getIcon() const
+{
+   static QIcon sIcon(":/temporal/timeline.png");
+   return sIcon;
 }
 
 bool Timeline::createEditorWindow()
@@ -158,6 +174,7 @@ bool Timeline::createEditorWindow()
          pEditorWindow = static_cast<DockWindow*>(Service<DesktopServices>()->createWindow(getWindowName(), DOCK_WINDOW));
          if(pEditorWindow != NULL)
          {
+            pEditorWindow->setIcon(getIcon());
             attachToEditorWindow(pEditorWindow);
             pEditorWindow->hide();
          }

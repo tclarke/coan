@@ -33,6 +33,7 @@ public:
    bool getOutputSpecification(PlugInArgList*&) { return true; }
 
    bool setBatch() { return false; }
+   const QIcon &getIcon() const;
 
    bool serialize(SessionItemSerializer &serializer) const;
    bool deserialize(SessionItemDeserializer &deserializer);
