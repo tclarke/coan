@@ -11,9 +11,12 @@
 #define BACKGROUNDSUPPRESSIONSHELL_H__
 
 #include "AlgorithmShell.h"
+#include "Animation.h"
+#include "AttachmentPtr.h"
 #include "DataAccessor.h"
 #include "ProgressTracker.h"
 
+#include <boost/any.hpp>
 #include <vector>
 
 class RasterElement;
@@ -22,12 +25,27 @@ class SpatialDataView;
 class BackgroundSuppressionShell : public AlgorithmShell
 {
 public:
+
+   /**
+    * Specified wrapping behavior for convolving.
+    */
+   enum WrapTypeEnum
+   {
+      CLAMP, /**< No wrapping is performed. When on an edge, the parts of the filter off edge will be treated as 0 valued */
+      WRAP,  /**< The data is wrapped into a torroid. When on the top edge, for example, the parts of the filter off edge will be
+                 filled with data from the bottom. */
+      EXTEND /**< The parts of the filter off edge will be treated as having the same value as the row, column, or diagnol
+                  element which is closest to the off edge portion. */
+   };
+
    BackgroundSuppressionShell();
    virtual ~BackgroundSuppressionShell();
 
    virtual bool getInputSpecification(PlugInArgList *&pArgList);
    virtual bool getOutputSpecification(PlugInArgList *&pArgList);
    virtual bool execute(PlugInArgList *pInArgList, PlugInArgList *pOutArgList);
+
+   void processNextStreamingFrame(Subject &subject, const std::string &signal, const boost::any &data);
 
 protected:
    /**
@@ -50,7 +68,7 @@ protected:
     *
     * @return True if successful, false if processing should end.
     */
-   virtual bool preprocess() = 0;
+   virtual bool preprocess();
 
    /**
     * Recursive step 2.
@@ -139,13 +157,50 @@ protected:
     */
    SpatialDataView *getView() const;
 
+   /**
+    * Filter the temporary frame buffer.
+    *
+    * @param size
+    *        The size of the box filter. Typical values are 3 and 5. This must be an odd number less than 9.
+    * @param wrap
+    *        Edge wrapping behavior. See WrapTypeEnum for details.
+    * @return True if successfull, else false.
+    *
+    * @see getTemporaryFrameBuffer()
+    */
+   bool boxFilter(int size, WrapTypeEnum wrap);
+
+   /**
+    * Return a pointer to the current frame, copied into a temporary buffer.
+    *
+    * This will be copied in the default implementation of preprocess(). If a subclass
+    * plans on calling this method, the base implementation of preprocess() must be called.
+    *
+    * @return A pointer to the temporary buffer. The type will match the type of the RasterElement.
+    */
+   void *getTemporaryFrameBuffer();
+
+   /**
+    * Is the plug-in in streaming mode?
+    *
+    * @return True if steaming, false if batched
+    */
+   bool isStreaming() const { return mIsStreaming; }
+
    ProgressTracker mProgress;
 
 private:
+   bool processFrame();
+
+   AttachmentPtr<Animation> mpAnimation;
    unsigned int mCurrentFrame;
+   double mCurrentProgress;
+   double mProgressStep;
    RasterElement *mpRaster;
    bool mSingleForegroundMask;
    SpatialDataView *mpView;
+   std::auto_ptr<char> mpTemporaryBuffer;
+   bool mIsStreaming;
 };
 
 #endif

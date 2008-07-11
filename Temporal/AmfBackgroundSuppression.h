@@ -10,6 +10,7 @@
 #ifndef AMFBACKGROUNDSUPPRESSION_H__
 #define AMFBACKGROUNDSUPPRESSION_H__
 
+#include "AoiElement.h"
 #include "BackgroundSuppressionShell.h"
 #include "RasterElement.h"
 
@@ -29,7 +30,8 @@ protected:
 
 private:
    ModelResource<RasterElement> mBackground;
-   ModelResource<RasterElement> mForeground;
+   ModelResource<AoiElement> mForeground;
+   double mThreshold;
 };
 
 #endif

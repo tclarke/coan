@@ -9,6 +9,7 @@
 
 #include "AmfBackgroundSuppression.h"
 #include "AoiElement.h"
+#include "BitMask.h"
 #include "DataAccessor.h"
 #include "DataAccessorImpl.h"
 #include "DataRequest.h"
@@ -26,9 +27,9 @@
 namespace
 {
    template<typename T>
-   void updateMedianEstimate(T *pBackground, void *pFrameVoid)
+   void updateMedianEstimate(T *pBackground, void *pFrameVoid, int off)
    {
-      T *pFrame = reinterpret_cast<T*>(pFrameVoid);
+      T *pFrame = reinterpret_cast<T*>(pFrameVoid) + off;
       if(*pFrame > *pBackground)
       {
          (*pBackground)++;
@@ -39,16 +40,19 @@ namespace
       }
    }
    template<typename T>
-   void setDiff(T *pBackground, void *pFrameVoid, void *pForegroundVoid)
+   void setDiff(T *pBackground, void *pFrameVoid, int off, BitMask *pPoints, int row, int col, double threshold)
    {
-      T *pFrame = reinterpret_cast<T*>(pFrameVoid);
-      T *pForeground = reinterpret_cast<T*>(pForegroundVoid);
-      *pForeground = static_cast<T>(fabs(static_cast<double>(*pFrame) - *pBackground));
+      T *pFrame = reinterpret_cast<T*>(pFrameVoid) + off;
+      if(fabs(static_cast<double>(*pFrame) - *pBackground) > static_cast<T>(threshold))
+      {
+         pPoints->setPixel(col, row, true);
+      }
    }
 }
 
 AmfBackgroundSuppression::AmfBackgroundSuppression() : mBackground(static_cast<RasterElement*>(NULL)),
-                                                       mForeground(static_cast<RasterElement*>(NULL))
+                                                       mForeground(static_cast<AoiElement*>(NULL)),
+                                                       mThreshold(20.0)
 {
    setName("Approximated Median Filter Background Suppression");
    setDescription("Extract the foreground from video frames using an approximated median filter background model.");
@@ -73,25 +77,11 @@ BackgroundSuppressionShell::InitializeReturnType AmfBackgroundSuppression::initi
    RasterDataDescriptor *pDesc = static_cast<RasterDataDescriptor*>(getRasterElement()->getDataDescriptor());
    mBackground = ModelResource<RasterElement>(RasterUtilities::createRasterElement("AMF Background Model",
       pDesc->getRowCount(), pDesc->getColumnCount(), pDesc->getDataType(), true, getRasterElement()));
-   mForeground = ModelResource<RasterElement>(RasterUtilities::createRasterElement("AMF Foreground",
-      pDesc->getRowCount(), pDesc->getColumnCount(), pDesc->getBandCount(), pDesc->getDataType(), BSQ, true, getRasterElement()));
+   mForeground = ModelResource<AoiElement>("AMF Foreground", getRasterElement());
    if(mBackground.get() == NULL || mForeground.get() == NULL)
    {
       mProgress.report("Unable to initialize background model.", 0, ERRORS, true);
       return INIT_ERROR;
-   }
-   DynamicObject *pForeMeta = mForeground->getMetadata();
-   DynamicObject *pFrameMeta = pDesc->getMetadata();
-   if(pForeMeta != NULL && pFrameMeta != NULL)
-   {
-      try
-      {
-         std::vector<double> frameTimes = dv_cast<std::vector<double> >(pFrameMeta->getAttributeByPath(FRAME_TIMES_METADATA_PATH));
-         pForeMeta->setAttributeByPath(FRAME_TIMES_METADATA_PATH, frameTimes);
-      }
-      catch(const std::bad_cast&)
-      {
-      }
    }
    FactoryResource<DataRequest> request;
    request->setWritable(true);
@@ -110,12 +100,23 @@ BackgroundSuppressionShell::InitializeReturnType AmfBackgroundSuppression::initi
       frameAccessor->nextColumn();
    }
 
+   if(getView() != NULL)
+   {
+      getView()->createLayer(AOI_LAYER, mForeground.release());
+   }
+
+   mThreshold = 2500.0;
+
    return INIT_CONTINUE;
 }
 
 bool AmfBackgroundSuppression::preprocess()
 {
-   return true;
+   if(!BackgroundSuppressionShell::preprocess())
+   {
+      return false;
+   }
+   return boxFilter(3, EXTEND);
 }
 
 bool AmfBackgroundSuppression::updateBackgroundModel()
@@ -124,56 +125,48 @@ bool AmfBackgroundSuppression::updateBackgroundModel()
    FactoryResource<DataRequest> request;
    request->setWritable(true);
    DataAccessor backgroundAccessor = mBackground->getDataAccessor(request.release());
-   DataAccessor frameAccessor = getCurrentFrameAccessor();
+   void *pBuf = getTemporaryFrameBuffer();
    for(unsigned int row = 0; row < pDesc->getRowCount(); row++)
    {
       for(unsigned int col = 0; col < pDesc->getColumnCount(); col++)
       {
-         if(!backgroundAccessor.isValid() || !frameAccessor.isValid())
+         if(!backgroundAccessor.isValid())
          {
             return false;
          }
-         switchOnEncoding(pDesc->getDataType(), updateMedianEstimate, backgroundAccessor->getColumn(), frameAccessor->getColumn());
+         switchOnEncoding(pDesc->getDataType(), updateMedianEstimate, backgroundAccessor->getColumn(),
+            pBuf, row * pDesc->getColumnCount() + col);
          backgroundAccessor->nextColumn();
-         frameAccessor->nextColumn();
       }
       backgroundAccessor->nextRow();
-      frameAccessor->nextRow();
    }
    return true;
 }
 
 bool AmfBackgroundSuppression::extractForeground()
 {
-   RasterDataDescriptor *pDesc = static_cast<RasterDataDescriptor*>(mForeground->getDataDescriptor());
+   RasterDataDescriptor *pDesc = static_cast<RasterDataDescriptor*>(mBackground->getDataDescriptor());
    FactoryResource<DataRequest> backgroundRequest;
    DataAccessor backgroundAccessor = mBackground->getDataAccessor(backgroundRequest.release());
-   FactoryResource<DataRequest> foregroundRequest;
-   foregroundRequest->setWritable(true);
-   foregroundRequest->setInterleaveFormat(BSQ);
-   DimensionDescriptor frame = pDesc->getBands()[getCurrentFrame()];
-   foregroundRequest->setBands(frame, frame, 1);
-   DataAccessor foregroundAccessor = mForeground->getDataAccessor(foregroundRequest.release());
-   DataAccessor frameAccessor = getCurrentFrameAccessor();
+   void *pBuf = getTemporaryFrameBuffer();
+   FactoryResource<BitMask> pPoints;
    for(unsigned int row = 0; row < pDesc->getRowCount(); row++)
    {
       for(unsigned int col = 0; col < pDesc->getColumnCount(); col++)
       {
-         if(!backgroundAccessor.isValid() || !frameAccessor.isValid() || !foregroundAccessor.isValid())
+         if(!backgroundAccessor.isValid())
          {
             return false;
          }
          switchOnEncoding(pDesc->getDataType(), setDiff, backgroundAccessor->getColumn(),
-            frameAccessor->getColumn(),
-            foregroundAccessor->getColumn());
+            pBuf, row * pDesc->getColumnCount() + col,
+            pPoints.get(), row, col, mThreshold);
          backgroundAccessor->nextColumn();
-         foregroundAccessor->nextColumn();
-         frameAccessor->nextColumn();
       }
       backgroundAccessor->nextRow();
-      foregroundAccessor->nextRow();
-      frameAccessor->nextRow();
    }
+   mForeground->clearPoints();
+   mForeground->addPoints(pPoints.get());
    return true;
 }
 
@@ -184,16 +177,5 @@ bool AmfBackgroundSuppression::validate()
 
 bool AmfBackgroundSuppression::displayResults()
 {
-   if(getView() != NULL)
-   {
-      ThresholdLayer *pLayer = static_cast<ThresholdLayer*>(getView()->createLayer(THRESHOLD, mForeground.release()));
-      if(pLayer == NULL)
-      {
-         return false;
-      }
-      pLayer->setPassArea(UPPER);
-      pLayer->setRegionUnits(RAW_VALUE);
-      pLayer->setFirstThreshold(25);
-   }
    return true;
 }

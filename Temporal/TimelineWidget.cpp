@@ -399,6 +399,7 @@ void TimelineWidget::sessionItemDropped(Subject &subject, const std::string &sig
                {
                   createNewController(true, true, (*layer)->getName());
                }
+               pView->setAnimationController(mpD->mpController);
                if(pRasterLayer != NULL)
                {
                   TimelineUtils::createAnimationForRasterLayer(pRasterLayer, mpD->mpController);
