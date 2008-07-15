@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="Windows-1252"?>
+<VisualStudioPropertySheet
+	ProjectType="Visual C++"
+	Version="8.00"
+	Name="dcmtk"
+	>
+	<Tool
+		Name="VCCLCompilerTool"
+		AdditionalIncludeDirectories="&quot;$(DCMTK)\include\$(PlatformName)&quot;;&quot;$(DCMTK)\include&quot;"
+	/>
+	<Tool
+		Name="VCLinkerTool"
+		AdditionalDependencies="ofstd.lib dcmdata.lib dcmimgle.lib dcmimage.lib ijg8.lib ijg12.lib ijg16.lib dcmjpeg.lib netapi32.lib wsock32.lib"
+		AdditionalLibraryDirectories="$(DCMTK)\lib\$(PlatformName)"
+	/>
+</VisualStudioPropertySheet>

@@ -1,0 +1,20 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 9.00
+# Visual C++ Express 2005
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DICOM", "DICOM.vcproj", "{C17BA2E9-164D-4BDB-BFF3-751966A70285}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C17BA2E9-164D-4BDB-BFF3-751966A70285}.Debug|Win32.ActiveCfg = Debug|Win32
+		{C17BA2E9-164D-4BDB-BFF3-751966A70285}.Debug|Win32.Build.0 = Debug|Win32
+		{C17BA2E9-164D-4BDB-BFF3-751966A70285}.Release|Win32.ActiveCfg = Release|Win32
+		{C17BA2E9-164D-4BDB-BFF3-751966A70285}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
