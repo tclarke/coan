@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="Windows-1252"?>
+<VisualStudioPropertySheet
+	ProjectType="Visual C++"
+	Version="8.00"
+	Name="cfitio"
+	>
+	<Tool
+		Name="VCCLCompilerTool"
+		AdditionalIncludeDirectories="&quot;$(CFITIO)\include&quot;;&quot;$(ASTLIB)\include&quot;"
+	/>
+	<Tool
+		Name="VCLinkerTool"
+		AdditionalDependencies="ast.lib cfitio.lib"
+		AdditionalLibraryDirectories="&quot;$(CFITIO)\lib\$(PlatformName)&quot;;&quot;$(ASTLIB)\lib\$(PlatformName)&quot;"
+	/>
+</VisualStudioPropertySheet>

@@ -14,31 +14,55 @@
 #ifndef FITSIMPORTER_H
 #define FITSIMPORTER_H
 
+#include "CachedPager.h"
 #include "RasterElementImporterShell.h"
 
-#include <memory>
-#include <string>
-#include <vector>
+#include <fitsio.h>
+#define _TCHAR_DEFINED
 
-class DynamicObject;
-class LargeFileResource;
-class QWidget;
+class FitsFileResource
+{
+   fitsfile *mpFile;
+   int mStatus;
+
+public:
+   FitsFileResource();
+   explicit FitsFileResource(const std::string &fname);
+   ~FitsFileResource();
+   bool isValid() const;
+   std::string getStatus() const;
+   operator fitsfile*();
+   void reset(const std::string &fname);
+};
 
 class FitsImporter : public RasterElementImporterShell
 {
 public:
    FitsImporter();
-   ~FitsImporter();
+   virtual ~FitsImporter();
 
-   std::vector<ImportDescriptor*> getImportDescriptors(const std::string& filename);
-   unsigned char getFileAffinity(const std::string& filename);
-   QWidget *getImportOptionsWidget(DataDescriptor *pDescriptor);
-
-protected:
-   void defaultAxisMappings(int numAxis, int &row, int &column, int &band) const;
+   virtual std::vector<ImportDescriptor*> getImportDescriptors(const std::string &filename);
+   virtual unsigned char getFileAffinity(const std::string &filename);
+   virtual bool validate(const DataDescriptor *pDescriptor, std::string &errorMessage) const;
+   virtual bool createRasterPager(RasterElement *pRaster) const;
 
 private:
-   std::auto_ptr<QWidget> mImportOptionsWidget;
+   std::vector<std::string> mErrors;
+   std::vector<std::string> mWarnings;
+};
+
+
+class FitsRasterPager : public CachedPager
+{
+public:
+   FitsRasterPager();
+   virtual ~FitsRasterPager();
+
+private:
+   virtual bool openFile(const std::string &filename);
+   virtual CachedPage::UnitPtr fetchUnit(DataRequest *pOriginalRequest);
+
+   FitsFileResource mpFile;
 };
 
 #endif

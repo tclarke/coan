@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="Windows-1252"?>
+<VisualStudioPropertySheet
+	ProjectType="Visual C++"
+	Version="8.00"
+	Name="FitsMacros"
+	InheritedPropertySheets="$(OPTICKS_CODE_DIR)\application\CompileSettings\Macros.vsprops"
+	>
+	<UserMacro
+		Name="CODE_DIR"
+		Value="$(OPTICKS_CODE_DIR)"
+	/>
+	<UserMacro
+		Name="CFITIO"
+		Value="$(OPTICKSDEPENDENCIES)\cfitio"
+	/>
+	<UserMacro
+		Name="ASTLIB"
+		Value="$(OPTICKSDEPENDENCIES)\ast"
+	/>
+</VisualStudioPropertySheet>

@@ -13,7 +13,6 @@
 
 #include "ModuleManager.h"
 #include "FitsImporter.h"
-#include "FitsSignatureImporter.h"
 
 const char *ModuleManager::mspName = "Fits";
 const char *ModuleManager::mspVersion = "1";
@@ -36,7 +35,7 @@ PlugIn* ModuleManager::getPlugIn(unsigned int plugInNumber)
          pPlugIn = static_cast<PlugIn*>(new FitsImporter);
          break;
       case 1:
-         pPlugIn = static_cast<PlugIn*>(new FitsSignatureImporter);
+         pPlugIn = static_cast<PlugIn*>(new FitsRasterPager);
          break;
    }
    return pPlugIn;

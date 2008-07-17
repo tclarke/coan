@@ -9,6 +9,7 @@
 
 #include "AnimationController.h"
 #include "AppVerify.h"
+#include "BackgroundSuppressionDialog.h"
 #include "BackgroundSuppressionShell.h"
 #include "DataAccessorImpl.h"
 #include "DataRequest.h"
@@ -123,21 +124,34 @@ bool BackgroundSuppressionShell::execute(PlugInArgList *pInArgList, PlugInArgLis
    mpView = pInArgList->getPlugInArgValue<SpatialDataView>(Executable::ViewArg());
    RasterDataDescriptor *pDescriptor = static_cast<RasterDataDescriptor*>(mpRaster->getDataDescriptor());
    VERIFY(pDescriptor != NULL);
-   unsigned int totalFrames = pDescriptor->getBandCount();
-   mCurrentFrame = 0;
-   for(InitializeReturnType rval = INIT_CONTINUE; rval == INIT_CONTINUE; mCurrentFrame++)
+   mIsStreaming = !isBatch();
+
+   if(!isBatch())
    {
-      rval = initializeModel();
-      if(rval == INIT_ERROR)
+      BackgroundSuppressionDialog dlg;
+      if(dlg.exec() == QDialog::Rejected)
       {
+         mProgress.report("Suppression canceled by user.", 0, ABORT, true);
          return false;
       }
+      mIsStreaming = dlg.isStreaming();
+      mpAnimation.reset(dlg.animation());
    }
+
+   unsigned int totalFrames = pDescriptor->getBandCount();
+   mCurrentFrame = 0;
    mProgressStep = 25.0 / (totalFrames - mCurrentFrame);
    mCurrentProgress = mProgressStep;
-   if(isBatch())
+   if(!mIsStreaming)
    {
-      mIsStreaming = true;
+      for(InitializeReturnType rval = INIT_CONTINUE; rval == INIT_CONTINUE; mCurrentFrame++)
+      {
+         rval = initializeModel();
+         if(rval == INIT_ERROR)
+         {
+            return false;
+         }
+      }
       for(; mCurrentFrame < totalFrames; mCurrentFrame++)
       {
          if(isAborted())
@@ -170,28 +184,17 @@ bool BackgroundSuppressionShell::execute(PlugInArgList *pInArgList, PlugInArgLis
    }
    else
    {
-      mIsStreaming = true;
-      // streaming mode
-      mpAnimation.reset(pInArgList->getPlugInArgValue<Animation>("animation"));
-      if(mpAnimation.get() == NULL)
+      for(InitializeReturnType rval = INIT_CONTINUE; rval == INIT_CONTINUE; mCurrentFrame++)
       {
-         AnimationController *pController = mpView->getAnimationController();
-         if(pController != NULL)
+         rval = initializeModel();
+         if(rval == INIT_ERROR)
          {
-            const std::vector<Animation*> &animations = pController->getAnimations();
-            for(std::vector<Animation*>::const_iterator animation = animations.begin(); animation != animations.end(); ++animation)
-            {
-               if((*animation)->getName() == mpView->getName())
-               {
-                  mpAnimation.reset(*animation);
-                  break;
-               }
-            }
+            return false;
          }
       }
       if(mpAnimation.get() == NULL)
       {
-         mProgress.report("Not animation specified, unable to perform streaming execution. Provide and animation or run in batch mode.",
+         mProgress.report("No animation specified, unable to perform streaming execution. Provide and animation or run in batch mode.",
             0, ERRORS, true);
          return false;
       }
