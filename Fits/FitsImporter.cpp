@@ -157,7 +157,7 @@ std::vector<ImportDescriptor*> FitsImporter::getImportDescriptors(const std::str
       mErrors.push_back(pFile.getStatus());
       return descriptors;
    }
-   
+
    int hduCnt = 0;
    CHECK_FITS(fits_get_num_hdus(pFile, &hduCnt, &status), false, return descriptors);
    for(int hdu = 1; hdu <= hduCnt; hdu++)
@@ -167,6 +167,29 @@ std::vector<ImportDescriptor*> FitsImporter::getImportDescriptors(const std::str
       int hduType;
       CHECK_FITS(fits_movabs_hdu(pFile, hdu, &hduType, &status), false, continue);
       ImportDescriptorResource pImportDescriptor(static_cast<ImportDescriptor*>(NULL));
+      FactoryResource<DynamicObject> pMetadata;
+      VERIFYRV(pMetadata.get() != NULL, descriptors);
+      { // scope
+         char pCard[81], pValue[81];
+         int nkeys = 0;
+         CHECK_FITS(fits_get_hdrspace(pFile, &nkeys, NULL, &status), true, ;);
+         for(int keyidx = 1; keyidx <= nkeys; keyidx++)
+         {
+            CHECK_FITS(fits_read_record(pFile, keyidx, pCard, &status), true, continue);
+            std::string name = StringUtilities::toDisplayString(keyidx);
+            std::vector<std::string> splitval = StringUtilities::split(std::string(pCard), '=');
+            if(splitval.size() > 1)
+            {
+               name = StringUtilities::stripWhitespace(splitval.front());
+            }
+            CHECK_FITS(fits_parse_value(pCard, pValue, NULL, &status), true, pValue[0]=0);
+            std::string val = StringUtilities::stripWhitespace(std::string(pValue));
+            if(!val.empty())
+            {
+               pMetadata->setAttributeByPath("FITS/" + name, val);
+            }
+         }
+      }
       switch(hduType)
       {
       case IMAGE_HDU:
@@ -177,7 +200,7 @@ std::vector<ImportDescriptor*> FitsImporter::getImportDescriptors(const std::str
             EncodingType encoding;
             InterleaveFormatType interleave(BSQ);
             unsigned int rows=0, cols=0, bands=1;
-            
+
             int bitpix, naxis;
             long axes[3];
             CHECK_FITS(fits_get_img_param(pFile, 3, &bitpix, &naxis, axes, &status), false, continue);
@@ -202,6 +225,7 @@ std::vector<ImportDescriptor*> FitsImporter::getImportDescriptors(const std::str
                mWarnings.push_back("Unsupported BITPIX value " + StringUtilities::toDisplayString(bitpix) + ".");
                continue;
             }
+            encoding = checkForOverflow(encoding, pMetadata.get());
             if(naxis == 2)
             {
                cols = axes[0];
@@ -221,7 +245,7 @@ std::vector<ImportDescriptor*> FitsImporter::getImportDescriptors(const std::str
             }
 
             RasterDataDescriptor *pDataDesc = RasterUtilities::generateRasterDataDescriptor(
-                     datasetName, NULL, rows, cols, bands, interleave, encoding, IN_MEMORY);
+               datasetName, NULL, rows, cols, bands, interleave, encoding, IN_MEMORY);
             // parse any WCS headers
             {
                astBegin;
@@ -265,39 +289,126 @@ std::vector<ImportDescriptor*> FitsImporter::getImportDescriptors(const std::str
          continue;
       }
       RasterFileDescriptor *pFileDesc = 
-         static_cast<RasterFileDescriptor*>(RasterUtilities::generateAndSetFileDescriptor(pImportDescriptor->getDataDescriptor(),
+         dynamic_cast<RasterFileDescriptor*>(RasterUtilities::generateAndSetFileDescriptor(pImportDescriptor->getDataDescriptor(),
          filename, StringUtilities::toDisplayString(hdu), BIG_ENDIAN));
-      if(!gcps.empty())
+      if(pFileDesc != NULL && !gcps.empty())
       {
          pFileDesc->setGcps(gcps);
       }
 
-      DynamicObject *pMetadata = pImportDescriptor->getDataDescriptor()->getMetadata();
-      if(pMetadata != NULL)
-      {
-         char pCard[81], pValue[81];
-         int nkeys = 0;
-         CHECK_FITS(fits_get_hdrspace(pFile, &nkeys, NULL, &status), true, ;);
-         for(int keyidx = 1; keyidx <= nkeys; keyidx++)
-         {
-            CHECK_FITS(fits_read_record(pFile, keyidx, pCard, &status), true, continue);
-            std::string name = StringUtilities::toDisplayString(keyidx);
-            std::vector<std::string> splitval = StringUtilities::split(std::string(pCard), '=');
-            if(splitval.size() > 1)
-            {
-               name = StringUtilities::stripWhitespace(splitval.front());
-            }
-            CHECK_FITS(fits_parse_value(pCard, pValue, NULL, &status), true, pValue[0]=0);
-            std::string val = StringUtilities::stripWhitespace(std::string(pValue));
-            if(!val.empty())
-            {
-               pMetadata->setAttributeByPath("FITS/" + name, val);
-            }
-         }
-      }
+      pImportDescriptor->getDataDescriptor()->setMetadata(pMetadata.release());
       descriptors.push_back(pImportDescriptor.release());
-}
+   }
    return descriptors;
+}
+
+EncodingType FitsImporter::checkForOverflow(EncodingType encoding, DynamicObject *pMetadata)
+{
+   double bzero = 0.0, bscale = 1.0, datamax = 0.0;
+   try
+   {
+      bzero = StringUtilities::fromDisplayString<double>(dv_cast<std::string>(pMetadata->getAttributeByPath("FITS/BZERO")));
+   }
+   catch(const std::bad_cast&) {} // empty
+   try
+   {
+      bscale = StringUtilities::fromDisplayString<double>(dv_cast<std::string>(pMetadata->getAttributeByPath("FITS/BSCALE")));
+   }
+   catch(const std::bad_cast&) {} // empty
+   try
+   {
+      datamax = StringUtilities::fromDisplayString<double>(dv_cast<std::string>(pMetadata->getAttributeByPath("FITS/DATAMAX")));
+   }
+   catch(const std::bad_cast&) {} // empty
+
+   double intpart;
+   if(modf(bscale, &intpart) != 0.0)
+   {
+      if(encoding == INT4SCOMPLEX)
+      {
+         mWarnings.push_back("Data scaling will be applied, converting to float complex.");
+         return FLT8COMPLEX;
+      }
+      else if(encoding == FLT8COMPLEX)
+      {
+         return encoding;
+      }
+      else if(encoding != FLT8BYTES)
+      {
+         mWarnings.push_back("Data scaling will be applied, converting to 8-byte float.");
+         return FLT8BYTES;
+      }
+   }
+   if(bzero != 0.0 || bscale != 1.0)
+   {
+      if(datamax == 0.0)
+      {
+         mWarnings.push_back(
+            "Data scaling will be applied, you may need to change the Data Type in the import Data tab or overflow may occur.");
+         return encoding;
+      }
+      double newmax = fabs(datamax * bscale + bzero);
+      switch(encoding)
+      {
+      case INT1SBYTE:
+         if(newmax <= std::numeric_limits<char>::max())
+         {
+            return encoding;
+         }
+         encoding = INT2SBYTES; // fallthru
+      case INT2SBYTES:
+         if(newmax <= std::numeric_limits<short>::max())
+         {
+            return encoding;
+         }
+         encoding = INT4SBYTES; // fallthru
+      case INT4SBYTES:
+         if(newmax > std::numeric_limits<int>::max())
+         {
+            mWarnings.push_back(
+               "Data scaling will be applied, you may need to change the Data Type in the import Data tab or overflow may occur.");
+         }
+         return encoding;
+      case INT1UBYTE:
+         if(newmax <= std::numeric_limits<unsigned char>::max())
+         {
+            return encoding;
+         }
+         encoding = INT2UBYTES; // fallthru
+      case INT2UBYTES:
+         if(newmax <= std::numeric_limits<unsigned short>::max())
+         {
+            return encoding;
+         }
+         encoding = INT4UBYTES; // fallthru
+      case INT4UBYTES:
+         if(newmax > std::numeric_limits<unsigned int>::max())
+         {
+            mWarnings.push_back(
+               "Data scaling will be applied, you may need to change the Data Type in the import Data tab or overflow may occur.");
+         }
+         return encoding;
+      case FLT4BYTES:
+         if(newmax <= std::numeric_limits<float>::max())
+         {
+            return encoding;
+         }
+         encoding = FLT8BYTES;
+      case FLT8BYTES:
+         if(newmax == std::numeric_limits<double>::infinity())
+         {
+            mWarnings.push_back(
+               "Data scaling will be applied, you may need to change the Data Type in the import Data tab or overflow may occur.");
+         }
+         return encoding;
+      case INT4SCOMPLEX:
+      case FLT8COMPLEX:
+         mWarnings.push_back(
+            "Data scaling will be applied, you may need to change the Data Type in the import Data tab or overflow may occur.");
+         return encoding;
+      }
+   }
+   return encoding;
 }
 
 unsigned char FitsImporter::getFileAffinity(const std::string &filename)
@@ -406,7 +517,8 @@ bool FitsRasterPager::openFile(const std::string &filename)
 CachedPage::UnitPtr FitsRasterPager::fetchUnit(DataRequest *pOriginalRequest)
 {
    const RasterDataDescriptor *pDesc = static_cast<const RasterDataDescriptor*>(getRasterElement()->getDataDescriptor());
-   long pixcnt = pOriginalRequest->getConcurrentRows() * pDesc->getColumnCount();
+   long maxInRow = std::min(pOriginalRequest->getConcurrentRows(), pDesc->getRowCount() - pOriginalRequest->getStartRow().getOnDiskNumber());
+   long pixcnt = maxInRow * pDesc->getColumnCount();
    long pStartPix[3] = {1,
                         pOriginalRequest->getStartRow().getOnDiskNumber() + 1,
                         pOriginalRequest->getStartBand().getOnDiskNumber() + 1};
@@ -416,7 +528,12 @@ CachedPage::UnitPtr FitsRasterPager::fetchUnit(DataRequest *pOriginalRequest)
    std::auto_ptr<char> pBuffer(new char[bufsize]);
    if(fits_read_pix(mpFile, encodingToDtype(pDesc->getDataType()), pStartPix, pixcnt, NULL, pBuffer.get(), NULL, &status))
    {
-      return CachedPage::UnitPtr();
+      if(status != NUM_OVERFLOW)
+      {
+         char pBuf[31];
+         fits_get_errstatus(status, pBuf);
+         VERIFYRV_MSG(false, CachedPage::UnitPtr(), pBuf);
+      }
    }
    return CachedPage::UnitPtr(new CachedPage::CacheUnit(
       pBuffer.release(), pOriginalRequest->getStartRow(), pOriginalRequest->getConcurrentRows(), bufsize));

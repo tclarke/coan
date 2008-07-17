@@ -3,6 +3,6 @@ Plug-in Version: 0.1
 Author: tclarke
 License: GPL
 Supported Platforms: Win32
-Other Dependencies: puntoexe
+Other Dependencies: dcmtk
 Description:
 This is a DICOM importer. DICOM is a file format used for medical imagery and other medical data.

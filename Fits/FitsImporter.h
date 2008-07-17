@@ -47,6 +47,8 @@ public:
    virtual bool createRasterPager(RasterElement *pRaster) const;
 
 private:
+   EncodingType checkForOverflow(EncodingType encoding, DynamicObject *pMetadata);
+
    std::vector<std::string> mErrors;
    std::vector<std::string> mWarnings;
 };
