@@ -44,6 +44,8 @@ public:
    virtual std::vector<ImportDescriptor*> getImportDescriptors(const std::string &filename);
    virtual unsigned char getFileAffinity(const std::string &filename);
    virtual bool validate(const DataDescriptor *pDescriptor, std::string &errorMessage) const;
+   virtual bool getInputSpecification(PlugInArgList *&pArgList);
+   virtual bool execute(PlugInArgList *pInArgList, PlugInArgList *pOutArgList);
    virtual bool createRasterPager(RasterElement *pRaster) const;
 
 private:
