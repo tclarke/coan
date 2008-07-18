@@ -259,15 +259,11 @@ std::vector<ImportDescriptor*> DicomImporter::getImportDescriptors(const std::st
 
 unsigned char DicomImporter::getFileAffinity(const std::string &filename)
 {
-   if(getImportDescriptors(filename).empty())
+   if(DcmFileFormat().loadFile(filename.c_str()).bad())
    {
-      return Importer::CAN_NOT_LOAD;
+      return CAN_NOT_LOAD;
    }
-   if(!mErrors.empty())
-   {
-      return Importer::CAN_LOAD_FILE_TYPE;
-   }
-   return Importer::CAN_LOAD;
+   return CAN_LOAD;
 }
 
 bool DicomImporter::validate(const DataDescriptor *pDescriptor, std::string &errorMessage) const
