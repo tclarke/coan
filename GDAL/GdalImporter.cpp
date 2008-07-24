@@ -315,14 +315,11 @@ std::vector<ImportDescriptor*> GdalImporter::getImportDescriptors(const std::str
       {
          std::string entry(pDatasetMetadata[idx]);
          std::vector<std::string> kvpair = StringUtilities::split(entry, '=');
-         if(kvpair.size() == 2)
+         if(kvpair.size() == 1)
          {
-            pMetadata->setAttribute(kvpair.front(), kvpair.back());
+            kvpair.push_back("");
          }
-         else
-         {
-            mWarnings.push_back("Unknown metadata: " + entry);
-         }
+         pMetadata->setAttribute(kvpair.front(), kvpair.back());
       }
    }
 
