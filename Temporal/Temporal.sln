@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 9.00
-# Visual C++ Express 2005
+# Visual Studio 2005
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Temporal", "Temporal.vcproj", "{6BAE4BF6-1C59-4A62-910C-BEE07453B84B}"
 EndProject
 Global

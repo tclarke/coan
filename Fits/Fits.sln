@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 9.00
-# Visual C++ Express 2005
+# Visual Studio 2005
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Fits", "Fits.vcproj", "{464E3C7A-473B-47B4-99C9-3421983998D2}"
 EndProject
 Global

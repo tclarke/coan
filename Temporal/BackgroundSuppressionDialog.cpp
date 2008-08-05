@@ -32,8 +32,8 @@ BackgroundSuppressionDialog::BackgroundSuppressionDialog(QWidget *pParent) : QDi
    pStreamingLayout->addWidget(mpAnimation, 0, 1);
 
    QDialogButtonBox *pButtons = new QDialogButtonBox(QDialogButtonBox::Ok|QDialogButtonBox::Cancel, Qt::Horizontal, this);
-   connect(pButtons, SIGNAL(acept()), this, SLOT(accept()));
-   connect(pButtons, SIGNAL(reject()), this, SLOT(reject()));
+   connect(pButtons, SIGNAL(accepted()), this, SLOT(accept()));
+   connect(pButtons, SIGNAL(rejected()), this, SLOT(reject()));
 
    QHBoxLayout *pLayout = new QHBoxLayout(this);
    pLayout->addWidget(mpStreaming);
