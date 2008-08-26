@@ -18,20 +18,22 @@
 #include "FileResource.h"
 #include "RasterElementImporterShell.h"
 
+#include <QtCore/QCache>
+#include <QtCore/QFileInfo>
 
 struct AngelFireFileHeader
 {
-   unsigned char dst;
-   unsigned char numlevels;
-   uint32_t buildnum;
-   uint32_t timeadjust;
-   uint32_t imustatus;
-   uint32_t orthodimensions[2];
-   uint32_t extents[4];
-   uint32_t levelextents[4];
-   uint32_t ncols;
-   uint32_t nrows;
-   uint32_t maxnumtiles;
+   quint8 dst;
+   quint8 numlevels;
+   quint32 buildnum;
+   quint32 timeadjust;
+   quint32 imustatus;
+   quint32 orthodimensions[2];
+   quint32 extents[4];
+   quint32 levelextents[4];
+   quint32 ncols;
+   quint32 nrows;
+   quint32 maxnumtiles;
    double time;
    double imulat;
    double imulon;
@@ -46,9 +48,20 @@ struct AngelFireFileHeader
    float lllon;
    float urlat;
    float urlon;
-   std::auto_ptr<float> points;
-   std::auto_ptr<uint32_t> leveltable;
-   std::auto_ptr<uint32_t> leveltiletable;
+   std::vector<float> points;
+   std::vector<quint32> leveltable;
+   std::vector<quint32> leveltiletable;
+};
+
+struct IndexFile
+{
+   IndexFile() : firstFrameNum(0), numFrames(0), maxwidth(0), maxheight(0) {}
+   QFileInfo indexFile;
+   QString baseName;
+   int firstFrameNum;
+   int numFrames;
+   unsigned int maxwidth;
+   unsigned int maxheight;
 };
 
 class AngelFireImporter : public RasterElementImporterShell
@@ -81,8 +94,8 @@ private:
    virtual bool openFile(const std::string &filename);
    virtual CachedPage::UnitPtr fetchUnit(DataRequest *pOriginalRequest);
 
-   LargeFileResource mFile;
-   AngelFireFileHeader mHeader;
+   QCache<unsigned int, QByteArray> mFileCache;
+   IndexFile mIndex;
 };
 
 #endif
