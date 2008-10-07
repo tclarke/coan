@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="Windows-1252"?>
+<VisualStudioPropertySheet
+	ProjectType="Visual C++"
+	Version="8.00"
+	Name="liblas"
+	>
+	<Tool
+		Name="VCCLCompilerTool"
+		AdditionalIncludeDirectories="$(LIBLAS)\include"
+	/>
+	<Tool
+		Name="VCLinkerTool"
+		AdditionalDependencies="liblas.lib"
+		AdditionalLibraryDirectories="$(LIBLAS)\lib\$(PlatformName)"
+	/>
+</VisualStudioPropertySheet>

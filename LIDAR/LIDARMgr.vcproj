@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="Windows-1252"?>
+<VisualStudioProject
+	ProjectType="Visual C++"
+	Version="8.00"
+	Name="LIDARMgr"
+	ProjectGUID="{C2AA75C7-ABCD-44D5-ABA8-29FA163C74C9}"
+	RootNamespace="LIDARMgr"
+	>
+	<Platforms>
+		<Platform
+			Name="Win32"
+		/>
+		<Platform
+			Name="x64"
+		/>
+	</Platforms>
+	<ToolFiles>
+	</ToolFiles>
+	<Configurations>
+		<Configuration
+			Name="Debug|Win32"
+			ConfigurationType="10"
+			InheritedPropertySheets=".\CompileSettings\LIDARMacros.vsprops"
+			CharacterSet="2"
+			>
+			<Tool
+				Name="VCPostBuildEventTool"
+				Description="Prepping for run..."
+				CommandLine="&quot;$(SolutionDir)\build.py&quot; --prep --mode=debug --arch=32"
+			/>
+		</Configuration>
+		<Configuration
+			Name="Debug|x64"
+			ConfigurationType="10"
+			InheritedPropertySheets=".\CompileSettings\LIDARMacros.vsprops"
+			CharacterSet="2"
+			>
+			<Tool
+				Name="VCPostBuildEventTool"
+				Description="Prepping for run..."
+				CommandLine="&quot;$(SolutionDir)\build.py&quot; --prep --mode=debug --arch=64"
+			/>
+		</Configuration>
+		<Configuration
+			Name="Release|Win32"
+			ConfigurationType="10"
+			InheritedPropertySheets=".\CompileSettings\LIDARMacros.vsprops"
+			CharacterSet="2"
+			WholeProgramOptimization="1"
+			>
+			<Tool
+				Name="VCPostBuildEventTool"
+				Description="Prepping for run..."
+				CommandLine="&quot;$(SolutionDir)\build.py&quot; --prep --mode=release --arch=32"
+			/>
+		</Configuration>
+		<Configuration
+			Name="Release|x64"
+			ConfigurationType="10"
+			InheritedPropertySheets=".\CompileSettings\LIDARMacros.vsprops"
+			CharacterSet="2"
+			WholeProgramOptimization="1"
+			>
+			<Tool
+				Name="VCPostBuildEventTool"
+				Description="Prepping for run..."
+				CommandLine="&quot;$(SolutionDir)\build.py&quot; --prep --mode=release --arch=64"
+			/>
+		</Configuration>
+	</Configurations>
+	<References>
+	</References>
+	<Files>
+	</Files>
+	<Globals>
+	</Globals>
+</VisualStudioProject>
