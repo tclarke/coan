@@ -65,12 +65,14 @@ std::vector<ImportDescriptor*> LasImporter::getImportDescriptors(const std::stri
    ImportDescriptorResource descZ(las.GetName(), TypeConverter::toString<RasterElement>());
    ImportDescriptorResource descI(las.GetName(), TypeConverter::toString<RasterElement>(), NULL, false);
    VERIFYRV(descZ.get() && descI.get(), descriptors);
+   std::vector<liblas::uint32_t> pointsByReturn = header.GetPointRecordsByReturnCount();
    RasterDataDescriptor* pDataDescZ = RasterUtilities::generateRasterDataDescriptor(las.GetName(), NULL,
       static_cast<unsigned int>(std::ceil(width)), static_cast<unsigned int>(std::ceil(height)),
-      1, BSQ, FLT8BYTES, IN_MEMORY);
+      pointsByReturn.size(), BSQ, FLT8BYTES, IN_MEMORY);
    RasterDataDescriptor* pDataDescI = RasterUtilities::generateRasterDataDescriptor(las.GetName(), NULL,
       static_cast<unsigned int>(std::ceil(width)), static_cast<unsigned int>(std::ceil(height)),
-      1, BSQ, INT2UBYTES, IN_MEMORY);
+      pointsByReturn.size(), BSQ, INT2UBYTES, IN_MEMORY);
+
    std::vector<int> badValues;
    badValues.push_back(0);
    pDataDescZ->setBadValues(badValues);
@@ -90,7 +92,7 @@ std::vector<ImportDescriptor*> LasImporter::getImportDescriptors(const std::stri
    pMetadataZ->setAttributeByPath("LAS/Creation Year", header.GetCreationYear());
    pMetadataZ->setAttributeByPath("LAS/Point Format", header.GetDataFormatId() == liblas::LASHeader::ePointFormat0 ? 0 : 1);
    pMetadataZ->setAttributeByPath("LAS/Point Count", header.GetPointRecordsCount());
-   pMetadataZ->setAttributeByPath("LAS/Points Per Return", header.GetPointRecordsByReturnCount());
+   pMetadataZ->setAttributeByPath("LAS/Points Per Return", pointsByReturn);
    pMetadataZ->setAttributeByPath("LAS/Scale/X", header.GetScaleX());
    pMetadataZ->setAttributeByPath("LAS/Scale/Y", header.GetScaleY());
    pMetadataZ->setAttributeByPath("LAS/Scale/Z", header.GetScaleZ());
@@ -99,6 +101,21 @@ std::vector<ImportDescriptor*> LasImporter::getImportDescriptors(const std::stri
    pMetadataZ->setAttributeByPath("LAS/Offset/Z", header.GetOffsetZ());
    pMetadataZ->setAttributeByPath("LAS/Projection", header.GetProj4());
    pMetadataI->merge(pMetadataZ);
+
+   RasterFileDescriptor* pFileDescZ = static_cast<RasterFileDescriptor*>(pDataDescZ->getFileDescriptor());
+   RasterFileDescriptor* pFileDescI = static_cast<RasterFileDescriptor*>(pDataDescI->getFileDescriptor());
+   std::vector<DimensionDescriptor> bandsToLoadZ;
+   std::vector<DimensionDescriptor> bandsToLoadI;
+   for (unsigned int bandNum = 0; bandNum < pointsByReturn.size(); bandNum++)
+   {
+      if (pointsByReturn[bandNum] > 0)
+      {
+         bandsToLoadZ.push_back(pFileDescZ->getOnDiskBand(bandNum));
+         bandsToLoadI.push_back(pFileDescI->getOnDiskBand(bandNum));
+      }
+   }
+   pDataDescZ->setBands(bandsToLoadZ);
+   pDataDescI->setBands(bandsToLoadI);
 
    descriptors.push_back(descZ.release());
    descriptors.push_back(descI.release());
@@ -158,13 +175,16 @@ bool LasImporter::execute(PlugInArgList* pInArgList, PlugInArgList* pOutArgList)
    liblas::LASFile las(pDesc->getFileDescriptor()->getFilename().getFullPathAndName());
    VERIFY(!las.IsNull());
    bool has0 = false, has1 = false;
-   DataAccessor pAcc(NULL, NULL);
-   FactoryResource<DataRequest> pReq;
-   pReq->setBands(pDesc->getActiveBand(0), pDesc->getActiveBand(0), 1);
-   pReq->setRows(pDesc->getActiveRow(0), pDesc->getActiveRow(pDesc->getRowCount()-1), 1);
-   pReq->setColumns(pDesc->getActiveColumn(0), pDesc->getActiveColumn(pDesc->getColumnCount()-1), 1);
-   pReq->setWritable(true);
-   pAcc = pData->getDataAccessor(pReq.release());
+   std::vector<DataAccessor> accessors;
+   for (unsigned int bandNum = 0; bandNum < pDesc->getBandCount(); bandNum++)
+   {
+      FactoryResource<DataRequest> pReq;
+      pReq->setBands(pDesc->getActiveBand(bandNum), pDesc->getActiveBand(bandNum), 1);
+      pReq->setRows(pDesc->getActiveRow(0), pDesc->getActiveRow(pDesc->getRowCount()-1), 1);
+      pReq->setColumns(pDesc->getActiveColumn(0), pDesc->getActiveColumn(pDesc->getColumnCount()-1), 1);
+      pReq->setWritable(true);
+      accessors.push_back(pData->getDataAccessor(pReq.release()));
+   }
 
    liblas::LASReader& reader(las.GetReader());
    liblas::LASHeader const& header(las.GetHeader());
@@ -178,29 +198,26 @@ bool LasImporter::execute(PlugInArgList* pInArgList, PlugInArgList* pOutArgList)
       }
       progress.report("Loading LAS data...", cur++ * 100 / header.GetPointRecordsCount(), NORMAL);
       liblas::LASPoint const& p = reader.GetPoint();
-      if (p.GetReturnNumber() > 0)
-      {
-         continue;
-      }
+      unsigned int bandNum = pDesc->getOnDiskBand(p.GetReturnNumber()).getActiveNumber();
       DimensionDescriptor row = pDesc->getOnDiskRow(static_cast<unsigned int>(p.GetX() - header.GetMinX()));
       DimensionDescriptor col = pDesc->getOnDiskColumn(static_cast<unsigned int>(p.GetY() - header.GetMinY()));
       if (!row.isValid() || !col.isValid())
       {
          continue;
       }
-      pAcc->toPixel(row.getActiveNumber(), col.getActiveNumber());
-      if (!pAcc.isValid())
+      accessors[bandNum]->toPixel(row.getActiveNumber(), col.getActiveNumber());
+      if (!accessors[bandNum].isValid())
       {
          progress.report("Error reading LAS data...", 0, ERRORS, true);
          return false;
       }
       if (intensity)
       {
-         *reinterpret_cast<unsigned short*>(pAcc->getColumn()) = p.GetIntensity();
+         *reinterpret_cast<unsigned short*>(accessors[bandNum]->getColumn()) = p.GetIntensity();
       }
       else
       {
-         *reinterpret_cast<double*>(pAcc->getColumn()) = p.GetZ();
+         *reinterpret_cast<double*>(accessors[bandNum]->getColumn()) = p.GetZ();
       }
    }
 
