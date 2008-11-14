@@ -68,10 +68,10 @@ std::vector<ImportDescriptor*> LasImporter::getImportDescriptors(const std::stri
    std::vector<liblas::uint32_t> pointsByReturn = header.GetPointRecordsByReturnCount();
    RasterDataDescriptor* pDataDescZ = RasterUtilities::generateRasterDataDescriptor(las.GetName(), NULL,
       static_cast<unsigned int>(std::ceil(width)), static_cast<unsigned int>(std::ceil(height)),
-      pointsByReturn.size(), BSQ, FLT8BYTES, IN_MEMORY);
+      std::max<unsigned int>(1, pointsByReturn.size()), BSQ, FLT8BYTES, IN_MEMORY);
    RasterDataDescriptor* pDataDescI = RasterUtilities::generateRasterDataDescriptor(las.GetName(), NULL,
       static_cast<unsigned int>(std::ceil(width)), static_cast<unsigned int>(std::ceil(height)),
-      pointsByReturn.size(), BSQ, INT2UBYTES, IN_MEMORY);
+      std::max<unsigned int>(1, pointsByReturn.size()), BSQ, INT2UBYTES, IN_MEMORY);
 
    std::vector<int> badValues;
    badValues.push_back(0);
@@ -113,6 +113,14 @@ std::vector<ImportDescriptor*> LasImporter::getImportDescriptors(const std::stri
          bandsToLoadZ.push_back(pFileDescZ->getOnDiskBand(bandNum));
          bandsToLoadI.push_back(pFileDescI->getOnDiskBand(bandNum));
       }
+   }
+   if (bandsToLoadZ.empty())
+   {
+      bandsToLoadZ.push_back(pFileDescZ->getOnDiskBand(0));
+   }
+   if (bandsToLoadI.empty())
+   {
+      bandsToLoadI.push_back(pFileDescI->getOnDiskBand(0));
    }
    pDataDescZ->setBands(bandsToLoadZ);
    pDataDescI->setBands(bandsToLoadI);
