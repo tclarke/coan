@@ -1,6 +1,6 @@
 <!DOCTYPE RCC>
 <RCC version="1.0">
-<qresource prefix="/temporal">
+<qresource prefix="/coan/video/timeline">
    <file alias="timeline.png">video-48x48.png</file> <!-- This is free for non-commerical use. See http://dryicons.com -->
 </qresource>
 </RCC>

@@ -26,6 +26,7 @@
 #include "SpatialDataWindow.h"
 #include "ThresholdLayer.h"
 #include "TimelineWidget.h"
+#include "VideoUtils.h"
 #include <cmath>
 #include <boost/any.hpp>
 #include <boost/bind.hpp>

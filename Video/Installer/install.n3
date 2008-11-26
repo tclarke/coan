@@ -1,0 +1,14 @@
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix aebl: <urn:2008:03:aebl-syntax-ns#> .
+@prefix opticks: <urn:2008:03:opticks-aebl-extension-ns#> .
+
+<urn:aebl:install-manifest>
+   aebl:id "video@coan.sf.net" ;
+   aebl:name "Video" ;
+   aebl:version "1.0a" ;
+   aebl:type "2" ;
+   aebl:description "COAN Video Extensions" ;
+   aebl:targetApplication [
+      aebl:id "opticks@ballforge.net" ;
+      aebl:minVersion "4.2.0" ;
+      aebl:maxVersion "4.2.*" ] .

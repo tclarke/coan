@@ -12,6 +12,7 @@
 #include "DesktopServices.h"
 #include "DockWindow.h"
 #include "MenuBar.h"
+#include "PlugInFactory.h"
 #include "RasterElement.h"
 #include "RasterLayer.h"
 #include "SessionManager.h"
@@ -20,6 +21,8 @@
 
 #include <QtGui/QAction>
 #include <QtGui/QMenu>
+
+PLUGINFACTORY(Timeline);
 
 namespace
 {
@@ -40,7 +43,7 @@ namespace
 
 Timeline::Timeline() : mpWindowAction(NULL)
 {
-   Q_INIT_RESOURCE(temporal);
+   Q_INIT_RESOURCE(video);
    AlgorithmShell::setName("Animation Timeline");
    setCreator("Ball Aerospace & Technologies Corp.");
    setCopyright("Copyright 2008 BATC");
@@ -76,7 +79,7 @@ Timeline::~Timeline()
       pWindow->detach(SIGNAL_NAME(DockWindow, Hidden), Slot(this, &Timeline::windowHidden));
       Service<DesktopServices>()->deleteWindow(pWindow);
    }
-   Q_CLEANUP_RESOURCE(temporal);
+   Q_CLEANUP_RESOURCE(video);
 }
 
 void Timeline::windowHidden(Subject &subject, const std::string &signal, const boost::any &v)
@@ -159,7 +162,7 @@ void Timeline::createMenuItem()
 
 const QIcon &Timeline::getIcon() const
 {
-   static QIcon sIcon(":/temporal/timeline.png");
+   static QIcon sIcon(":/coan/video/timeline/timeline.png");
    return sIcon;
 }
 

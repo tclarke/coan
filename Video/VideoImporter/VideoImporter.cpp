@@ -10,6 +10,7 @@
 #include "Animation.h"
 #include "AnimationController.h"
 #include "AnimationServices.h"
+#include "AnimationToolBar.h"
 #include "AppVerify.h"
 #include "DataRequest.h"
 #include "DynamicObject.h"
@@ -20,20 +21,24 @@
 #include "ObjectResource.h"
 #include "PlugInArgList.h"
 #include "PlugInResource.h"
+#include "PlugInFactory.h"
 #include "RasterDataDescriptor.h"
 #include "RasterElement.h"
 #include "RasterFileDescriptor.h"
 #include "RasterLayer.h"
 #include "RasterUtilities.h"
 #include "SpatialDataView.h"
-#include "TimelineWidget.h"
 #include "TypeConverter.h"
 #include "VideoImporter.h"
+#include "VideoUtils.h"
 #include <boost/rational.hpp>
 #include <QtCore/QMutexLocker>
 #include <QtCore/QString>
 #include <string>
 #include <vector>
+
+PLUGINFACTORY(VideoImporter);
+PLUGINFACTORY(FfmpegRasterPager);
 
 namespace
 {

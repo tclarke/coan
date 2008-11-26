@@ -1,0 +1,58 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 9.00
+# Visual Studio 2005
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Include", "Include", "{395A08BD-3CB8-4B33-8031-5CAC877F19C9}"
+	ProjectSection(SolutionItems) = preProject
+		Include\VideoUtils.h = Include\VideoUtils.h
+		Include\VideoVersion.h = Include\VideoVersion.h
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VideoMgr", "VideoMgr.vcproj", "{8BCD76D8-F87B-4343-A622-CD00527DA58B}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Timeline", "Timeline\Timeline.vcproj", "{2AB79C19-C3C5-423A-88B7-101AEADDB1BA}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BackgroundSuppression", "BackgroundSuppression\BackgroundSuppression.vcproj", "{1B5C289D-6C48-40B4-AFD2-5D878926B844}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VideoImporter", "VideoImporter\VideoImporter.vcproj", "{DA959D01-43A8-4EEB-94A3-482043286086}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Debug|x64 = Debug|x64
+		Release|Win32 = Release|Win32
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8BCD76D8-F87B-4343-A622-CD00527DA58B}.Debug|Win32.ActiveCfg = Debug|Win32
+		{8BCD76D8-F87B-4343-A622-CD00527DA58B}.Debug|x64.ActiveCfg = Debug|x64
+		{8BCD76D8-F87B-4343-A622-CD00527DA58B}.Release|Win32.ActiveCfg = Release|Win32
+		{8BCD76D8-F87B-4343-A622-CD00527DA58B}.Release|x64.ActiveCfg = Release|x64
+		{2AB79C19-C3C5-423A-88B7-101AEADDB1BA}.Debug|Win32.ActiveCfg = Debug|Win32
+		{2AB79C19-C3C5-423A-88B7-101AEADDB1BA}.Debug|Win32.Build.0 = Debug|Win32
+		{2AB79C19-C3C5-423A-88B7-101AEADDB1BA}.Debug|x64.ActiveCfg = Debug|x64
+		{2AB79C19-C3C5-423A-88B7-101AEADDB1BA}.Debug|x64.Build.0 = Debug|x64
+		{2AB79C19-C3C5-423A-88B7-101AEADDB1BA}.Release|Win32.ActiveCfg = Release|Win32
+		{2AB79C19-C3C5-423A-88B7-101AEADDB1BA}.Release|Win32.Build.0 = Release|Win32
+		{2AB79C19-C3C5-423A-88B7-101AEADDB1BA}.Release|x64.ActiveCfg = Release|x64
+		{2AB79C19-C3C5-423A-88B7-101AEADDB1BA}.Release|x64.Build.0 = Release|x64
+		{1B5C289D-6C48-40B4-AFD2-5D878926B844}.Debug|Win32.ActiveCfg = Debug|Win32
+		{1B5C289D-6C48-40B4-AFD2-5D878926B844}.Debug|Win32.Build.0 = Debug|Win32
+		{1B5C289D-6C48-40B4-AFD2-5D878926B844}.Debug|x64.ActiveCfg = Debug|x64
+		{1B5C289D-6C48-40B4-AFD2-5D878926B844}.Debug|x64.Build.0 = Debug|x64
+		{1B5C289D-6C48-40B4-AFD2-5D878926B844}.Release|Win32.ActiveCfg = Release|Win32
+		{1B5C289D-6C48-40B4-AFD2-5D878926B844}.Release|Win32.Build.0 = Release|Win32
+		{1B5C289D-6C48-40B4-AFD2-5D878926B844}.Release|x64.ActiveCfg = Release|x64
+		{1B5C289D-6C48-40B4-AFD2-5D878926B844}.Release|x64.Build.0 = Release|x64
+		{DA959D01-43A8-4EEB-94A3-482043286086}.Debug|Win32.ActiveCfg = Debug|Win32
+		{DA959D01-43A8-4EEB-94A3-482043286086}.Debug|Win32.Build.0 = Debug|Win32
+		{DA959D01-43A8-4EEB-94A3-482043286086}.Debug|x64.ActiveCfg = Debug|x64
+		{DA959D01-43A8-4EEB-94A3-482043286086}.Debug|x64.Build.0 = Debug|x64
+		{DA959D01-43A8-4EEB-94A3-482043286086}.Release|Win32.ActiveCfg = Release|Win32
+		{DA959D01-43A8-4EEB-94A3-482043286086}.Release|Win32.Build.0 = Release|Win32
+		{DA959D01-43A8-4EEB-94A3-482043286086}.Release|x64.ActiveCfg = Release|x64
+		{DA959D01-43A8-4EEB-94A3-482043286086}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

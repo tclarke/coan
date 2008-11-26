@@ -9,7 +9,7 @@
 
 #include "Animation.h"
 #include "AnimationPropertiesDialog.h"
-#include "TimelineWidget.h"
+#include "VideoUtils.h"
 #include <QtGui/QCheckBox>
 #include <QtGui/QDialogButtonBox>
 #include <QtGui/QDateTimeEdit>

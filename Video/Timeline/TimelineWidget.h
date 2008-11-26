@@ -27,18 +27,6 @@ class QwtScaleDraw;
 class RasterLayer;
 class ThresholdLayer;
 
-#define FRAME_TIMES_METADATA_NAME (std::string("FrameTimes"))
-#define FRAME_TIMES_METADATA_PATH (SPECIAL_METADATA_NAME + "/" + BAND_METADATA_NAME + "/" + FRAME_TIMES_METADATA_NAME)
-namespace TimelineUtils
-{
-   QDateTime timetToQDateTime(double val);
-   double QDateTimeToTimet(const QDateTime &dt);
-   bool createAnimationForRasterLayer(RasterLayer *pRasterLayer, AnimationController *pController);
-   bool createAnimationForThresholdLayer(ThresholdLayer *pThresholdLayer, AnimationController *pController);
-   void rescaleAnimation(Animation *pAnim, double newVal, bool scaleEnd);
-   void moveAnimation(Animation *pAnim, double newStart);
-}
-
 class TimelineWidget : public QWidget, public QwtAbstractScale
 {
    Q_OBJECT

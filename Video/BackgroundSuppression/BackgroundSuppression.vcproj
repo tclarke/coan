@@ -1,0 +1,114 @@
+<VisualStudioProject Name="BackgroundSuppression" ProjectGUID="{1B5C289D-6C48-40B4-AFD2-5D878926B844}" ProjectType="Visual C++" RootNamespace="BackgroundSuppression" Version="8.00">
+	<Platforms>
+		<Platform Name="Win32" />
+		<Platform Name="x64" />
+	</Platforms>
+	<ToolFiles>
+	</ToolFiles>
+	<Configurations>
+		<Configuration ATLMinimizesCRunTimeLibraryUsage="false" CharacterSet="2" ConfigurationType="2" InheritedPropertySheets="$(OPTICKS_CODE_DIR)\application\CompileSettings\32bitSettings.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\PlugInCommonSettings.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\Qt-Release.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\AllCommonSettings-Release-32bit.vsprops;..\CompileSettings\VideoMacros.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\boost.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\Xerces-Release.vsprops" Name="Release|Win32" UseOfMFC="0">
+			<Tool Name="VCPreBuildEventTool" />
+			<Tool Name="VCCustomBuildTool" />
+			<Tool Name="VCXMLDataGeneratorTool" />
+			<Tool Name="VCWebServiceProxyGeneratorTool" />
+			<Tool Name="VCMIDLTool" />
+			<Tool Name="VCCLCompilerTool" />
+			<Tool Name="VCManagedResourceCompilerTool" />
+			<Tool Culture="1033" Name="VCResourceCompilerTool" PreprocessorDefinitions="NDEBUG" />
+			<Tool Name="VCPreLinkEventTool" />
+			<Tool AdditionalLibraryDirectories="" GenerateDebugInformation="true" GenerateMapFile="true" IgnoreDefaultLibraryNames="" MapExports="true" MapFileName="$(OutDir)\$(TargetName).map" Name="VCLinkerTool" ProgramDatabaseFile="$(OutDir)\$(ProjectName).pdb" Version="" />
+			<Tool Name="VCALinkTool" />
+			<Tool Name="VCManifestTool" />
+			<Tool Name="VCXDCMakeTool" />
+			<Tool Name="VCBscMakeTool" />
+			<Tool Name="VCFxCopTool" />
+			<Tool Name="VCAppVerifierTool" />
+			<Tool Name="VCWebDeploymentTool" />
+			<Tool Name="VCPostBuildEventTool" />
+		</Configuration>
+		<Configuration ATLMinimizesCRunTimeLibraryUsage="false" CharacterSet="2" ConfigurationType="2" InheritedPropertySheets="$(OPTICKS_CODE_DIR)\application\CompileSettings\PlugInCommonSettings.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\Qt-Release.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\AllCommonSettings-Release-64bit.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\64bitSettings.vsprops;..\CompileSettings\VideoMacros.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\boost.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\Xerces-Release.vsprops" Name="Release|x64" UseOfMFC="0">
+			<Tool Name="VCPreBuildEventTool" />
+			<Tool Name="VCCustomBuildTool" />
+			<Tool Name="VCXMLDataGeneratorTool" />
+			<Tool Name="VCWebServiceProxyGeneratorTool" />
+			<Tool Name="VCMIDLTool" />
+			<Tool Name="VCCLCompilerTool" />
+			<Tool Name="VCManagedResourceCompilerTool" />
+			<Tool Culture="1033" Name="VCResourceCompilerTool" PreprocessorDefinitions="NDEBUG" />
+			<Tool Name="VCPreLinkEventTool" />
+			<Tool AdditionalLibraryDirectories="" GenerateDebugInformation="true" GenerateMapFile="true" IgnoreDefaultLibraryNames="" MapExports="true" MapFileName="$(OutDir)\$(TargetName).map" Name="VCLinkerTool" ProgramDatabaseFile="$(OutDir)\$(ProjectName).pdb" Version="" />
+			<Tool Name="VCALinkTool" />
+			<Tool Name="VCManifestTool" />
+			<Tool Name="VCXDCMakeTool" />
+			<Tool Name="VCBscMakeTool" />
+			<Tool Name="VCFxCopTool" />
+			<Tool Name="VCAppVerifierTool" />
+			<Tool Name="VCWebDeploymentTool" />
+			<Tool Name="VCPostBuildEventTool" />
+		</Configuration>
+		<Configuration ATLMinimizesCRunTimeLibraryUsage="false" CharacterSet="2" ConfigurationType="2" InheritedPropertySheets="$(OPTICKS_CODE_DIR)\application\CompileSettings\32bitSettings.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\PlugInCommonSettings.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\Qt-Debug.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\AllCommonSettings-Debug-32bit.vsprops;..\CompileSettings\VideoMacros.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\boost.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\Xerces-Debug.vsprops" Name="Debug|Win32" UseOfMFC="0">
+			<Tool Name="VCPreBuildEventTool" />
+			<Tool Name="VCCustomBuildTool" />
+			<Tool Name="VCXMLDataGeneratorTool" />
+			<Tool Name="VCWebServiceProxyGeneratorTool" />
+			<Tool Name="VCMIDLTool" />
+			<Tool Name="VCCLCompilerTool" />
+			<Tool Name="VCManagedResourceCompilerTool" />
+			<Tool Culture="1033" Name="VCResourceCompilerTool" PreprocessorDefinitions="_DEBUG" />
+			<Tool Name="VCPreLinkEventTool" />
+			<Tool Name="VCLinkerTool" />
+			<Tool Name="VCALinkTool" />
+			<Tool Name="VCManifestTool" />
+			<Tool Name="VCXDCMakeTool" />
+			<Tool Name="VCBscMakeTool" />
+			<Tool Name="VCFxCopTool" />
+			<Tool Name="VCAppVerifierTool" />
+			<Tool Name="VCWebDeploymentTool" />
+			<Tool Name="VCPostBuildEventTool" />
+		</Configuration>
+		<Configuration ATLMinimizesCRunTimeLibraryUsage="false" CharacterSet="2" ConfigurationType="2" InheritedPropertySheets="$(OPTICKS_CODE_DIR)\application\CompileSettings\PlugInCommonSettings.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\Qt-Debug.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\AllCommonSettings-Debug-64bit.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\64bitSettings.vsprops;..\CompileSettings\VideoMacros.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\boost.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\Xerces-Debug.vsprops" Name="Debug|x64" UseOfMFC="0">
+			<Tool Name="VCPreBuildEventTool" />
+			<Tool Name="VCCustomBuildTool" />
+			<Tool Name="VCXMLDataGeneratorTool" />
+			<Tool Name="VCWebServiceProxyGeneratorTool" />
+			<Tool Name="VCMIDLTool" />
+			<Tool Name="VCCLCompilerTool" />
+			<Tool Name="VCManagedResourceCompilerTool" />
+			<Tool Culture="1033" Name="VCResourceCompilerTool" PreprocessorDefinitions="_DEBUG" />
+			<Tool Name="VCPreLinkEventTool" />
+			<Tool Name="VCLinkerTool" />
+			<Tool Name="VCALinkTool" />
+			<Tool Name="VCManifestTool" />
+			<Tool Name="VCXDCMakeTool" />
+			<Tool Name="VCBscMakeTool" />
+			<Tool Name="VCFxCopTool" />
+			<Tool Name="VCAppVerifierTool" />
+			<Tool Name="VCWebDeploymentTool" />
+			<Tool Name="VCPostBuildEventTool" />
+		</Configuration>
+	</Configurations>
+	<References>
+	</References>
+	<Files>
+		<Filter Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat" Name="Source Files">
+			<File RelativePath=".\AmfBackgroundSuppression.cpp">
+			</File>
+			<File RelativePath=".\BackgroundSuppressionDialog.cpp">
+			</File>
+			<File RelativePath=".\BackgroundSuppressionShell.cpp">
+			</File>
+			<File RelativePath=".\ModuleManager.cpp">
+			</File>
+		</Filter>
+		<Filter Filter="h;hpp;hxx;hm;inl" Name="Header Files">
+			<File RelativePath=".\AmfBackgroundSuppression.h">
+			</File>
+			<File RelativePath=".\BackgroundSuppressionDialog.h">
+			<FileConfiguration Name="Debug|Win32"><Tool CommandLine="&quot;$(QTBIN)\moc.exe&quot; &quot;$(InputPath)&quot; -o &quot;$(BuildDir)\Moc\$(ProjectName)\moc_BackgroundSuppressionDialog.cpp&quot;" Description="Moc'ing $(InputName).h..." Name="VCCustomBuildTool" Outputs="$(BuildDir)\Moc\$(ProjectName)\moc_BackgroundSuppressionDialog.cpp" /></FileConfiguration><FileConfiguration Name="Release|Win32"><Tool CommandLine="&quot;$(QTBIN)\moc.exe&quot; &quot;$(InputPath)&quot; -o &quot;$(BuildDir)\Moc\$(ProjectName)\moc_BackgroundSuppressionDialog.cpp&quot;" Description="Moc'ing $(InputName).h..." Name="VCCustomBuildTool" Outputs="$(BuildDir)\Moc\$(ProjectName)\moc_BackgroundSuppressionDialog.cpp" /></FileConfiguration><FileConfiguration Name="Debug|x64"><Tool CommandLine="&quot;$(QTBIN)\moc.exe&quot; &quot;$(InputPath)&quot; -o &quot;$(BuildDir)\Moc\$(ProjectName)\moc_BackgroundSuppressionDialog.cpp&quot;" Description="Moc'ing $(InputName).h..." Name="VCCustomBuildTool" Outputs="$(BuildDir)\Moc\$(ProjectName)\moc_BackgroundSuppressionDialog.cpp" /></FileConfiguration><FileConfiguration Name="Release|x64"><Tool CommandLine="&quot;$(QTBIN)\moc.exe&quot; &quot;$(InputPath)&quot; -o &quot;$(BuildDir)\Moc\$(ProjectName)\moc_BackgroundSuppressionDialog.cpp&quot;" Description="Moc'ing $(InputName).h..." Name="VCCustomBuildTool" Outputs="$(BuildDir)\Moc\$(ProjectName)\moc_BackgroundSuppressionDialog.cpp" /></FileConfiguration></File>
+			<File RelativePath=".\BackgroundSuppressionShell.h">
+			</File>
+		</Filter>
+	<Filter Name="moc"><File RelativePath="$(BuildDir)\moc\$(ProjectName)\moc_BackgroundSuppressionDialog.cpp" /></Filter></Files>
+	<Globals>
+	</Globals>
+</VisualStudioProject>

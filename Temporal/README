@@ -1,8 +1,0 @@
-Opticks Version: 4.1.*-4.2.*
-Plug-in Version: 0.1
-Author: tclarke
-License: MIT
-Supported Platforms: Win32
-Other Dependencies: None
-Description:
-This holds plug-ins for basic temporal processing. A paper has been submitted to FOSS4G-2008 utilizing these extensions.

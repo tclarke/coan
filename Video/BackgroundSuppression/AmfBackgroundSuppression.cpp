@@ -15,6 +15,7 @@
 #include "DataRequest.h"
 #include "DynamicObject.h"
 #include "ObjectResource.h"
+#include "PlugInFactory.h"
 #include "ProgressTracker.h"
 #include "RasterDataDescriptor.h"
 #include "RasterElement.h"
@@ -22,7 +23,8 @@
 #include "SpatialDataView.h"
 #include "switchOnEncoding.h"
 #include "ThresholdLayer.h"
-#include "TimelineWidget.h"
+
+PLUGINFACTORY(AmfBackgroundSuppression);
 
 namespace
 {
