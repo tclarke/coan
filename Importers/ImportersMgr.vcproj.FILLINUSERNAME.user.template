@@ -11,7 +11,7 @@
 			<DebugSettings
 				Command="$(CODE_DIR)\Build\Binaries-$(PlatformName)-$(ConfigurationName)\Bin\Opticks.exe"
 				WorkingDirectory=""
-				CommandArguments="/defaultDir:$(BuildDir)\Binaries-$(PlatformName)-$(ConfigurationName)\DefaultSettings /configDir:$(BuildDir)\ApplicationUserSettings"
+				CommandArguments="/deployment:$(BuildDir)\Binaries-$(PlatformName)-$(ConfigurationName)\Bin\Importers.dep"
 				Attach="false"
 				DebuggerType="3"
 				Remote="1"
@@ -39,7 +39,7 @@
 			<DebugSettings
 				Command="$(CODE_DIR)\Build\Binaries-$(PlatformName)-$(ConfigurationName)\Bin\Opticks.exe"
 				WorkingDirectory=""
-				CommandArguments="/defaultDir:$(BuildDir)\Binaries-$(PlatformName)-$(ConfigurationName)\DefaultSettings /configDir:$(BuildDir)\ApplicationUserSettings"
+				CommandArguments="/deployment:$(BuildDir)\Binaries-$(PlatformName)-$(ConfigurationName)\Bin\Importers.dep"
 				Attach="false"
 				DebuggerType="3"
 				Remote="1"
@@ -67,7 +67,7 @@
 			<DebugSettings
 				Command="$(CODE_DIR)\Build\Binaries-$(PlatformName)-$(ConfigurationName)\Bin\Opticks.exe"
 				WorkingDirectory=""
-				CommandArguments="/defaultDir:$(BuildDir)\Binaries-$(PlatformName)-$(ConfigurationName)\DefaultSettings /configDir:$(BuildDir)\ApplicationUserSettings"
+				CommandArguments="/deployment:$(BuildDir)\Binaries-$(PlatformName)-$(ConfigurationName)\Bin\Importers.dep"
 				Attach="false"
 				DebuggerType="3"
 				Remote="1"
@@ -95,7 +95,7 @@
 			<DebugSettings
 				Command="$(CODE_DIR)\Build\Binaries-$(PlatformName)-$(ConfigurationName)\Bin\Opticks.exe"
 				WorkingDirectory=""
-				CommandArguments="/defaultDir:$(BuildDir)\Binaries-$(PlatformName)-$(ConfigurationName)\DefaultSettings /configDir:$(BuildDir)\ApplicationUserSettings"
+				CommandArguments="/deployment:$(BuildDir)\Binaries-$(PlatformName)-$(ConfigurationName)\Bin\Importers.dep"
 				Attach="false"
 				DebuggerType="3"
 				Remote="1"

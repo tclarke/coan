@@ -1,9 +1,0 @@
-Opticks Version: 4.1.x
-Plug-in Version: 0.1
-Author: tclarke
-License: MIT
-Supported Platforms: Win32, Win64, should work on Solaris but this hasn't been tested
-Other Dependencies: None
-Description:
-This is an initial try at a FITS importer. If does not import all FITS data but a fairly large subset of FITS imagery data. I'd like to turn this into a FitsPlugInLib and a FitsGenericImporter pair.
-

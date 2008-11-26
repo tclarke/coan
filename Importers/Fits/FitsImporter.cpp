@@ -17,9 +17,11 @@
 #include "Filename.h"
 #include "FitsImporter.h"
 #include "ImportDescriptor.h"
+#include "ImportersVersion.h"
 #include "MessageLogResource.h"
 #include "ObjectResource.h"
 #include "PlugInArgList.h"
+#include "PlugInFactory.h"
 #include "PlugInResource.h"
 #include "RasterDataDescriptor.h"
 #include "RasterElement.h"
@@ -39,6 +41,9 @@
 #include <QtCore/QString>
 #include <QtCore/QStringList>
 #include <QtCore/QVariant>
+
+PLUGINFACTORY(FitsImporter);
+PLUGINFACTORY(FitsRasterPager);
 
 #define METADATA_SIG_LENGTH "FITS_TEMP/length"
 #define METADATA_SIG_ENCODING "FITS_TEMP/DataType"
@@ -132,8 +137,9 @@ FitsImporter::FitsImporter()// : mImportOptionsWidget(NULL)
    setDescriptorId("{299E1A6D-F80B-45D2-910D-0E318303CF88}");
    setName("FITS Importer");
    setCreator("Ball Aerospace & Technologies Corp.");
-   setCopyright("Copyright 2007, BATC");
-   setVersion("0.2");
+   setCopyright(IMPORTERS_COPYRIGHT);
+   setVersion(IMPORTERS_VERSION_NUMBER);
+   setProductionStatus(IMPORTERS_IS_PRODUCTION_RELEASE);
    setExtensions("FITS Files (*.fit *.fts *.fiz *.fits)");
 }
 
@@ -802,12 +808,12 @@ bool FitsImporter::createRasterPager(RasterElement *pRaster) const
 FitsRasterPager::FitsRasterPager()
 {
    setName("FitsRasterPager");
-   setCopyright("Copyright 2008 BATC");
+   setCopyright(IMPORTERS_COPYRIGHT);
    setCreator("Ball Aerospace & Technologies Corp.");
    setDescription("Provides access to on-disk FITS data");
    setDescriptorId("{9CFA503D-4570-4612-9996-5FAE649791B8}");
-   setVersion("0.2");
-   setProductionStatus(false);
+   setVersion(IMPORTERS_VERSION_NUMBER);
+   setProductionStatus(IMPORTERS_IS_PRODUCTION_RELEASE);
    setShortDescription("FITS pager");
 }
 

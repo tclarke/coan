@@ -16,7 +16,7 @@ opts.Add('BUILDDIR','Directory for build files','#/Build')
 opts.Add('CACHEDIR','Directory for cache files. Default is not caching.','')
 
 SDKDIR = Dir("c:\Opticks\4.2.2-SDK")
-TOOLPATH = Dir("%s/Application/CompileSettings" % SDK_PATH).abspath
+TOOLPATH = Dir("%s/Application/CompileSettings" % SDKDIR).abspath
 PLATFORM = "%s-%s" % (os.environ['OSTYPE'],os.environ['MACHTYPE'])
 
 env = Environment(options=opts,
@@ -72,6 +72,7 @@ if os.path.exists(".extravars"):
    fp.close()
 
 incdirs = [".",
+           "#/Include",
            "$COREDIR/Interfaces",
            "$COREDIR/PlugInLib",
            "$COREDIR/PlugInUtilities/Interfaces",

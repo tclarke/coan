@@ -31,6 +31,7 @@
 #include "TypeConverter.h"
 #include "VideoImporter.h"
 #include "VideoUtils.h"
+#include "VideoVersion.h"
 #include <boost/rational.hpp>
 #include <QtCore/QMutexLocker>
 #include <QtCore/QString>
@@ -108,12 +109,12 @@ FfmpegRasterPager::FfmpegRasterPager() : mpRaster(NULL), mpDescriptor(NULL),
 {
    mPacket.data = NULL;
    setName("FfmpegRasterPager");
-   setCopyright("Copyright 2008 BATC");
+   setCopyright(VIDEO_COPYRIGHT);
    setCreator("Ball Aerospace & Technologies Corp.");
    setDescription("Provides access to on-disk video data via ffmpeg");
    setDescriptorId("{e7293f1b-354e-4fc1-836f-5ca5df6d193a}");
-   setVersion("0.1");
-   setProductionStatus(false);
+   setVersion(VIDEO_VERSION_NUMBER);
+   setProductionStatus(VIDEO_IS_PRODUCTION_RELEASE);
    setShortDescription("On-disk video");
 }
 
@@ -342,9 +343,9 @@ VideoImporter::VideoImporter() : mpFormatCtx(NULL), mpCodecCtx(NULL)
    setDescriptorId("{4d4d06b4-fa58-4cb2-b01b-9a027876258f}");
    setName("Video Importer");
    setCreator("Ball Aerospace & Technologies Corp.");
-   setCopyright("Copyright 2008, BATC");
-   setVersion("0.1");
-   setProductionStatus(false);
+   setCopyright(VIDEO_COPYRIGHT);
+   setVersion(VIDEO_VERSION_NUMBER);
+   setProductionStatus(VIDEO_IS_PRODUCTION_RELEASE);
    setExtensions("Video Files (*.mpg *.avi)");
 }
 

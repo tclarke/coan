@@ -14,11 +14,11 @@
 #include "DesktopServices.h"
 #include "DynamicObject.h"
 #include "ImportDescriptor.h"
+#include "ImportersVersion.h"
 #include "LasImporter.h"
-#include "LidarImporterFactory.h"
-#include "LIDARVersion.h"
 #include "ObjectResource.h"
 #include "PlugInArgList.h"
+#include "PlugInFactory.h"
 #include "PlugInManagerServices.h"
 #include "ProgressTracker.h"
 #include "RasterDataDescriptor.h"
@@ -32,16 +32,16 @@
 #include <liblas/lasheader.hpp>
 #include <QtCore/QString>
 
-LIDARIMPORTERFACTORY(LasImporter);
+PLUGINFACTORY(LasImporter);
 
 LasImporter::LasImporter()
 {
    setName("LasImporter");
    setDescription("LAS importer");
    setDescriptorId("{43DD7AED-0B29-4106-B524-B55ED86FAEB8}");
-   setCopyright(LIDAR_COPYRIGHT);
-   setVersion(LIDAR_VERSION_NUMBER);
-   setProductionStatus(LIDAR_IS_PRODUCTION_RELEASE);
+   setCopyright(IMPORTERS_COPYRIGHT);
+   setVersion(IMPORTERS_VERSION_NUMBER);
+   setProductionStatus(IMPORTERS_IS_PRODUCTION_RELEASE);
    setExtensions("LAS Files (*.las)");
    setAbortSupported(true);
 }

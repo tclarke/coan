@@ -17,7 +17,9 @@
 #include "DynamicObject.h"
 #include "FileResource.h"
 #include "ImportDescriptor.h"
+#include "ImportersVersion.h"
 #include "PlugInArgList.h"
+#include "PlugInFactory.h"
 #include "PlugInResource.h"
 #include "RasterDataDescriptor.h"
 #include "RasterElement.h"
@@ -33,6 +35,9 @@
 #include <dcmtk/dcmimage/diregist.h>
 #include <dcmtk/dcmjpeg/djdecode.h>
 #include <QtCore/QString>
+
+PLUGINFACTORY(DicomImporter);
+PLUGINFACTORY(DicomRasterPager);
 
 namespace
 {
@@ -139,8 +144,9 @@ DicomImporter::DicomImporter()
    setDescriptorId("{A680AF67-0304-4e12-9B5F-BEC86CA5EC66}");
    setName("DICOM Importer");
    setCreator("Ball Aerospace & Technologies Corp.");
-   setCopyright("Copyright 2008, BATC");
-   setVersion("0.1");
+   setCopyright(IMPORTERS_COPYRIGHT);
+   setVersion(IMPORTERS_VERSION_NUMBER);
+   setProductionStatus(IMPORTERS_IS_PRODUCTION_RELEASE);
    setExtensions("DICOM Files (*.dcm)");
    DJDecoderRegistration::registerCodecs();
    DcmRLEDecoderRegistration::registerCodecs();
@@ -401,12 +407,12 @@ bool DicomImporter::createRasterPager(RasterElement *pRaster) const
 DicomRasterPager::DicomRasterPager() : mpImage(NULL), mConvertRgb(false)
 {
    setName("DicomRasterPager");
-   setCopyright("Copyright 2008 BATC");
+   setCopyright(IMPORTERS_COPYRIGHT);
    setCreator("Ball Aerospace & Technologies Corp.");
    setDescription("Provides access to on-disk DICOM data");
    setDescriptorId("{27C35133-CBA7-41a6-AEBE-3B570FFC2E9F}");
-   setVersion("0.1");
-   setProductionStatus(false);
+   setVersion(IMPORTERS_VERSION_NUMBER);
+   setProductionStatus(IMPORTERS_IS_PRODUCTION_RELEASE);
    setShortDescription("DICOM pager");
    DJDecoderRegistration::registerCodecs();
    DcmRLEDecoderRegistration::registerCodecs();

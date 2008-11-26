@@ -3,11 +3,11 @@
 @prefix opticks: <urn:2008:03:opticks-aebl-extension-ns#> .
 
 <urn:aebl:install-manifest>
-   aebl:id "{B5BD28FA-96F3-43A5-94DA-6DBCA0276280}" ;
-   aebl:name "LIDAR" ;
-   aebl:version "" ;
+   aebl:id "importers@coan.sn.net" ;
+   aebl:name "Importers" ;
+   aebl:version "1.0a" ;
    aebl:type "2" ;
-   aebl:description "" ;
+   aebl:description "COAN Importers" ;
    aebl:targetApplication [
       aebl:id "opticks@ballforge.net" ;
       aebl:minVersion "4.2.0" ;

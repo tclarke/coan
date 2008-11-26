@@ -6,22 +6,20 @@
  * http://www.gnu.org/licenses/lgpl.html
  */
 
-class LidarImporterFactory;
-
 #include "ModuleManager.h"
-#include "LidarImporterFactory.h"
+#include "PlugInFactory.h"
 #include <algorithm>
 #include <vector>
 
-const char *ModuleManager::mspName = "LidarImporter";
-const char *ModuleManager::mspVersion = "1.0";
-const char *ModuleManager::mspDescription = "LIDAR Data Importers";
+const char *ModuleManager::mspName = "DICOM";
+const char *ModuleManager::mspVersion = "1.0a";
+const char *ModuleManager::mspDescription = "DICOM medical imagery importer.";
 const char *ModuleManager::mspValidationKey = "none";
-const char *ModuleManager::mspUniqueId = "{5E3012F0-294E-4D2B-9F13-A8008DF3D7E8}";
+const char *ModuleManager::mspUniqueId = "{45FED29B-065B-4680-B794-2CE36DBA6312}";
 
-std::vector<LidarImporterFactory*>& factories()
+std::vector<PlugInFactory*>& factories()
 {
-   static std::vector<LidarImporterFactory*> sFactories;
+   static std::vector<PlugInFactory*> sFactories;
    return sFactories;
 }
 
@@ -30,7 +28,7 @@ unsigned int ModuleManager::getTotalPlugIns()
    return static_cast<unsigned int>(factories().size());
 }
 
-void addFactory(LidarImporterFactory* pFactory)
+void addFactory(PlugInFactory* pFactory)
 {
    if (pFactory != NULL)
    {
@@ -40,7 +38,7 @@ void addFactory(LidarImporterFactory* pFactory)
 
 struct FactoryPtrComparator
 {
-   bool operator()(LidarImporterFactory* pLhs, LidarImporterFactory* pRhs)
+   bool operator()(PlugInFactory* pLhs, PlugInFactory* pRhs)
    {
       if (pLhs == NULL || pRhs == NULL)
       {

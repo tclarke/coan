@@ -23,6 +23,7 @@
 #include "SpatialDataView.h"
 #include "switchOnEncoding.h"
 #include "ThresholdLayer.h"
+#include "VideoVersion.h"
 
 PLUGINFACTORY(AmfBackgroundSuppression);
 
@@ -59,8 +60,9 @@ AmfBackgroundSuppression::AmfBackgroundSuppression() : mBackground(static_cast<R
    setName("Approximated Median Filter Background Suppression");
    setDescription("Extract the foreground from video frames using an approximated median filter background model.");
    setDescriptorId("{38B55C08-085E-4517-9C81-8F2DFA178806}");
-   setVersion("0.1");
-   setProductionStatus(false);
+   setCopyright(VIDEO_COPYRIGHT);
+   setVersion(VIDEO_VERSION_NUMBER);
+   setProductionStatus(VIDEO_IS_PRODUCTION_RELEASE);
    setCreator("Trevor Clarke");
    setMenuLocation("[Temporal]/Background Estimation/Approximated Median Filter");
    setSingleForegroundMask(true);

@@ -18,6 +18,7 @@
 #include "SessionManager.h"
 #include "Slot.h"
 #include "ThresholdLayer.h"
+#include "VideoVersion.h"
 
 #include <QtGui/QAction>
 #include <QtGui/QMenu>
@@ -46,14 +47,14 @@ Timeline::Timeline() : mpWindowAction(NULL)
    Q_INIT_RESOURCE(video);
    AlgorithmShell::setName("Animation Timeline");
    setCreator("Ball Aerospace & Technologies Corp.");
-   setCopyright("Copyright 2008 BATC");
-   setVersion("0.1");
+   setCopyright(VIDEO_COPYRIGHT);
+   setVersion(VIDEO_VERSION_NUMBER);
    setDescription("Advanced animation timeline display.");
    executeOnStartup(true);
    setDescriptorId("{ffea5038-9903-4a46-b2ff-50b7ef3f9ded}");
    allowMultipleInstances(false);
    destroyAfterExecute(false);
-   setProductionStatus(false);
+   setProductionStatus(VIDEO_IS_PRODUCTION_RELEASE);
    addDependencyCopyright("Timeline", "Some Icons by http://dryicons.com");
 }
 

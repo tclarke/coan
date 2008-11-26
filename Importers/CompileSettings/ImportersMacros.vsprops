@@ -2,7 +2,7 @@
 <VisualStudioPropertySheet
 	ProjectType="Visual C++"
 	Version="8.00"
-	Name="LIDARMacros"
+	Name="ImportersMacros"
 	InheritedPropertySheets="$(OPTICKS_CODE_DIR)\application\CompileSettings\Macros.vsprops"
 	>
 	<Tool
@@ -24,6 +24,18 @@
 	<UserMacro
 		Name="EXTENSION_CODE_DIR"
 		Value="$(SolutionDir)"
+	/>
+	<UserMacro
+		Name="DCMTK"
+		Value="$(OPTICKSDEPENDENCIES)\dcmtk"
+	/>
+        <UserMacro
+		Name="CFITIO"
+		Value="$(OPTICKSDEPENDENCIES)\cfitio"
+	/>
+	<UserMacro
+		Name="ASTLIB"
+		Value="$(OPTICKSDEPENDENCIES)\ast"
 	/>
 	<UserMacro
 		Name="LIBLAS"

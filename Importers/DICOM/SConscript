@@ -15,9 +15,9 @@ objs = env.SharedObject(srcs)
 ####
 # build the plug-in library and set up an alias to wase building it later
 ####
-lib = env.SharedLibrary('%s/LidarImporter' % build_dir,objs+extra_obj)
+lib = env.SharedLibrary('%s/DICOM' % build_dir,objs+extra_obj)
 libInstall = env.Install(env["PLUGINDIR"], lib)
-env.Alias('LidarImporter', libInstall)
+env.Alias('DICOM', libInstall)
 
 ####
 # return the plug-in library
