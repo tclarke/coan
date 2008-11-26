@@ -212,7 +212,7 @@ namespace TimelineUtils
          frames.push_back(frame);
       }
       pAnim->setFrames(frames);
-      pThresholdLayer->setAnimation(pAnim);
+      //pThresholdLayer->setAnimation(pAnim);
       return true;
    }
 
@@ -512,7 +512,7 @@ bool TimelineWidget::saveAnimationTimes(Animation  *pAnim)
             DynamicObject *pMetadata = static_cast<RasterDataDescriptor*>(pElement->getDataDescriptor())->getMetadata();
             if(pMetadata != NULL)
             {
-               success = success || pMetadata->setAttribute(FRAME_TIMES_METADATA_PATH, times);
+               success = success || pMetadata->setAttributeByPath(FRAME_TIMES_METADATA_PATH, times);
             }
          }
       }

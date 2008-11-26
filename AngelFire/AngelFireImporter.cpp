@@ -289,16 +289,6 @@ bool AngelFireImporter::validateDefaultOnDiskReadOnly(const DataDescriptor *pDes
          return false;
       }
 
-      // Subset
-      unsigned int loadedBands = pRasterDescriptor->getBandCount();
-      unsigned int fileBands = pFileDescriptor->getBandCount();
-
-      if(loadedBands != fileBands)
-      {
-         errorMessage = "Band subsets are not supported with on-disk read-only processing!";
-         return false;
-      }
-
       unsigned int skipFactor = 0;
       if(!RasterUtilities::determineSkipFactor(pRasterDescriptor->getRows(), skipFactor) || skipFactor != 0)
       {
