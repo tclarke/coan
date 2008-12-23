@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="Windows-1252"?>
+<VisualStudioProject
+	ProjectType="Visual C++"
+	Version="8.00"
+	Name="ImProcMgr"
+	ProjectGUID="{C21E0D7B-CDAC-4DE2-8D15-724C5922DF3E}"
+	RootNamespace="ImProcMgr"
+	>
+	<Platforms>
+		<Platform
+			Name="Win32"
+		/>
+		<Platform
+			Name="x64"
+		/>
+	</Platforms>
+	<ToolFiles>
+	</ToolFiles>
+	<Configurations>
+		<Configuration
+			Name="Debug|Win32"
+			ConfigurationType="10"
+			InheritedPropertySheets=".\CompileSettings\ImProcMacros.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\AllCommonSettings-Debug-32bit.vsprops"
+			CharacterSet="2"
+			>
+			<Tool
+				Name="VCPostBuildEventTool"
+				Description="Prepping for run..."
+				CommandLine="&quot;$(SolutionDir)\build-ImProc.py&quot; --prep --mode=debug --arch=32 -v"
+			/>
+		</Configuration>
+		<Configuration
+			Name="Debug|x64"
+			ConfigurationType="10"
+			InheritedPropertySheets=".\CompileSettings\ImProcMacros.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\AllCommonSettings-Debug-64bit.vsprops"
+			CharacterSet="2"
+			>
+			<Tool
+				Name="VCPostBuildEventTool"
+				Description="Prepping for run..."
+				CommandLine="&quot;$(SolutionDir)\build-ImProc.py&quot; --prep --mode=debug --arch=64 -v"
+			/>
+		</Configuration>
+		<Configuration
+			Name="Release|Win32"
+			ConfigurationType="10"
+			InheritedPropertySheets=".\CompileSettings\ImProcMacros.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\AllCommonSettings-Release-32bit.vsprops"
+			CharacterSet="2"
+			WholeProgramOptimization="1"
+			>
+			<Tool
+				Name="VCPostBuildEventTool"
+				Description="Prepping for run..."
+				CommandLine="&quot;$(SolutionDir)\build-ImProc.py&quot; --prep --mode=release --arch=32 -v"
+			/>
+		</Configuration>
+		<Configuration
+			Name="Release|x64"
+			ConfigurationType="10"
+			InheritedPropertySheets=".\CompileSettings\ImProcMacros.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\AllCommonSettings-Release-64bit.vsprops"
+			CharacterSet="2"
+			WholeProgramOptimization="1"
+			>
+			<Tool
+				Name="VCPostBuildEventTool"
+				Description="Prepping for run..."
+				CommandLine="&quot;$(SolutionDir)\build-ImProc.py&quot; --prep --mode=release --arch=64 -v"
+			/>
+		</Configuration>
+	</Configurations>
+	<References>
+	</References>
+	<Files>
+	</Files>
+	<Globals>
+	</Globals>
+</VisualStudioProject>

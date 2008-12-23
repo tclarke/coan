@@ -1,0 +1,14 @@
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix aebl: <urn:2008:03:aebl-syntax-ns#> .
+@prefix opticks: <urn:2008:03:opticks-aebl-extension-ns#> .
+
+<urn:aebl:install-manifest>
+   aebl:id "{1F1A1D11-6B61-4962-B6CB-166A7C2FD6F5}" ;
+   aebl:name "ImProc" ;
+   aebl:version "0.1" ;
+   aebl:type "2" ;
+   aebl:description "General image processing functionality." ;
+   aebl:targetApplication [
+      aebl:id "opticks@ballforge.net" ;
+      aebl:minVersion "4.2.0" ;
+      aebl:maxVersion "4.2.*" ] .
