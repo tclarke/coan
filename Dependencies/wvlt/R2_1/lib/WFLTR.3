@@ -1,0 +1,58 @@
+.TH WFLTR 3wvlt "5 July 1995"
+.SH NAME
+wfltr \- define and operate on analysis and synthesis components of a wavelet filter
+.SH SYNOPSIS
+.ft B
+.nf
+#include <wvlt.h>
+.sp .5
+void wfltr_exchange(wfltrNorm, wfltrExch);
+\s-1waveletfilter\s0 *wfltrNorm, *wfltrExch;
+.ft R
+.fi
+.SH DESCRIPTION
+.LP
+The UBC Imager Wavelet Library defines several possible wavelet bases
+in its header file.  These are:
+.TP 20
+wfltrBattleLemarie
+Battle-Lemarie basis
+.TP 20
+wfltrBurtAdelson
+Burt-Adelson basis
+.TP 20
+wfltrCoiflet_2, wfltrCoiflet_4, wfltrCoiflet_6
+Coiflet bases with 2, 4, or 6 vanishing moments
+.TP 20
+wfltrDaubechies_4, wfltrDaubechies_6, wfltrDaubechies_8,
+.TP 20
+wfltrDaubechies_10, wfltrDaubechies_12, wfltrDaubechies_20
+Daubechies bases with 2, 3, 4, 5, 6, or 10 vanishing moments, respectively.
+.TP 20
+wfltrHaar
+Haar basis
+.TP 20
+wfltrPseudocoiflet_4_4
+Pseudocoiflet basis with 4 vanishing moments for both analysis
+and synthesis wavelets.
+.TP 20
+wfltrSpline_2_2, wfltrSpline_2_4, wfltrSpline_3_3, wfltrSpline_3_7
+Spline bases with linear (wfltrSpline_2x) or quadratic (wfltrSpline_3x)
+bases for the dominant wavelet.
+.LP
+The function
+.IR wfltr_exchange() ,
+converts the filter specified in
+.I wfltrNorm
+to another filter
+.I wfltrExch
+which has the analysis and synthesis components swapped.
+For speed (and to prove a point) this is done by a simple set of swaps
+within the waveletfilter structure.  While it's okay for wfltrNorm and
+wfltrExch to point at the same structure, to avoid confusion they should be
+distinct.
+.SH DIAGNOSTICS
+None.
+.SH FILES
+.TP 20
+.B libwvlt.a

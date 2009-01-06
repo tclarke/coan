@@ -1,0 +1,57 @@
+#! /bin/sh
+
+gplfile="/tmp/plot$$.gpl"
+origfile="/tmp/orig$$.dat"
+
+trap "rm -rf $gplfile $origfile" 0 2 3 15
+
+awk '{ for (i = 1; i <= NF; i++) print j++, $i }' $1 >$origfile
+
+cat >$gplfile <<EOF
+plot "$origfile" title "original", \
+	"< wrefine -f8 -H -g $1" title "Haar" with lines
+
+pause -1
+
+plot "$origfile" title "original", \
+	"< wrefine -f8 -D10 -g $1" title "Daubechies 10" with lines, \
+	"< wrefine -f8 -D12 -o1 -g $1" title "Daubechies 12" with lines, \
+	"< wrefine -f8 -D20 -o2 -g $1" title "Daubechies 20" with lines
+
+pause -1
+
+plot "$origfile" title "original", \
+	"< wrefine -f8 -S2,2 -g $1" title "Spline 2,2" with lines, \
+	"< wrefine -f8 -S2,4 -g $1" title "Spline 2,4" with lines, \
+	"< wrefine -f8 -S3,3 -g $1" title "Spline 3,3" with lines, \
+	"< wrefine -f8 -S3,7 -g $1" title "Spline 3,7" with lines
+pause -1
+
+plot "$origfile" title "original", \
+	"< wrefine -f8 -D4 -g $1" title "Daubechies 4" with lines, \
+	"< wrefine -f8 -D6 -g $1" title "Daubechies 6" with lines, \
+	"< wrefine -f8 -D8 -g $1" title "Daubechies 8" with lines
+pause -1
+
+plot "$origfile" title "original", \
+	"< wrefine -f8 -B -g $1" title "Battle" with lines
+pause -1
+
+plot "$origfile" title "original", \
+	"< wrefine -f8 -A -g $1" title "Burt-Adelson" with lines
+pause -1
+
+plot "$origfile" title "original", \
+	"< wrefine -f8 -C2 -g $1" title "Coiflet 2" with lines, \
+	"< wrefine -f8 -C4 -g $1" title "Coiflet 4" with lines, \
+	"< wrefine -f8 -C6 -g $1" title "Coiflet 6" with lines
+pause -1
+
+plot "$origfile" title "original", \
+	"< wrefine -f8 -P -g $1" title "Pseudocoiflet" with lines
+
+pause -1
+
+EOF
+
+gnuplot $gplfile

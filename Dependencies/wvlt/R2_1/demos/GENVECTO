@@ -1,0 +1,37 @@
+#! /cs/local/bin/perl
+
+if ($#ARGV != 0 && $#ARGV != 1) {
+	die "syntax: genvector #pt [isamp]\n";
+}
+
+$npt = $ARGV[0];
+for ($lg2npt = 0; (1 << $lg2npt) < $npt; $lg2npt++) {
+}
+
+if ((1 << $lg2npt) != $npt) {
+	die "genvector: #pt must be power of 2\n";
+}
+
+if ($#ARGV == 1) {
+	$isamp = $ARGV[1];
+	if ($isamp < 0 || $npt <= $isamp) {
+		die "genvector: isamp must be between 0 and ", $npt-1, ", inclusive\n";
+	}
+} else {
+	$isamp = -1;
+}
+
+for ($ipt = 0; $ipt < $npt; $ipt++) {
+	if ($ipt == $isamp) {
+		print 1, " ";
+	} else {
+		print 0, " ";
+	}
+	if ((($ipt + 1) % 32) == 0) {
+		print "\n";
+	}
+}
+
+if (($ipt % 32) != 0) {
+	print "\n";
+}

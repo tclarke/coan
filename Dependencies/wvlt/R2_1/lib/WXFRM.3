@@ -1,0 +1,123 @@
+.TH WXFRM 3wvlt "1 May 1995"
+.SH NAME
+wxfrm_[df]a[1n]d \- perform a wavelet transform
+.SH SYNOPSIS
+.ft B
+.nf
+#include <wvlt.h>
+.sp .5
+void wxfrm_da1d(a, nA, isFwd, wfltr, aXf);
+\s-1double\s0 *a, *aXf;
+\s-1int\s0 nA;
+\s-1bool\s0 isFwd;
+\s-1waveletfilter\s0 *wfltr;
+.sp .5
+void wxfrm_fa1d(a, nA, isFwd, wfltr, aXf);
+\s-1float\s0 *a, *aXf;
+\s-1int\s0 nA;
+\s-1bool\s0 isFwd;
+\s-1waveletfilter\s0 *wfltr;
+.sp .5
+void wxfrm_dand(a, nA, nD, isFwd, isStd, wfltr, aXf);
+\s-1double\s0 *a, *aXf;
+\s-1int\s0 nA[], nD;
+\s-1bool\s0 isFwd, isStd;
+\s-1waveletfilter\s0 *wfltr;
+.sp .5
+void wxfrm_fand(a, nA, nD, isFwd, isStd, wfltr, aXf);
+\s-1float\s0 *a, *aXf;
+\s-1int\s0 nA[], nD;
+\s-1bool\s0 isFwd, isStd;
+\s-1waveletfilter\s0 *wfltr;
+.ft R
+.fi
+.SH DESCRIPTION
+.LP
+These functions, which are part of the UBC Imager Wavelet Library,
+perform wavelet transforms on data.
+Every function uses a particular wavelet filter (or basis), specified by the
+.I wfltr
+pointer.
+The possible choices are described on the
+.I wfltr(3wvlt)
+man page.
+.LP
+.I nA
+is the number of elements in
+.IR a[] .
+It must be a power of two.
+.LP
+A non-zero (i.e. TRUE)
+.I isFwd
+performs a forward transform and a zero
+(i.e. FALSE)
+.I isFwd
+performs an inverse transform.
+.LP
+The individual functions are:
+.TP 20
+.B wxfrm_da1d()
+performs a 1-dimensional transformation on the data in
+.I a[]
+and leaves the result in
+.IR aXf[] .
+.TP 20
+.B wxfrm_fa1d()
+is identical to
+.IR wxfrm_da1d() ,
+except that it acts on
+.B float
+data.
+.TP 20
+.B wxfrm_dand()
+performs an n-dimensional wavelet transform on the data in
+.I a[]
+and leaves the result in
+.IR aXf[] .
+Note that even though the transform is n-dimensional,
+.I a[]
+itself is not.
+Instead, the
+.I nA[]
+array is used to specify the multidimensionality.
+The transform of an
+.I m
+row by
+.I n
+column array would be specified by setting
+.I nD
+to 2 and
+.I nA
+to { 
+.IR m ,
+.I n
+}.
+This is consistent with declaring a with
+the C multidimensional array declaration
+.I "double a[m][n]"
+(with
+.I n
+and
+.I m
+constants)
+and passing
+.I &a[0][0]
+in place of
+.IR a[] .
+.I isStd
+refers to whether or not you wish to use the standard (Cartesian)
+or non-standard (Beylkin-Coifman-Rokhlin) multidimensional wavelet bases.
+.TP 20
+.B wxfrm_fand()
+is identical to
+.IR wxfrm_dand() ,
+except that it acts on
+.B float
+data.
+.SH DIAGNOSTICS
+If
+.I nA
+is less than 2, these functions return quietly.
+.SH FILES
+.TP 20
+.B libwvlt.a

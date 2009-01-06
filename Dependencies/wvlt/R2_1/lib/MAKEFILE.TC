@@ -1,0 +1,87 @@
+LIBNAME = wvlt
+LIB = $(LIBNAME).lib
+
+CC = tcc
+AR = tlib
+PR = print
+
+CFLAGS = -O -DARCH_DOSTC -DLIBARRAY_NOT_INSTALLED
+
+LIBDEST = $(LIBDIR)
+
+INCDEST = $(INCDIR)
+
+LIBHDR = $(LIBNAME).h
+
+.c.obj:
+	$(CC) -c $(CFLAGS) $<
+
+LIBDEST = $(LIBDIR)
+
+INCDEST = $(INCDIR)
+
+LIBHDR = $(LIBNAME).h
+
+MANPAGES = \
+	wxfrm.3 \
+	wrefine.3
+
+HDRS = \
+	local.h \
+	wvlt.h
+
+TEMPLATES = \
+	wrefine_t.c \
+	wxfrm_t.c
+
+SRCS = \
+	getopt.c \
+	wfltr.c \
+	wrefined.c \
+	wrefinef.c \
+	wxfrmd.c \
+	wxfrmf.c
+
+OBJS = \
+	getopt.obj \
+	wfltr.obj \
+	wrefined.obj \
+	wrefinef.obj \
+	wxfrmd.obj \
+	wxfrmf.obj
+
+default: $(LIB)
+
+all: $(LIB)
+
+clean:
+	del $(LIB)
+	del *.obj
+	del *.bak
+
+install:	$(LIBDEST)\$(LIB) $(INCDIR)\$(LIBHDR)
+
+list:	$(HDRS) $(TEMPLATES) Makefile $(SRCS)
+	$(PR) $(HDRS) Makefile $(TEMPLATES) $(SRCS)
+
+$(OBJS): $(HDRS)
+
+wxfrmd.obj: wxfrm_t.c
+
+wxfrmf.obj: wxfrm_t.c
+
+wrefined.obj: wrefine_t.c
+
+wrefinef.obj: wrefine_t.c
+
+$(LIB): $(OBJS)
+	$(AR) $(LIB) +getopt+wfltr+wrefined+wrefinef+wxfrmd+wxfrmf
+
+$(LIBDEST)\$(LIB):	$(LIB)
+	copy $(LIB) $(LIBDEST)\$(LIB)
+
+$(LIBDEST)\$(LINTLIB):	$(LINTLIB)
+	cp $(LINTLIB) $(LIBDEST)\$(LINTLIB)
+
+$(INCDIR)\$(LIBHDR): $(LIBHDR)
+	cp $(LIBHDR) $(INCDEST)
