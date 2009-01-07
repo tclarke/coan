@@ -16,8 +16,10 @@
 #include "RasterPagerShell.h"
 #pragma warning(push, 1)
 #pragma warning(disable: 4244)
+extern "C" {
 #include <avformat.h>
 #include <avutil.h>
+};
 #pragma warning(pop)
 #include <QtCore/QCache>
 #include <QtCore/QMap>

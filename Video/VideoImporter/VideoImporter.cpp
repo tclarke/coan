@@ -38,8 +38,12 @@
 #include <string>
 #include <vector>
 
+#include <QtCore/QtDebug>
+
 PLUGINFACTORY(VideoImporter);
 PLUGINFACTORY(FfmpegRasterPager);
+
+extern "C" int img_convert(AVPicture *dst, int dst_pix_fmt, const AVPicture *src, int src_pix_fmt, int src_width, int src_height);
 
 namespace
 {
@@ -122,7 +126,6 @@ FfmpegRasterPager::~FfmpegRasterPager()
 {
    if(mpFormatCtx != NULL || mpCodecCtx != NULL)
    {
-      avcodec_close(mpCodecCtx);
       av_close_input_file(mpFormatCtx);
    }
 }
@@ -277,7 +280,7 @@ int64_t FfmpegRasterPager::calculateSeekPosition(unsigned int frame) const
 
 int64_t FfmpegRasterPager::calculateSeekPosition(double timeInSeconds) const
 {
-   AVRational bq = AV_TIME_BASE_Q;
+   AVRational bq = {1, AV_TIME_BASE};
    return av_rescale_q(timeInSeconds * AV_TIME_BASE, bq, mpFormatCtx->streams[mStreamId]->time_base);
 }
 
@@ -304,6 +307,8 @@ bool FfmpegRasterPager::getNextFrame()
          }
       }
 
+      static int numKlv = 0;
+      static size_t klvBytes = 0;
       do // read the next packet in the stream
       {
          if(mPacket.data != NULL)
@@ -313,6 +318,19 @@ bool FfmpegRasterPager::getNextFrame()
          if(av_read_packet(mpFormatCtx, &mPacket) < 0)
          {
             streamFinished = true;
+         }
+         if (mPacket.stream_index != mStreamId)
+         {
+            if (mpFormatCtx->streams[mPacket.stream_index]->codec->codec_id == CODEC_ID_KLV_METADATA)
+            {
+               numKlv++;
+               klvBytes += mPacket.size;
+               int i = 0;
+            }
+            streamFinished = false;
+         }
+         else if (streamFinished)
+         {
             break;
          }
       }
@@ -353,7 +371,6 @@ VideoImporter::~VideoImporter()
 {
    if(mpFormatCtx != NULL || mpCodecCtx != NULL)
    {
-      avcodec_close(mpCodecCtx);
       av_close_input_file(mpFormatCtx);
    }
 }
@@ -363,7 +380,7 @@ std::vector<ImportDescriptor*> VideoImporter::getImportDescriptors(const std::st
    std::vector<ImportDescriptor*> descriptors;
    if(mpFormatCtx != NULL || mpCodecCtx != NULL)
    {
-      avcodec_close(mpCodecCtx);
+      mpCodecCtx = NULL;
       av_close_input_file(mpFormatCtx);
       mpFormatCtx = NULL;
       mpCodecCtx = NULL;
@@ -377,7 +394,13 @@ std::vector<ImportDescriptor*> VideoImporter::getImportDescriptors(const std::st
    }
    for(int streamId = 0; streamId < mpFormatCtx->nb_streams; streamId++)
    {
-      if(mpFormatCtx->streams[streamId]->codec->codec_type == CODEC_TYPE_VIDEO)
+      if(mpFormatCtx->streams[streamId]->codec->codec_type == CODEC_TYPE_DATA)
+      {
+         AVCodecContext* pCodecCtx = mpFormatCtx->streams[streamId]->codec;
+         AVCodec* pCodec = avcodec_find_decoder(pCodecCtx->codec_id);
+         VERIFYRV(pCodec != NULL, descriptors);
+      }
+      else if(mpFormatCtx->streams[streamId]->codec->codec_type == CODEC_TYPE_VIDEO)
       {
          mpCodecCtx = mpFormatCtx->streams[streamId]->codec;
          AVCodec *pCodec = avcodec_find_decoder(mpCodecCtx->codec_id);
@@ -402,11 +425,19 @@ std::vector<ImportDescriptor*> VideoImporter::getImportDescriptors(const std::st
          unsigned int frameCnt = mpFormatCtx->streams[streamId]->nb_frames;
          if(frameCnt == 0)
          {
-            // need to estimate the number of frames
-            // this might be too many but it should be sufficient
-            boost::rational<int> duration = mpFormatCtx->streams[streamId]->duration * timeBase;
-            boost::rational<int> minFrameRate = 1 / minFrameTime;
-            frameCnt = static_cast<unsigned int>(boost::rational_cast<double>(minFrameRate * duration) + 0.5);
+            if (mpFormatCtx->streams[streamId]->duration == AV_NOPTS_VALUE)
+            {
+               // can't load this...no idea how long it is...we'll try and get something for testing purposes
+               frameCnt = 400;
+            }
+            else
+            {
+               // need to estimate the number of frames
+               // this might be too many but it should be sufficient
+               boost::rational<int> duration =  mpFormatCtx->streams[streamId]->duration * timeBase;
+               boost::rational<int> minFrameRate = 1 / minFrameTime;
+               frameCnt = static_cast<unsigned int>(boost::rational_cast<double>(minFrameRate * duration) + 0.5);
+            }
          }
          frameTimes.reserve(frameCnt);
          double frameTime = 0.0;
@@ -579,11 +610,11 @@ bool VideoImporter::execute(PlugInArgList *pInArgList, PlugInArgList *pOutArgLis
          pStep->finalize(Message::Failure, "Unable to create animation.");
          return false;
       }
-      if(!TimelineUtils::createAnimationForRasterLayer(pLayer, pController))
-      {
-         pStep->finalize(Message::Failure, "Unable to create animation.");
-         return false;
-      }
+      //if(!TimelineUtils::createAnimationForRasterLayer(pLayer, pController))
+      //{
+      //   pStep->finalize(Message::Failure, "Unable to create animation.");
+      //   return false;
+      //}
       AnimationToolBar *pToolBar = static_cast<AnimationToolBar*>(Service<DesktopServices>()->getWindow("Animation", TOOLBAR));
       VERIFY(pToolBar != NULL);
       pToolBar->setAnimationController(pController);

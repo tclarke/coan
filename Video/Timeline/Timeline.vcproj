@@ -1,197 +1,349 @@
-<VisualStudioProject Name="Timeline" ProjectGUID="{2AB79C19-C3C5-423A-88B7-101AEADDB1BA}" ProjectType="Visual C++" RootNamespace="Timeline" Version="8.00">
+<?xml version="1.0" encoding="Windows-1252"?>
+<VisualStudioProject
+	ProjectType="Visual C++"
+	Version="8.00"
+	Name="Timeline"
+	ProjectGUID="{2AB79C19-C3C5-423A-88B7-101AEADDB1BA}"
+	RootNamespace="Timeline"
+	>
 	<Platforms>
-		<Platform Name="Win32" />
-		<Platform Name="x64" />
+		<Platform
+			Name="Win32"
+		/>
+		<Platform
+			Name="x64"
+		/>
 	</Platforms>
 	<ToolFiles>
 	</ToolFiles>
 	<Configurations>
-		<Configuration ATLMinimizesCRunTimeLibraryUsage="false" CharacterSet="2" ConfigurationType="2" InheritedPropertySheets="$(OPTICKS_CODE_DIR)\application\CompileSettings\32bitSettings.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\PlugInCommonSettings.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\Qt-Release.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\Qwt-Release.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\AllCommonSettings-Release-32bit.vsprops;..\CompileSettings\VideoMacros.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\boost.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\Xerces-Release.vsprops" Name="Release|Win32" UseOfMFC="0">
-			<Tool Name="VCPreBuildEventTool" />
-			<Tool Name="VCCustomBuildTool" />
-			<Tool Name="VCXMLDataGeneratorTool" />
-			<Tool Name="VCWebServiceProxyGeneratorTool" />
-			<Tool Name="VCMIDLTool" />
-			<Tool Name="VCCLCompilerTool" />
-			<Tool Name="VCManagedResourceCompilerTool" />
-			<Tool Culture="1033" Name="VCResourceCompilerTool" PreprocessorDefinitions="NDEBUG" />
-			<Tool Name="VCPreLinkEventTool" />
-			<Tool AdditionalLibraryDirectories="" GenerateDebugInformation="true" GenerateMapFile="true" IgnoreDefaultLibraryNames="" MapExports="true" MapFileName="$(OutDir)\$(TargetName).map" Name="VCLinkerTool" ProgramDatabaseFile="$(OutDir)\$(ProjectName).pdb" Version="" />
-			<Tool Name="VCALinkTool" />
-			<Tool Name="VCManifestTool" />
-			<Tool Name="VCXDCMakeTool" />
-			<Tool Name="VCBscMakeTool" />
-			<Tool Name="VCFxCopTool" />
-			<Tool Name="VCAppVerifierTool" />
-			<Tool Name="VCWebDeploymentTool" />
-			<Tool Name="VCPostBuildEventTool" />
+		<Configuration
+			Name="Release|Win32"
+			ConfigurationType="2"
+			InheritedPropertySheets="$(OPTICKS_CODE_DIR)\application\CompileSettings\32bitSettings.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\PlugInCommonSettings.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\Qt-Release.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\Qwt-Release.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\AllCommonSettings-Release-32bit.vsprops;..\CompileSettings\VideoMacros.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\boost.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\Xerces-Release.vsprops"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="false"
+			CharacterSet="2"
+			>
 		</Configuration>
-		<Configuration ATLMinimizesCRunTimeLibraryUsage="false" CharacterSet="2" ConfigurationType="2" InheritedPropertySheets="$(OPTICKS_CODE_DIR)\application\CompileSettings\PlugInCommonSettings.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\Qt-Release.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\Qwt-Release.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\AllCommonSettings-Release-64bit.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\64bitSettings.vsprops;..\CompileSettings\VideoMacros.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\boost.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\Xerces-Release.vsprops" Name="Release|x64" UseOfMFC="0">
-			<Tool Name="VCPreBuildEventTool" />
-			<Tool Name="VCCustomBuildTool" />
-			<Tool Name="VCXMLDataGeneratorTool" />
-			<Tool Name="VCWebServiceProxyGeneratorTool" />
-			<Tool Name="VCMIDLTool" />
-			<Tool Name="VCCLCompilerTool" />
-			<Tool Name="VCManagedResourceCompilerTool" />
-			<Tool Culture="1033" Name="VCResourceCompilerTool" PreprocessorDefinitions="NDEBUG" />
-			<Tool Name="VCPreLinkEventTool" />
-			<Tool AdditionalLibraryDirectories="" GenerateDebugInformation="true" GenerateMapFile="true" IgnoreDefaultLibraryNames="" MapExports="true" MapFileName="$(OutDir)\$(TargetName).map" Name="VCLinkerTool" ProgramDatabaseFile="$(OutDir)\$(ProjectName).pdb" Version="" />
-			<Tool Name="VCALinkTool" />
-			<Tool Name="VCManifestTool" />
-			<Tool Name="VCXDCMakeTool" />
-			<Tool Name="VCBscMakeTool" />
-			<Tool Name="VCFxCopTool" />
-			<Tool Name="VCAppVerifierTool" />
-			<Tool Name="VCWebDeploymentTool" />
-			<Tool Name="VCPostBuildEventTool" />
+		<Configuration
+			Name="Release|x64"
+			ConfigurationType="2"
+			InheritedPropertySheets="$(OPTICKS_CODE_DIR)\application\CompileSettings\PlugInCommonSettings.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\Qt-Release.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\Qwt-Release.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\AllCommonSettings-Release-64bit.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\64bitSettings.vsprops;..\CompileSettings\VideoMacros.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\boost.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\Xerces-Release.vsprops"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="false"
+			CharacterSet="2"
+			>
 		</Configuration>
-		<Configuration ATLMinimizesCRunTimeLibraryUsage="false" CharacterSet="2" ConfigurationType="2" InheritedPropertySheets="$(OPTICKS_CODE_DIR)\application\CompileSettings\32bitSettings.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\PlugInCommonSettings.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\Qt-Debug.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\Qwt-debug.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\AllCommonSettings-Debug-32bit.vsprops;..\CompileSettings\VideoMacros.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\boost.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\Xerces-Debug.vsprops" Name="Debug|Win32" UseOfMFC="0">
-			<Tool Name="VCPreBuildEventTool" />
-			<Tool Name="VCCustomBuildTool" />
-			<Tool Name="VCXMLDataGeneratorTool" />
-			<Tool Name="VCWebServiceProxyGeneratorTool" />
-			<Tool Name="VCMIDLTool" />
-			<Tool Name="VCCLCompilerTool" />
-			<Tool Name="VCManagedResourceCompilerTool" />
-			<Tool Culture="1033" Name="VCResourceCompilerTool" PreprocessorDefinitions="_DEBUG" />
-			<Tool Name="VCPreLinkEventTool" />
-			<Tool Name="VCLinkerTool" />
-			<Tool Name="VCALinkTool" />
-			<Tool Name="VCManifestTool" />
-			<Tool Name="VCXDCMakeTool" />
-			<Tool Name="VCBscMakeTool" />
-			<Tool Name="VCFxCopTool" />
-			<Tool Name="VCAppVerifierTool" />
-			<Tool Name="VCWebDeploymentTool" />
-			<Tool Name="VCPostBuildEventTool" />
+		<Configuration
+			Name="Debug|Win32"
+			ConfigurationType="2"
+			InheritedPropertySheets="$(OPTICKS_CODE_DIR)\application\CompileSettings\32bitSettings.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\PlugInCommonSettings.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\Qt-Debug.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\Qwt-debug.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\AllCommonSettings-Debug-32bit.vsprops;..\CompileSettings\VideoMacros.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\boost.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\Xerces-Debug.vsprops"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="false"
+			CharacterSet="2"
+			>
 		</Configuration>
-		<Configuration ATLMinimizesCRunTimeLibraryUsage="false" CharacterSet="2" ConfigurationType="2" InheritedPropertySheets="$(OPTICKS_CODE_DIR)\application\CompileSettings\PlugInCommonSettings.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\Qt-Debug.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\Qwt-debug.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\AllCommonSettings-Debug-64bit.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\64bitSettings.vsprops;..\CompileSettings\VideoMacros.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\boost.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\Xerces-Debug.vsprops" Name="Debug|x64" UseOfMFC="0">
-			<Tool Name="VCPreBuildEventTool" />
-			<Tool Name="VCCustomBuildTool" />
-			<Tool Name="VCXMLDataGeneratorTool" />
-			<Tool Name="VCWebServiceProxyGeneratorTool" />
-			<Tool Name="VCMIDLTool" />
-			<Tool Name="VCCLCompilerTool" />
-			<Tool Name="VCManagedResourceCompilerTool" />
-			<Tool Culture="1033" Name="VCResourceCompilerTool" PreprocessorDefinitions="_DEBUG" />
-			<Tool Name="VCPreLinkEventTool" />
-			<Tool Name="VCLinkerTool" />
-			<Tool Name="VCALinkTool" />
-			<Tool Name="VCManifestTool" />
-			<Tool Name="VCXDCMakeTool" />
-			<Tool Name="VCBscMakeTool" />
-			<Tool Name="VCFxCopTool" />
-			<Tool Name="VCAppVerifierTool" />
-			<Tool Name="VCWebDeploymentTool" />
-			<Tool Name="VCPostBuildEventTool" />
+		<Configuration
+			Name="Debug|x64"
+			ConfigurationType="2"
+			InheritedPropertySheets="$(OPTICKS_CODE_DIR)\application\CompileSettings\PlugInCommonSettings.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\Qt-Debug.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\Qwt-debug.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\AllCommonSettings-Debug-64bit.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\64bitSettings.vsprops;..\CompileSettings\VideoMacros.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\boost.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\Xerces-Debug.vsprops"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="false"
+			CharacterSet="2"
+			>
 		</Configuration>
 	</Configurations>
 	<References>
 	</References>
 	<Files>
-		<Filter Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat" Name="Source Files">
-			<File RelativePath=".\AnimationPropertiesDialog.cpp">
+		<Filter
+			Name="Source Files"
+			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
+			>
+			<File
+				RelativePath=".\AnimationPropertiesDialog.cpp"
+				>
 			</File>
-			<File RelativePath=".\ModuleManager.cpp">
+			<File
+				RelativePath=".\ModuleManager.cpp"
+				>
 			</File>
-			<File RelativePath=".\NewControllerDialog.cpp">
+			<File
+				RelativePath=".\NewControllerDialog.cpp"
+				>
 			</File>
-			<File RelativePath=".\Timeline.cpp">
+			<File
+				RelativePath=".\Timeline.cpp"
+				>
 			</File>
-			<File RelativePath=".\TimelineWidget.cpp">
-			</File>
-		</Filter>
-		<Filter Filter="h;hpp;hxx;hm;inl" Name="Header Files">
-			<File RelativePath=".\AnimationPropertiesDialog.h">
-				<FileConfiguration Name="Release|Win32">
-					<Tool CommandLine="&quot;$(QTBIN)\moc.exe&quot; &quot;$(InputPath)&quot; -o &quot;$(BuildDir)\Moc\$(ProjectName)\moc_AnimationPropertiesDialog.cpp&quot;
-&#10;" Description="Moc'ing $(InputName).h..." Name="VCCustomBuildTool" Outputs="$(BuildDir)\Moc\$(ProjectName)\moc_AnimationPropertiesDialog.cpp" />
-				</FileConfiguration>
-				<FileConfiguration Name="Release|x64">
-					<Tool CommandLine="&quot;$(QTBIN)\moc.exe&quot; &quot;$(InputPath)&quot; -o &quot;$(BuildDir)\Moc\$(ProjectName)\moc_AnimationPropertiesDialog.cpp&quot;
-&#10;" Description="Moc'ing $(InputName).h..." Name="VCCustomBuildTool" Outputs="$(BuildDir)\Moc\$(ProjectName)\moc_AnimationPropertiesDialog.cpp" />
-				</FileConfiguration>
-				<FileConfiguration Name="Debug|Win32">
-					<Tool CommandLine="&quot;$(QTBIN)\moc.exe&quot; &quot;$(InputPath)&quot; -o &quot;$(BuildDir)\Moc\$(ProjectName)\moc_AnimationPropertiesDialog.cpp&quot;
-&#10;" Description="Moc'ing $(InputName).h..." Name="VCCustomBuildTool" Outputs="$(BuildDir)\Moc\$(ProjectName)\moc_AnimationPropertiesDialog.cpp" />
-				</FileConfiguration>
-				<FileConfiguration Name="Debug|x64">
-					<Tool CommandLine="&quot;$(QTBIN)\moc.exe&quot; &quot;$(InputPath)&quot; -o &quot;$(BuildDir)\Moc\$(ProjectName)\moc_AnimationPropertiesDialog.cpp&quot;
-&#10;" Description="Moc'ing $(InputName).h..." Name="VCCustomBuildTool" Outputs="$(BuildDir)\Moc\$(ProjectName)\moc_AnimationPropertiesDialog.cpp" />
-				</FileConfiguration>
-			</File>
-			<File RelativePath=".\NewControllerDialog.h">
-				<FileConfiguration Name="Release|Win32">
-					<Tool CommandLine="&quot;$(QTBIN)\moc.exe&quot; &quot;$(InputPath)&quot; -o &quot;$(BuildDir)\Moc\$(ProjectName)\moc_NewControllerDialog.cpp&quot;
-&#10;" Description="Moc'ing $(InputName).h..." Name="VCCustomBuildTool" Outputs="$(BuildDir)\Moc\$(ProjectName)\moc_NewControllerDialog.cpp" />
-				</FileConfiguration>
-				<FileConfiguration Name="Release|x64">
-					<Tool CommandLine="&quot;$(QTBIN)\moc.exe&quot; &quot;$(InputPath)&quot; -o &quot;$(BuildDir)\Moc\$(ProjectName)\moc_NewControllerDialog.cpp&quot;
-&#10;" Description="Moc'ing $(InputName).h..." Name="VCCustomBuildTool" Outputs="$(BuildDir)\Moc\$(ProjectName)\moc_NewControllerDialog.cpp" />
-				</FileConfiguration>
-				<FileConfiguration Name="Debug|Win32">
-					<Tool CommandLine="&quot;$(QTBIN)\moc.exe&quot; &quot;$(InputPath)&quot; -o &quot;$(BuildDir)\Moc\$(ProjectName)\moc_NewControllerDialog.cpp&quot;
-&#10;" Description="Moc'ing $(InputName).h..." Name="VCCustomBuildTool" Outputs="$(BuildDir)\Moc\$(ProjectName)\moc_NewControllerDialog.cpp" />
-				</FileConfiguration>
-				<FileConfiguration Name="Debug|x64">
-					<Tool CommandLine="&quot;$(QTBIN)\moc.exe&quot; &quot;$(InputPath)&quot; -o &quot;$(BuildDir)\Moc\$(ProjectName)\moc_NewControllerDialog.cpp&quot;
-&#10;" Description="Moc'ing $(InputName).h..." Name="VCCustomBuildTool" Outputs="$(BuildDir)\Moc\$(ProjectName)\moc_NewControllerDialog.cpp" />
-				</FileConfiguration>
-			</File>
-			<File RelativePath=".\Timeline.h">
-				<FileConfiguration Name="Release|Win32">
-					<Tool CommandLine="&quot;$(QTBIN)\moc.exe&quot; &quot;$(InputPath)&quot; -o &quot;$(BuildDir)\Moc\$(ProjectName)\moc_Timeline.cpp&quot;
-&#10;" Description="Moc'ing $(InputName).h..." Name="VCCustomBuildTool" Outputs="$(BuildDir)\Moc\$(ProjectName)\moc_Timeline.cpp" />
-				</FileConfiguration>
-				<FileConfiguration Name="Release|x64">
-					<Tool CommandLine="&quot;$(QTBIN)\moc.exe&quot; &quot;$(InputPath)&quot; -o &quot;$(BuildDir)\Moc\$(ProjectName)\moc_Timeline.cpp&quot;
-&#10;" Description="Moc'ing $(InputName).h..." Name="VCCustomBuildTool" Outputs="$(BuildDir)\Moc\$(ProjectName)\moc_Timeline.cpp" />
-				</FileConfiguration>
-				<FileConfiguration Name="Debug|Win32">
-					<Tool CommandLine="&quot;$(QTBIN)\moc.exe&quot; &quot;$(InputPath)&quot; -o &quot;$(BuildDir)\Moc\$(ProjectName)\moc_Timeline.cpp&quot;
-&#10;" Description="Moc'ing $(InputName).h..." Name="VCCustomBuildTool" Outputs="$(BuildDir)\Moc\$(ProjectName)\moc_Timeline.cpp" />
-				</FileConfiguration>
-				<FileConfiguration Name="Debug|x64">
-					<Tool CommandLine="&quot;$(QTBIN)\moc.exe&quot; &quot;$(InputPath)&quot; -o &quot;$(BuildDir)\Moc\$(ProjectName)\moc_Timeline.cpp&quot;
-&#10;" Description="Moc'ing $(InputName).h..." Name="VCCustomBuildTool" Outputs="$(BuildDir)\Moc\$(ProjectName)\moc_Timeline.cpp" />
-				</FileConfiguration>
-			</File>
-			<File RelativePath=".\TimelineWidget.h">
-				<FileConfiguration Name="Release|Win32">
-					<Tool CommandLine="&quot;$(QTBIN)\moc.exe&quot; &quot;$(InputPath)&quot; -o &quot;$(BuildDir)\Moc\$(ProjectName)\moc_TimelineWidget.cpp&quot;
-&#10;" Description="Moc'ing $(InputName).h..." Name="VCCustomBuildTool" Outputs="$(BuildDir)\Moc\$(ProjectName)\moc_TimelineWidget.cpp" />
-				</FileConfiguration>
-				<FileConfiguration Name="Release|x64">
-					<Tool CommandLine="&quot;$(QTBIN)\moc.exe&quot; &quot;$(InputPath)&quot; -o &quot;$(BuildDir)\Moc\$(ProjectName)\moc_TimelineWidget.cpp&quot;
-&#10;" Description="Moc'ing $(InputName).h..." Name="VCCustomBuildTool" Outputs="$(BuildDir)\Moc\$(ProjectName)\moc_TimelineWidget.cpp" />
-				</FileConfiguration>
-				<FileConfiguration Name="Debug|Win32">
-					<Tool CommandLine="&quot;$(QTBIN)\moc.exe&quot; &quot;$(InputPath)&quot; -o &quot;$(BuildDir)\Moc\$(ProjectName)\moc_TimelineWidget.cpp&quot;
-&#10;" Description="Moc'ing $(InputName).h..." Name="VCCustomBuildTool" Outputs="$(BuildDir)\Moc\$(ProjectName)\moc_TimelineWidget.cpp" />
-				</FileConfiguration>
-				<FileConfiguration Name="Debug|x64">
-					<Tool CommandLine="&quot;$(QTBIN)\moc.exe&quot; &quot;$(InputPath)&quot; -o &quot;$(BuildDir)\Moc\$(ProjectName)\moc_TimelineWidget.cpp&quot;
-&#10;" Description="Moc'ing $(InputName).h..." Name="VCCustomBuildTool" Outputs="$(BuildDir)\Moc\$(ProjectName)\moc_TimelineWidget.cpp" />
-				</FileConfiguration>
+			<File
+				RelativePath=".\TimelineWidget.cpp"
+				>
 			</File>
 		</Filter>
-		<Filter Name="resources">
-			<File RelativePath=".\resources\video-48x48.png">
+		<Filter
+			Name="Header Files"
+			Filter="h;hpp;hxx;hm;inl"
+			>
+			<File
+				RelativePath=".\AnimationPropertiesDialog.h"
+				>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing $(InputName).h..."
+						CommandLine="&quot;$(QTBIN)\moc.exe&quot; &quot;$(InputPath)&quot; -o &quot;$(BuildDir)\Moc\$(ProjectName)\moc_AnimationPropertiesDialog.cpp&quot;&#x0D;&#x0A;"
+						Outputs="$(BuildDir)\Moc\$(ProjectName)\moc_AnimationPropertiesDialog.cpp"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|x64"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing $(InputName).h..."
+						CommandLine="&quot;$(QTBIN)\moc.exe&quot; &quot;$(InputPath)&quot; -o &quot;$(BuildDir)\Moc\$(ProjectName)\moc_AnimationPropertiesDialog.cpp&quot;&#x0D;&#x0A;"
+						Outputs="$(BuildDir)\Moc\$(ProjectName)\moc_AnimationPropertiesDialog.cpp"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing $(InputName).h..."
+						CommandLine="&quot;$(QTBIN)\moc.exe&quot; &quot;$(InputPath)&quot; -o &quot;$(BuildDir)\Moc\$(ProjectName)\moc_AnimationPropertiesDialog.cpp&quot;&#x0D;&#x0A;"
+						Outputs="$(BuildDir)\Moc\$(ProjectName)\moc_AnimationPropertiesDialog.cpp"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|x64"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing $(InputName).h..."
+						CommandLine="&quot;$(QTBIN)\moc.exe&quot; &quot;$(InputPath)&quot; -o &quot;$(BuildDir)\Moc\$(ProjectName)\moc_AnimationPropertiesDialog.cpp&quot;&#x0D;&#x0A;"
+						Outputs="$(BuildDir)\Moc\$(ProjectName)\moc_AnimationPropertiesDialog.cpp"
+					/>
+				</FileConfiguration>
 			</File>
-			<File RelativePath=".\resources\video.qrc"><FileConfiguration Name="Debug|Win32"><Tool CommandLine="&quot;$(QTBIN)\rcc.exe&quot; -name &quot;$(InputName)&quot; -o &quot;$(BuildDir)\Res\$(ProjectName)\res_video.cpp&quot; &quot;$(InputPath)&quot;" Description="Compiling resource files $(InputFileName)..." Name="VCCustomBuildTool" Outputs="$(BuildDir)\Res\$(ProjectName)\res_video.cpp" /></FileConfiguration><FileConfiguration Name="Release|Win32"><Tool CommandLine="&quot;$(QTBIN)\rcc.exe&quot; -name &quot;$(InputName)&quot; -o &quot;$(BuildDir)\Res\$(ProjectName)\res_video.cpp&quot; &quot;$(InputPath)&quot;" Description="Compiling resource files $(InputFileName)..." Name="VCCustomBuildTool" Outputs="$(BuildDir)\Res\$(ProjectName)\res_video.cpp" /></FileConfiguration><FileConfiguration Name="Debug|x64"><Tool CommandLine="&quot;$(QTBIN)\rcc.exe&quot; -name &quot;$(InputName)&quot; -o &quot;$(BuildDir)\Res\$(ProjectName)\res_video.cpp&quot; &quot;$(InputPath)&quot;" Description="Compiling resource files $(InputFileName)..." Name="VCCustomBuildTool" Outputs="$(BuildDir)\Res\$(ProjectName)\res_video.cpp" /></FileConfiguration><FileConfiguration Name="Release|x64"><Tool CommandLine="&quot;$(QTBIN)\rcc.exe&quot; -name &quot;$(InputName)&quot; -o &quot;$(BuildDir)\Res\$(ProjectName)\res_video.cpp&quot; &quot;$(InputPath)&quot;" Description="Compiling resource files $(InputFileName)..." Name="VCCustomBuildTool" Outputs="$(BuildDir)\Res\$(ProjectName)\res_video.cpp" /></FileConfiguration></File>
+			<File
+				RelativePath=".\NewControllerDialog.h"
+				>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing $(InputName).h..."
+						CommandLine="&quot;$(QTBIN)\moc.exe&quot; &quot;$(InputPath)&quot; -o &quot;$(BuildDir)\Moc\$(ProjectName)\moc_NewControllerDialog.cpp&quot;&#x0D;&#x0A;"
+						Outputs="$(BuildDir)\Moc\$(ProjectName)\moc_NewControllerDialog.cpp"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|x64"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing $(InputName).h..."
+						CommandLine="&quot;$(QTBIN)\moc.exe&quot; &quot;$(InputPath)&quot; -o &quot;$(BuildDir)\Moc\$(ProjectName)\moc_NewControllerDialog.cpp&quot;&#x0D;&#x0A;"
+						Outputs="$(BuildDir)\Moc\$(ProjectName)\moc_NewControllerDialog.cpp"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing $(InputName).h..."
+						CommandLine="&quot;$(QTBIN)\moc.exe&quot; &quot;$(InputPath)&quot; -o &quot;$(BuildDir)\Moc\$(ProjectName)\moc_NewControllerDialog.cpp&quot;&#x0D;&#x0A;"
+						Outputs="$(BuildDir)\Moc\$(ProjectName)\moc_NewControllerDialog.cpp"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|x64"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing $(InputName).h..."
+						CommandLine="&quot;$(QTBIN)\moc.exe&quot; &quot;$(InputPath)&quot; -o &quot;$(BuildDir)\Moc\$(ProjectName)\moc_NewControllerDialog.cpp&quot;&#x0D;&#x0A;"
+						Outputs="$(BuildDir)\Moc\$(ProjectName)\moc_NewControllerDialog.cpp"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\Timeline.h"
+				>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing $(InputName).h..."
+						CommandLine="&quot;$(QTBIN)\moc.exe&quot; &quot;$(InputPath)&quot; -o &quot;$(BuildDir)\Moc\$(ProjectName)\moc_Timeline.cpp&quot;&#x0D;&#x0A;"
+						Outputs="$(BuildDir)\Moc\$(ProjectName)\moc_Timeline.cpp"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|x64"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing $(InputName).h..."
+						CommandLine="&quot;$(QTBIN)\moc.exe&quot; &quot;$(InputPath)&quot; -o &quot;$(BuildDir)\Moc\$(ProjectName)\moc_Timeline.cpp&quot;&#x0D;&#x0A;"
+						Outputs="$(BuildDir)\Moc\$(ProjectName)\moc_Timeline.cpp"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing $(InputName).h..."
+						CommandLine="&quot;$(QTBIN)\moc.exe&quot; &quot;$(InputPath)&quot; -o &quot;$(BuildDir)\Moc\$(ProjectName)\moc_Timeline.cpp&quot;&#x0D;&#x0A;"
+						Outputs="$(BuildDir)\Moc\$(ProjectName)\moc_Timeline.cpp"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|x64"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing $(InputName).h..."
+						CommandLine="&quot;$(QTBIN)\moc.exe&quot; &quot;$(InputPath)&quot; -o &quot;$(BuildDir)\Moc\$(ProjectName)\moc_Timeline.cpp&quot;&#x0D;&#x0A;"
+						Outputs="$(BuildDir)\Moc\$(ProjectName)\moc_Timeline.cpp"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\TimelineWidget.h"
+				>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing $(InputName).h..."
+						CommandLine="&quot;$(QTBIN)\moc.exe&quot; &quot;$(InputPath)&quot; -o &quot;$(BuildDir)\Moc\$(ProjectName)\moc_TimelineWidget.cpp&quot;&#x0D;&#x0A;"
+						Outputs="$(BuildDir)\Moc\$(ProjectName)\moc_TimelineWidget.cpp"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|x64"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing $(InputName).h..."
+						CommandLine="&quot;$(QTBIN)\moc.exe&quot; &quot;$(InputPath)&quot; -o &quot;$(BuildDir)\Moc\$(ProjectName)\moc_TimelineWidget.cpp&quot;&#x0D;&#x0A;"
+						Outputs="$(BuildDir)\Moc\$(ProjectName)\moc_TimelineWidget.cpp"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing $(InputName).h..."
+						CommandLine="&quot;$(QTBIN)\moc.exe&quot; &quot;$(InputPath)&quot; -o &quot;$(BuildDir)\Moc\$(ProjectName)\moc_TimelineWidget.cpp&quot;&#x0D;&#x0A;"
+						Outputs="$(BuildDir)\Moc\$(ProjectName)\moc_TimelineWidget.cpp"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|x64"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Moc&apos;ing $(InputName).h..."
+						CommandLine="&quot;$(QTBIN)\moc.exe&quot; &quot;$(InputPath)&quot; -o &quot;$(BuildDir)\Moc\$(ProjectName)\moc_TimelineWidget.cpp&quot;&#x0D;&#x0A;"
+						Outputs="$(BuildDir)\Moc\$(ProjectName)\moc_TimelineWidget.cpp"
+					/>
+				</FileConfiguration>
+			</File>
 		</Filter>
-		<Filter Name="moc">
-			<File RelativePath="$(BuildDir)\Moc\$(ProjectName)\moc_AnimationPropertiesDialog.cpp">
+		<Filter
+			Name="resources"
+			>
+			<File
+				RelativePath=".\resources\video-48x48.png"
+				>
 			</File>
-			<File RelativePath="$(BuildDir)\Moc\$(ProjectName)\moc_NewControllerDialog.cpp">
-			</File>
-			<File RelativePath="$(BuildDir)\Moc\$(ProjectName)\moc_Timeline.cpp">
-			</File>
-			<File RelativePath="$(BuildDir)\Moc\$(ProjectName)\moc_TimelineWidget.cpp">
+			<File
+				RelativePath=".\resources\video.qrc"
+				>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Compiling resource files $(InputFileName)..."
+						CommandLine="&quot;$(QTBIN)\rcc.exe&quot; -name &quot;$(InputName)&quot; -o &quot;$(BuildDir)\Res\$(ProjectName)\res_video.cpp&quot; &quot;$(InputPath)&quot;&#x0D;&#x0A;"
+						Outputs="$(BuildDir)\Res\$(ProjectName)\res_video.cpp"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|x64"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Compiling resource files $(InputFileName)..."
+						CommandLine="&quot;$(QTBIN)\rcc.exe&quot; -name &quot;$(InputName)&quot; -o &quot;$(BuildDir)\Res\$(ProjectName)\res_video.cpp&quot; &quot;$(InputPath)&quot;&#x0D;&#x0A;"
+						Outputs="$(BuildDir)\Res\$(ProjectName)\res_video.cpp"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Compiling resource files $(InputFileName)..."
+						CommandLine="&quot;$(QTBIN)\rcc.exe&quot; -name &quot;$(InputName)&quot; -o &quot;$(BuildDir)\Res\$(ProjectName)\res_video.cpp&quot; &quot;$(InputPath)&quot;&#x0D;&#x0A;"
+						Outputs="$(BuildDir)\Res\$(ProjectName)\res_video.cpp"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|x64"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Compiling resource files $(InputFileName)..."
+						CommandLine="&quot;$(QTBIN)\rcc.exe&quot; -name &quot;$(InputName)&quot; -o &quot;$(BuildDir)\Res\$(ProjectName)\res_video.cpp&quot; &quot;$(InputPath)&quot;&#x0D;&#x0A;"
+						Outputs="$(BuildDir)\Res\$(ProjectName)\res_video.cpp"
+					/>
+				</FileConfiguration>
 			</File>
 		</Filter>
-	<Filter Name="res"><File RelativePath="$(BuildDir)\res\$(ProjectName)\res_video.cpp" /></Filter></Files>
+		<Filter
+			Name="moc"
+			>
+			<File
+				RelativePath="$(BuildDir)\Moc\$(ProjectName)\moc_AnimationPropertiesDialog.cpp"
+				>
+			</File>
+			<File
+				RelativePath="$(BuildDir)\Moc\$(ProjectName)\moc_NewControllerDialog.cpp"
+				>
+			</File>
+			<File
+				RelativePath="$(BuildDir)\Moc\$(ProjectName)\moc_Timeline.cpp"
+				>
+			</File>
+			<File
+				RelativePath="$(BuildDir)\Moc\$(ProjectName)\moc_TimelineWidget.cpp"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="res"
+			>
+			<File
+				RelativePath="$(BuildDir)\res\$(ProjectName)\res_video.cpp"
+				>
+			</File>
+		</Filter>
+	</Files>
 	<Globals>
 	</Globals>
 </VisualStudioProject>
