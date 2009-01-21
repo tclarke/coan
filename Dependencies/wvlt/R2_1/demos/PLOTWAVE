@@ -1,0 +1,105 @@
+#! /bin/sh
+
+nvec=256
+
+case $# in
+0)	ivec=24;;
+1)	ivec=$1;;
+2)	ivec=$1; nvec=$2;;
+*)	echo "usage: $0 [ ivec [ #vec ] ]" 1>&2;;
+esac
+
+range="[-1:1]"
+gplfile="/tmp/plot$$.gpl"
+
+trap "rm -rf $gplfile" 0 2 3 15
+
+cat >$gplfile <<EOF
+plot [0:$nvec] $range \
+	"< perl genvector $nvec $ivec | wxfrm -B -i -g" title "Battle-Lemarie ($ivec of $nvec)" with lines 1, \
+	"< perl genvector $nvec $ivec | wxfrm -B -i -e -g" title "psiTilde" with lines 3
+pause -1
+
+plot [0:$nvec] $range \
+	"< perl genvector $nvec $ivec | wxfrm -A -i -g" title "Burt-Adelson ($ivec of $nvec)" with lines 1, \
+	"< perl genvector $nvec $ivec | wxfrm -A -i -e -g" title "psiTilde" with lines 3
+pause -1
+
+plot [0:$nvec] $range \
+	"< perl genvector $nvec $ivec | wxfrm -C2 -i -g" title "Coiflet 2 ($ivec of $nvec)" with lines 1, \
+	"< perl genvector $nvec $ivec | wxfrm -C2 -i -e -g" title "psiTilde" with lines 3
+pause -1
+
+plot [0:$nvec] $range \
+	"< perl genvector $nvec $ivec | wxfrm -C4 -i -g" title "Coiflet 4 ($ivec of $nvec)" with lines 1, \
+	"< perl genvector $nvec $ivec | wxfrm -C4 -i -e -g" title "psiTilde" with lines 3
+pause -1
+
+plot [0:$nvec] $range \
+	"< perl genvector $nvec $ivec | wxfrm -C6 -i -g" title "Coiflet 6 ($ivec of $nvec)" with lines 1, \
+	"< perl genvector $nvec $ivec | wxfrm -C6 -i -e -g" title "psiTilde" with lines 3
+pause -1
+
+plot [0:$nvec] $range \
+	"< perl genvector $nvec $ivec | wxfrm -D4 -i -g" title "Daubechies 4 ($ivec of $nvec)" with lines 1, \
+	"< perl genvector $nvec $ivec | wxfrm -D4 -i -e -g" title "psiTilde" with lines 3
+pause -1
+
+plot [0:$nvec] $range \
+	"< perl genvector $nvec $ivec | wxfrm -D6 -i -g" title "Daubechies 6 ($ivec of $nvec)" with lines 1, \
+	"< perl genvector $nvec $ivec | wxfrm -D6 -i -e -g" title "psiTilde" with lines 3
+pause -1
+
+plot [0:$nvec] $range \
+	"< perl genvector $nvec $ivec | wxfrm -D8 -i -g" title "Daubechies 8 ($ivec of $nvec)" with lines 1, \
+	"< perl genvector $nvec $ivec | wxfrm -D8 -i -e -g" title "psiTilde" with lines 3
+pause -1
+
+plot [0:$nvec] $range \
+	"< perl genvector $nvec $ivec | wxfrm -D10 -i -g" title "Daubechies 10 ($ivec of $nvec)" with lines 1, \
+	"< perl genvector $nvec $ivec | wxfrm -D10 -i -e -g" title "psiTilde" with lines 3
+pause -1
+
+plot [0:$nvec] $range \
+	"< perl genvector $nvec $ivec | wxfrm -D12 -i -g" title "Daubechies 12 ($ivec of $nvec)" with lines 1, \
+	"< perl genvector $nvec $ivec | wxfrm -D12 -i -e -g" title "psiTilde" with lines 3
+pause -1
+
+plot [0:$nvec] $range \
+	"< perl genvector $nvec $ivec | wxfrm -D20 -i -g" title "Daubechies 20 ($ivec of $nvec)" with lines 1, \
+	"< perl genvector $nvec $ivec | wxfrm -D20 -i -e -g" title "psiTilde" with lines 3
+pause -1
+
+plot [0:$nvec] $range \
+	"< perl genvector $nvec $ivec | wxfrm -H -i -g" title "Haar ($ivec of $nvec)" with lines 1, \
+	"< perl genvector $nvec $ivec | wxfrm -H -i -e -g" title "psiTilde" with lines 3
+pause -1
+
+plot [0:$nvec] $range \
+	"< perl genvector $nvec $ivec | wxfrm -P -i -g" title "Pseudo-Coiflet ($ivec of $nvec)" with lines 1, \
+	"< perl genvector $nvec $ivec | wxfrm -P -i -e -g" title "psiTilde" with lines 3
+pause -1
+
+plot [0:$nvec] $range \
+	"< perl genvector $nvec $ivec | wxfrm -S2,2 -i -g" title "Spline 2,2 ($ivec of $nvec)" with lines 1, \
+	"< perl genvector $nvec $ivec | wxfrm -S2,2 -i -e -g" title "psiTilde" with lines 3
+pause -1
+
+plot [0:$nvec] $range \
+	"< perl genvector $nvec $ivec | wxfrm -S2,4 -i -g" title "Spline 2,4 ($ivec of $nvec)" with lines 1, \
+	"< perl genvector $nvec $ivec | wxfrm -S2,4 -i -e -g" title "psiTilde" with lines 3
+pause -1
+
+plot [0:$nvec] $range \
+	"< perl genvector $nvec $ivec | wxfrm -S3,3 -i -g" title "Spline 3,3 ($ivec of $nvec)" with lines 1, \
+	"< perl genvector $nvec $ivec | wxfrm -S3,3 -i -e -g" title "psiTilde" with lines 3
+pause -1
+
+plot [0:$nvec] $range \
+	"< perl genvector $nvec $ivec | wxfrm -S3,7 -i -g" title "Spline 3,7 ($ivec of $nvec)" with lines 1, \
+	"< perl genvector $nvec $ivec | wxfrm -S3,7 -i -e -g" title "psiTilde" with lines 3
+pause -1
+
+EOF
+
+gnuplot $gplfile

@@ -1,0 +1,146 @@
+LIBNAME = wvlt
+LIB = lib$(LIBNAME).a
+LINTLIB = llib-l$(LIBNAME).ln
+
+MAKETYPE = OPTIMIZED
+
+
+# Even though the IBM CC compiler permits optimized debugs, the debuggers
+# get confused with the results, so...
+CFLAGS_DEBUG_IBM = -g
+# on (our) SGIs:
+#   "make" isn't smart enough, so use "gmake" 
+#   gcc considers "-g" an "invalid option"
+#   the "-O" bypasses an unknown error: "nop must be inside .set noreorder
+#     section"
+CFLAGS_DEBUG_SGI = -O
+CFLAGS_DEBUG_SUN4 = -g -O
+CFLAGS_DEBUG = $(CFLAGS_DEBUG_$(ARCH))
+CFLAGS_OPTIMIZED = -O -DNDEBUG
+CFLAGS_PROFILE = -pg -O -DNDEBUG
+CFLAGS = $(CFLAGS_$(MAKETYPE))  -DARCH_$(ARCH) -DLIBARRAY_NOT_INSTALLED -DOSREL_MAJOR=$(OSREL_MAJOR)
+
+LIBDEST = $(LIBDIR)
+
+INCDEST = $(INCDIR)
+MODMFDIR = ../../bin
+
+LIBHDR = $(LIBNAME).h
+
+MANPAGES = \
+	wfltr.3 \
+	wrefine.3 \
+	wxfrm.3
+
+HDRS = \
+	local.h \
+	wvlt.h
+
+TEMPLATES = \
+	wrefine_t.c \
+	wxfrm_t.c
+
+EXTHDRS_SUN4 = \
+	/usr/include/floatingpoint.h\
+	/usr/include/sys/ieeefp.h
+EXTHDRS = \
+	$(EXTHDRS_$(ARCH)) \
+	/usr/include/math.h \
+	/usr/include/stdio.h
+
+LINTFLAGS_HP = -buchxz
+LINTFLAGS_IBM = -abuhx -wk
+LINTFLAGS_SGI = -buhx
+LINTFLAGS_SUN4 = $(LINTFLAGS_SUN4_OSREL_MAJOR_$(OSREL_MAJOR))
+LINTFLAGS_SUN4_OSREL_MAJOR_4 = -buchxz
+LINTFLAGS_SUN4_OSREL_MAJOR_5 = -buchx
+LINTFLAGS_OTHER = -buchxz
+LINTFLAGS = $(LINTFLAGS_$(ARCH))  -DARCH_$(ARCH) -DLIBARRAY_NOT_INSTALLED
+
+LINTLIBFLAG_HP = -C$(LIBNAME)
+LINTLIBFLAG_IBM = -o$(LIBNAME)
+LINTLIBFLAG_SGI = -o$(LIBNAME)
+LINTLIBFLAG_SUN4 = $(LINTLIBFLAG_SUN4_OSREL_MAJOR_$(OSREL_MAJOR))
+LINTLIBFLAG_SUN4_OSREL_MAJOR_4 = -C$(LIBNAME)
+LINTLIBFLAG_SUN4_OSREL_MAJOR_5 = -Cllib-l$(LIBNAME)
+LINTLIBFLAG_OTHER = -C$(LIBNAME)
+LINTLIBFLAG = $(LINTLIBFLAG_$(ARCH))
+
+LINTLIBS = -lm
+
+# On some systems, ranlib is necessary.  On others, it is not present.
+
+RANLIB_CMD = $(RANLIB_CMD_$(ARCH))
+RANLIB_CMD_HP = ranlib $(LIB)
+RANLIB_CMD_SGI =
+RANLIB_CMD_SUN4 = $(RANLIB_CMD_SUN4_OSREL_MAJOR_$(OSREL_MAJOR))
+RANLIB_CMD_SUN4_OSREL_MAJOR_4 = ranlib $(LIB)
+RANLIB_CMD_SUN4_OSREL_MAJOR_5 = 
+RANLIB_CMD_OTHER = ranlib $(LIB)
+
+PR = srclist
+
+SRCS = \
+	$(PWD)/wfltr.c \
+	$(PWD)/wrefined.c \
+	$(PWD)/wrefinef.c \
+	$(PWD)/wxfrmd.c \
+	$(PWD)/wxfrmf.c
+
+OBJS = \
+	wfltr.o \
+	wrefined.o \
+	wrefinef.o \
+	wxfrmd.o \
+	wxfrmf.o
+
+default: $(LIB) $(LIBNAME).ps
+
+all: $(LIB) $(LIBNAME).ps
+
+check:	$(SRCS)
+	ccheck  $(SRCS)
+
+clean:
+	rm -f a.out core $(LIB) $(LINTLIB) $(OBJS) *_t \#*~
+
+install:	$(LIBDEST)/$(LIB) $(LIBDEST)/$(LINTLIB) $(INCDIR)/$(LIBHDR)
+
+lint:
+	lint $(LINTFLAGS) $(SRCS) $(LINTLIBS)
+
+list:	$(HDRS) $(TEMPLATES) Makefile $(SRCS)
+	$(PR) $(HDRS) Makefile $(TEMPLATES) $(SRCS)
+
+rcsupdate:
+	ci -l Makefile $(HDRS) $(TEMPLATES) $(SRCS) $(MANPAGES)
+
+$(OBJS): $(HDRS) $(EXTHDRS)
+
+wxfrmd.o: wxfrm_t.c
+
+wxfrmf.o: wxfrm_t.c
+
+wrefined.o: wrefine_t.c
+
+wrefinef.o: wrefine_t.c
+
+$(LIB): $(OBJS)
+	ar rc $(LIB) $(OBJS)
+	$(RANLIB_CMD)
+
+$(LIBDEST)/$(LIB):	$(LIB)
+	cp $(LIB) $(LIBDEST)/$(LIB)
+	cd $(LIBDEST); $(RANLIB_CMD)
+
+$(LIBDEST)/$(LINTLIB):	$(LINTLIB)
+	cp $(LINTLIB) $(LIBDEST)/$(LINTLIB)
+
+$(INCDIR)/$(LIBHDR): $(LIBHDR)
+	cp $(LIBHDR) $(INCDEST)
+
+$(LINTLIB):	$(SRCS) $(HDRS) $(EXTHDRS)
+	lint $(LINTFLAGS) $(LINTLIBFLAG) $(SRCS) $(LINTLIBS)
+
+$(LIBNAME).ps: wfltr.3 wrefine.3 wxfrm.3
+	groff -man wfltr.3 wrefine.3 wxfrm.3 >$(LIBNAME).ps

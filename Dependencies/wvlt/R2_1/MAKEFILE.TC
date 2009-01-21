@@ -1,0 +1,33 @@
+MAKE = make
+
+ARCH = DOSTC
+
+MFLAGS = -fmakefile.tc -DARCH=$(ARCH)
+
+all:
+	cd lib
+	$(MAKE) $(MFLAGS) wvlt.lib
+	cd ..
+	cd ppmwthre
+	$(MAKE) $(MFLAGS) ppmwthre.exe
+	cd ..
+	cd wxfrm
+	$(MAKE) $(MFLAGS) wxfrm.exe
+	cd ..
+	cd wrefine
+	$(MAKE) $(MFLAGS) wrefine.exe
+	cd ..
+
+clean:
+	cd lib
+	$(MAKE) $(MFLAGS) clean
+	cd ..
+	cd ppmwthre
+	$(MAKE) $(MFLAGS) clean
+	cd ..
+	cd wxfrm
+	$(MAKE) $(MFLAGS) clean
+	cd ..
+	cd wrefine
+	$(MAKE) $(MFLAGS) clean
+	cd ..

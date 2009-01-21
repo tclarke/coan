@@ -1,0 +1,173 @@
+BINDEST = $(BINDIR)
+PROG = wxfrm
+
+INCLIST = -I../lib
+
+MAKETYPE = OPTIMIZED
+
+#
+#	Some systems use /usr/lib, some use /lib.  Some have profiled math
+#	libraries, some don't.
+#
+
+LIB_MATH_DEBUG_IBM = /lib/libm.a
+LIB_MATH_PROFILE_IBM = /lib/libm.a
+LIB_MATH_OPTIMIZED_IBM = /lib/libm.a
+
+LIB_MATH_DEBUG_SGI = /usr/lib/libm.a
+LIB_MATH_OPTIMIZED_SGI = /usr/lib/libm.a
+LIB_MATH_PROFILE_SGI = /usr/lib/libm_p.a
+
+LIB_MATH_DEBUG_SUN4 = /usr/lib/libm.a
+LIB_MATH_OPTIMIZED_SUN4 = /usr/lib/libm.a
+LIB_MATH_PROFILE_SUN4 = /usr/lib/libm_p.a
+
+LIB_MATH_DEBUG_HP = /lib/libm.a
+LIB_MATH_OPTIMIZED_HP = /lib/libm.a
+LIB_MATH_PROFILE_HP = /lib/libp/libm.a
+
+LIB_MATH_DEBUG_OTHER = /usr/lib/libm.a
+LIB_MATH_OPTIMIZED_OTHER = /usr/lib/libm.a
+LIB_MATH_PROFILE_OTHER = /usr/lib/libm_p.a
+
+LIB_MATH_DEBUG = $(LIB_MATH_DEBUG_$(ARCH))
+LIB_MATH_OPTIMIZED = $(LIB_MATH_OPTIMIZED_$(ARCH))
+LIB_MATH_PROFILE = $(LIB_MATH_PROFILE_$(ARCH))
+
+LIBS_DEBUG = \
+	../lib/libwvlt.a \
+	$(LIB_MATH_DEBUG)
+
+LIBS_OPTIMIZED = \
+	../lib/libwvlt.a \
+	$(LIB_MATH_OPTIMIZED)
+
+LIBS_PROFILE = \
+	../lib/libwvlt.a \
+	$(LIB_MATH_PROFILE)
+
+LIBS = $(LIBS_$(MAKETYPE)) 
+
+
+CFLAGS = $(CFLAGS_$(MAKETYPE)) $(INCLIST) -DARCH_$(ARCH) -DLIBARRAY_NOT_INSTALLED -DOSREL_MAJOR=$(OSREL_MAJOR)
+CFLAGS_DEBUG = $(CFLAGS_DEBUG_$(ARCH))
+CFLAGS_DEBUG_IBM = -g
+# on (our) SGIs:
+#   "make" isn't smart enough, so use "gmake"
+#   gcc considers "-g" an "invalid option"
+#   the "-O" bypasses an unknown error: "nop must be inside .set noreorder
+#     section"
+CFLAGS_DEBUG_SGI = -g
+CFLAGS_DEBUG_SUN4 = -g -O
+CFLAGS_OPTIMIZED = -O -DNDEBUG
+CFLAGS_PROFILE = -pg -O -DNDEBUG
+
+LD = $(CC)
+
+LDFLAGS=$(LDFLAGS_$(MAKETYPE))
+LDFLAGS_DEBUG = -g
+LDFLAGS_OPTIMIZED =
+LDFLAGS_PROFILE = -pg
+
+LINTFLAGS = $(LINTFLAGS_$(ARCH)) $(INCLIST) -DARCH_$(ARCH) -DLIBARRAY_NOT_INSTALLED -DOSREL_MAJOR=$(OSREL_MAJOR)
+LINTFLAGS_HP = -buchxz
+LINTFLAGS_IBM = -bux
+LINTFLAGS_SGI = -buhxz
+LINTFLAGS_SUN4 = -buchxz
+LINTFLAGS_OTHER = -buchxz
+
+EXTCCSRCS = \
+	$(HOME)/src/lib/util/*.c
+
+EXTHDRS = \
+	../lib/lintok.h \
+	../lib/wvlt.h \
+	../lib/util.h
+
+HDRS = \
+	local.h
+
+LINT=lint
+LINTFLAGS = -bchxz $(INCLIST)
+LINTLIBS = \
+	-lm
+
+PR = srclist
+
+SRCS = \
+	main.c
+
+OBJS = \
+	main.o
+
+EXTOBJS = 
+
+default: $(PROG)
+
+backup: Makefile $(SRCS) $(HDRS) ccenter.project
+	-mkdir backup
+	/bin/cp Makefile $(SRCS) $(HDRS) ccenter.project backup
+
+ccheck:	$(SRCS)
+	ccheck $(INCLIST) $(SRCS)
+
+checkin:
+	ci -l Makefile $(HDRS) $(SRCS)
+
+clean:
+	rm -f a.out core *% $(PROG) $(PROG).pure *_pure_200.o *.pure.* $(OBJS) Makefile.BAK \#*~
+
+install:	$(BINDEST)/$(PROG)
+
+$(BINDEST)/$(PROG):	$(PROG)
+	cp $(PROG) $(BINDEST)/$(PROG)
+
+lint:	$(SRCS)
+	$(LINT) $(LINTFLAGS) $(SRCS) $(LINTLIBS)
+
+list:	$(HDRS) $(SRCS)
+	@$(PR) $(HDRS) $(SRCS)
+
+rcsupdate:
+	ci -l Makefile $(SRCS) $(HDRS)
+
+tags:	$(SRCS) $(HDRS)
+	ctags -t $(SRCS) $(HDRS) >tags
+
+$(OBJS): $(HDRS) $(EXTHDRS)
+
+$(PROG): $(OBJS) $(LIBS)
+	@echo $(LD) $(LDFLAGS) -o $(PROG) $(OBJS) $(EXTOBJS) $(LIBS)
+	@if $(LD) $(LDFLAGS) -o $(PROG) $(OBJS) $(EXTOBJS) $(LIBS) ;\
+	then \
+		echo $(PROG) linked ;\
+	else \
+		echo errors in link, $(PROG) executable removed ;\
+		/bin/rm $(PROG) ;\
+	fi
+
+$(PROG).pure: $(OBJS) $(LIBS)
+	@echo purify $(LD) $(LDFLAGS) -o $(PROG).pure $(OBJS) $(EXTOBJS) $(LIBS)
+	@if purify $(LD) $(LDFLAGS) -o $(PROG).pure $(OBJS) $(EXTOBJS) $(LIBS) ;\
+	then \
+		echo $(PROG).pure linked ;\
+	else \
+		echo errors in link, $(PROG).pure executable removed ;\
+		/bin/rm $(PROG).pure ;\
+	fi
+
+test:
+	$(CC) $(CFLAGS_DEBUG) $(INCLIST) -DARCH_$(ARCH) -DLIBARRAY_NOT_INSTALLED -DOSREL_MAJOR=$(OSREL_MAJOR) -DTEST $(SRC) -o `basename $(SRC) .c`_t $(LIBS)
+
+ccenter_src: $(SRCS)
+	#load $(LIBS)
+	#load $(CFLAGS) $(SRCS) $(EXTCCSRCS)
+
+ccenter_obj: $(OBJS)
+	#load $(CFLAGS) $(OBJS)
+
+ccrun:
+	#run -l 1 -d 1 -s -f -p -O ccrun.ppm ccrun.rs
+
+profile:
+	$(MAKE) MAKETYPE=PROFILE LIBDIR=$(LIBROOT)/profile PROG=$(PROG)_p

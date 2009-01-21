@@ -1,0 +1,59 @@
+#! /bin/sh
+
+tmpdir=/tmp/plot$$
+gplfile=$tmpdir/plot.gpl
+
+trap "rm -rf $tmpdir" 0 2 3 15
+
+mkdir $tmpdir
+
+terminal_cmd=
+pause_cmd="pause -1";
+file=
+for arg in $*
+do
+	case $arg in
+	-f)	terminal_cmd="set terminal postscript";
+		pause_cmd="";
+		outbase="$0";;
+	*)	file=$arg;;
+	esac
+done
+
+for filter in A B C2 C4 C6 D4 D6 D8 D10 D12 D20 H P S2,2 S2,4 S3,3 S3,7
+do
+	wxfrm -$filter -s -g $file >$tmpdir/${filter}
+done
+
+cat >$gplfile <<EOF
+$terminal_cmd
+set logscale x
+
+set output "${outbase}_1.ps"
+plot \
+	"$tmpdir/B" title "Battle-Lemarie" with lines, \
+	"$tmpdir/A" title "Burt-Adelson" with lines, \
+	"$tmpdir/C2" title "Coiflet 2" with lines, \
+	"$tmpdir/C4" title "Coiflet 4" with lines, \
+	"$tmpdir/C6" title "Coiflet 6" with lines, \
+	"$tmpdir/D4" title "Daubechies 4" with lines, \
+	"$tmpdir/D6" title "Daubechies 6" with lines, \
+	"$tmpdir/D8" title "Daubechies 8" with lines
+$pause_cmd
+
+set output "${outbase}_2.ps"
+plot \
+	"$tmpdir/D10" title "Daubechies 10" with lines, \
+	"$tmpdir/D12" title "Daubechies 12" with lines, \
+	"$tmpdir/D20" title "Daubechies 20" with lines, \
+	"$tmpdir/H" title "Haar" with lines, \
+	"$tmpdir/P" title "Pseudo-Coiflet" with lines, \
+	"$tmpdir/S2,2" title "Spline 2,2" with lines, \
+	"$tmpdir/S2,4" title "Spline 2,2" with lines, \
+	"$tmpdir/S3,3" title "Spline 3,3" with lines, \
+	"$tmpdir/S3,7" title "Spline 3,7" with lines
+$pause_cmd
+
+EOF
+
+gnuplot $gplfile

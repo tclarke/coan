@@ -1,0 +1,208 @@
+wvlt: The UBC Imager Wavelet Package -- Release 2.1
+---------------------------------------------------
+
+Release History
+---------------
+
+[Release 2.1]
+
+Contains some minor bug fixes to "wxfrm" and support for compilation under
+SunOS 5.x (Solaris) OSes.
+
+[Release 2.0]
+
+THIS IS A MAJOR NEW RELEASE WHICH SHOULD BE CONSIDERED INCOMPATIBLE WITH
+PREVIOUS RELEASES.
+
+Pseudocoiflets in previous release had been mislabelled as Coiflets.
+Official (Beylkin-Coifman-Rokhlin) coiflets added.
+
+Spline wavelets now belong to a single, consistently-named family.
+
+Corrected offsets of Spline 3,3 wavelet.
+
+Changes order of multidimensional index enumeration to correspond with C
+array declaration syntax.
+
+Supports "nonstandard" (Beylkin-Coifman-Rokhlin) multidimensional transforms.
+
+Adds new "ppmwthresh" image thresholding demonstration program.  (Note that
+while it shows the result of wavelet compression, it does *not* compress the
+image files themselves.)
+
+Improves performance of the multidimensional wavelet transform.
+
+Operates on both single and double precision arrays.  (The function names
+have changed to reflect this.)
+
+Compiles under HP-UX, DOS/Turbo-C, and (library only) Macintosh.  (Thanks to
+John Burrell (johnb@whio.grace.cri.nz) and Ken Turkowski
+(Ken_Turkowski@quickmail.apple.com) for porting assistance.)
+
+[Release 1.3]
+
+Adds an explanatory README file (you're reading it now).
+
+[Release 1.2]
+
+Removes some spurious dependencies from the library Makefile.
+
+[Release 1.1]
+
+Adds a couple of minor bug fixes: Correcting a typo from Daubechies's book
+and allowing for the variable location of the "perl" executable on the
+user's system.
+
+[Release 1.0]
+
+This is the first release of the UBC Imager Wavelet Package: a set of tools
+that perform the basic wavelet operations: forward and inverse transformation
+and refinement.
+
+Contents
+--------
+
+If you're reading this file, you've probably already "unshar"ed (under UNIX)
+or "(pk)unzip"ed" (under DOS) the release file.  This created a directory
+named either "wvlt/r2_0" (using the UNIX directory notation) with this
+README file and five or six subdirectories:
+
+	lib
+		library containing all of the wavelet functions
+
+	ppmwthresh (ppmwthre on DOS)
+		binary demonstrating wavelet image compression
+
+	wxfrm
+		binary for wavelet forward and inverse transforms
+
+	wrefine
+		binary for wavelet refinement
+
+	exe (DOS only)
+		DOS executable versions of the above binaries
+
+	demos
+		various wavelet demonstration scripts
+
+The "wxfrm" and "wrefine" binaries are little more than front ends to the
+library.  Both are designed to read and write ordinary ASCII files.
+
+"ppmwthresh" reads and writes Jef Poskanzer's "PPM" image format.  As
+mentioned above, it does *not* create compressed image files (i.e., its
+output is not sparse), but it shows the result of compressing an image by
+setting a certain number of wavelet coefficients to zero before
+reconstructing.
+
+You can find the command line options for any of the binaries by running it
+with the single command line argument "'-?'" (the single quotes are
+important under UNIX).  For instance, to find the options for "wxfrm", enter
+
+	% wxfrm '-?'
+
+UNIX Compilation
+----------------
+
+To compile the source code on an IBM, SGI, or HP UNIX platform, be sure
+you're in "wvlt/r2_0" and enter
+
+	% make ARCH={arch}
+
+where {arch} is one of the supported machine architectures: "IBM", "SGI", or
+"HP".  On SGIs, you may need to use GNU make ("gmake") instead of the usual
+"/bin/make".
+
+On Sun 4 platforms, because of significant differences between SunOS Release
+4.x and SunOS Release 5.x (aka "Solaris"), you need to indicate the major
+operating system release number as well:
+
+	% make ARCH=SUN4 OSREL_MAJOR={val}
+
+where {val} is either "4" for SunOS 4.x or "5" for SunOS 5.x releases.
+
+(There's nothing very architecture-specific in any of the code, so it may
+work fine on other architectures.)
+
+This will compile the library "libwvlt.a" and then compile and link the
+three binaries.  Place these binaries somewhere in your $PATH.
+
+DOS-Turbo C Compilation
+-----------------------
+
+Although the DOS release includes binaries of the demo programs, you can
+remake them if you have Borland Turbo C installed on your system.  More
+importantly, this will also compile and build the wavelet library "wvlt.lib".
+
+To compile the source code for a DOS platform with Turbo C installed, be
+sure you're in "wvlt/r2_0" and enter
+
+	> make -fmakefile.tc
+
+The binaries provided have been compiled with a (dated) 16-bit Turbo C
+compiler.  This will cause memory problems if they are given large arrays or
+(in the case of ppmwthresh) even moderately-sized images.
+
+Demonstrations
+--------------
+
+Once the binaries are installed, there are several demonstration scripts in
+the "demos" subdirectory.  To use these, you must have "perl" and "gnuplot"
+installed on your system.
+
+The individual files are:
+
+genvector
+	This perl script generates a vector used by the other utilities.  You
+	may optionally modify the first line to indicate where perl is installed
+	on your system (often "/bin/perl"), but the other demos do not depend on
+	this.
+
+plotlevels {flag} {title}
+	shows several levels of an approximately-centered wavelet function.
+	"{flag}" specifies a wavelet basis.  (Use "wxfrm '-?'" to get a list.)
+	It always defaults to the Haar ("-H") basis.  {title} is a title for the
+	plot.  It defaults to {flag}.
+
+plotsmoothing {i} {n}
+	shows the {i}th (default: 16) smoothing basis for a vector of length {n}
+	(default: 32).  (The vector is always refined to a length of 256.)
+
+plotwavelets {i} {n}
+	shows the {i}th (default: 24) wavelet basis for a vector of length {n}
+	(default: 256).
+
+plotwrefine {file}
+	shows the result of refining (depending on the basis, this means
+	interpolation) by a factor of 8 the 1-dimensional data in {file}
+	(default: standard input).  The test files "ramp16.dat" (a 16-value
+	ramp), "linearlt.dat" (one row of ray-traced output), and
+	"realvideo.dat" (one row of real video) are included.
+
+plotwxfrmmag {file}
+	plots the absolute values of the wavelet transform coefficients of
+	the 1-dimensional data in {file} in decreasing order.  The same test
+	files for "plotwrefine" work here.
+
+All of the plot* files are (Bourne) shell scripts, so they may not be very
+useful under DOS.  Of course, their names are truncated to 8 characters
+under DOS.
+
+Linking to the Library
+----------------------
+
+You are free to include "lib/wvlt.h" and link your own code with
+"lib/libwvlt.a" (UNIX) or "lib/wvlt.lib" (DOS).  There are manual pages
+"wxfrm.3" and "wrefine.3" and their corresponding PostScript file "wvlt.ps"
+describing the library in the "lib" subdirectory, and the sources for
+"ppmwthresh", "wxfrm", and "wrefine" provide examples.
+
+Disclaimer
+----------
+
+Bob Lewis produced this package and hereby releases it to the public
+domain.  Neither the author nor the University of British Columbia will be
+held responsible for its use, misuse, or abuse or any damages arising from
+same.
+
+Any comments regarding this package may, nevertheless, be sent to
+"bobl@cs.ubc.ca".

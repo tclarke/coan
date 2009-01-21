@@ -1,0 +1,108 @@
+#! /bin/sh
+
+nvecOriginal=32
+nvecRefined=256
+
+case $# in
+0)	ivec=16;;
+1)	ivec=$1;;
+2)	ivec=$1; nvecOriginal=$2;;
+*)	echo "usage: $0 [ ivec [ #vec ] ]" 1>&2;;
+esac
+
+f=`expr $nvecRefined / $nvecOriginal`
+range="-2:2"
+gplfile="/tmp/plot$$.gpl"
+
+trap "rm -rf $gplfile" 0 2 3 15
+
+cat >$gplfile <<EOF
+plot [0:$nvecOriginal] [$range] \
+	"< perl genvector $nvecOriginal $ivec | wrefine -B -f$f -g" title "Battle-Lemarie ($ivec of $nvecRefined)" with lines 1, \
+	"< perl genvector $nvecOriginal $ivec | wrefine -B -f$f -e -g" title "phiTilde" with lines 3
+pause -1
+
+plot [0:$nvecOriginal] [$range] \
+	"< perl genvector $nvecOriginal $ivec | wrefine -A -f$f -g" title "Burt-Adelson ($ivec of $nvecRefined)" with lines 1, \
+	"< perl genvector $nvecOriginal $ivec | wrefine -A -f$f -e -g" title "phiTilde" with lines 3
+pause -1
+
+plot [0:$nvecOriginal] [$range] \
+	"< perl genvector $nvecOriginal $ivec | wrefine -C2 -f$f -g" title "Coiflet 2 ($ivec of $nvecRefined)" with lines 1, \
+	"< perl genvector $nvecOriginal $ivec | wrefine -C2 -f$f -e -g" title "phiTilde" with lines 3
+pause -1
+
+plot [0:$nvecOriginal] [$range] \
+	"< perl genvector $nvecOriginal $ivec | wrefine -C4 -f$f -g" title "Coiflet 4 ($ivec of $nvecRefined)" with lines 1, \
+	"< perl genvector $nvecOriginal $ivec | wrefine -C4 -f$f -e -g" title "phiTilde" with lines 3
+pause -1
+
+plot [0:$nvecOriginal] [$range] \
+	"< perl genvector $nvecOriginal $ivec | wrefine -C6 -f$f -g" title "Coiflet 6 ($ivec of $nvecRefined)" with lines 1, \
+	"< perl genvector $nvecOriginal $ivec | wrefine -C6 -f$f -e -g" title "phiTilde" with lines 3
+pause -1
+
+plot [0:$nvecOriginal] [$range] \
+	"< perl genvector $nvecOriginal $ivec | wrefine -D4 -f$f -g" title "Daubechies 4 ($ivec of $nvecRefined)" with lines 1, \
+	"< perl genvector $nvecOriginal $ivec | wrefine -D4 -f$f -e -g" title "phiTilde" with lines 3
+pause -1
+
+plot [0:$nvecOriginal] [$range] \
+	"< perl genvector $nvecOriginal $ivec | wrefine -D6 -f$f -g" title "Daubechies 6 ($ivec of $nvecRefined)" with lines 1, \
+	"< perl genvector $nvecOriginal $ivec | wrefine -D6 -f$f -e -g" title "phiTilde" with lines 3
+pause -1
+
+plot [0:$nvecOriginal] [$range] \
+	"< perl genvector $nvecOriginal $ivec | wrefine -D8 -f$f -g" title "Daubechies 8 ($ivec of $nvecRefined)" with lines 1, \
+	"< perl genvector $nvecOriginal $ivec | wrefine -D8 -f$f -e -g" title "phiTilde" with lines 3
+pause -1
+
+plot [0:$nvecOriginal] [$range] \
+	"< perl genvector $nvecOriginal $ivec | wrefine -D10 -f$f -g" title "Daubechies 10 ($ivec of $nvecRefined)" with lines 1, \
+	"< perl genvector $nvecOriginal $ivec | wrefine -D10 -f$f -e -g" title "phiTilde" with lines 3
+pause -1
+
+plot [0:$nvecOriginal] [$range] \
+	"< perl genvector $nvecOriginal $ivec | wrefine -D12 -f$f -g" title "Daubechies 12 ($ivec of $nvecRefined)" with lines 1, \
+	"< perl genvector $nvecOriginal $ivec | wrefine -D12 -f$f -e -g" title "phiTilde" with lines 3
+pause -1
+
+plot [0:$nvecOriginal] [$range] \
+	"< perl genvector $nvecOriginal $ivec | wrefine -D20 -f$f -g" title "Daubechies 20 ($ivec of $nvecRefined)" with lines 1, \
+	"< perl genvector $nvecOriginal $ivec | wrefine -D20 -f$f -e -g" title "phiTilde" with lines 3
+pause -1
+
+plot [0:$nvecOriginal] [$range] \
+	"< perl genvector $nvecOriginal $ivec | wrefine -H -f$f -g" title "Haar ($ivec of $nvecRefined)" with lines 1, \
+	"< perl genvector $nvecOriginal $ivec | wrefine -H -f$f -e -g" title "phiTilde" with lines 3
+pause -1
+
+plot [0:$nvecOriginal] [$range] \
+	"< perl genvector $nvecOriginal $ivec | wrefine -P -f$f -g" title "Pseudo-Coiflet ($ivec of $nvecRefined)" with lines 1, \
+	"< perl genvector $nvecOriginal $ivec | wrefine -P -f$f -e -g" title "phiTilde" with lines 3
+pause -1
+
+plot [0:$nvecOriginal] [$range] \
+	"< perl genvector $nvecOriginal $ivec | wrefine -S2,2 -f$f -g" title "Spline 2,2 ($ivec of $nvecRefined)" with lines 1, \
+	"< perl genvector $nvecOriginal $ivec | wrefine -S2,2 -f$f -e -g" title "phiTilde" with lines 3
+pause -1
+
+plot [0:$nvecOriginal] [$range] \
+	"< perl genvector $nvecOriginal $ivec | wrefine -S2,4 -f$f -g" title "Spline 2,4 ($ivec of $nvecRefined)" with lines 1, \
+	"< perl genvector $nvecOriginal $ivec | wrefine -S2,4 -f$f -e -g" title "phiTilde" with lines 3
+pause -1
+
+plot [0:$nvecOriginal] [$range] \
+	"< perl genvector $nvecOriginal $ivec | wrefine -S3,3 -f$f -g" title "Spline 3,3 ($ivec of $nvecRefined)" with lines 1, \
+	"< perl genvector $nvecOriginal $ivec | wrefine -S3,3 -f$f -e -g" title "phiTilde" with lines 3
+pause -1
+
+plot [0:$nvecOriginal] [$range] \
+	"< perl genvector $nvecOriginal $ivec | wrefine -S3,7 -f$f -g" title "Spline 3,7 ($ivec of $nvecRefined)" with lines 1, \
+	"< perl genvector $nvecOriginal $ivec | wrefine -S3,7 -f$f -e -g" title "phiTilde" with lines 3
+pause -1
+
+EOF
+
+gnuplot $gplfile
+rm -rf $gplfile

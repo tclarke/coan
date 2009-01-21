@@ -1,0 +1,68 @@
+.TH WREFINE 3wvlt "1 May 1995"
+.SH NAME
+wrefine_[fd]a1d \- perform a wavelet refinement
+.SH SYNOPSIS
+.ft B
+.nf
+#include <wvlt.h>
+.sp .5
+void wrefine_da1d(a, nA, nNew, wfltr, aRefined);
+\s-1double\s0 *a, *aRefined;
+\s-1int\s0 nA, nNew;
+\s-1waveletfilter\s0 *wfltr;
+.sp .5
+void wrefine_fa1d(a, nA, nNew, wfltr, aRefined);
+\s-1float\s0 *a, *aRefined;
+\s-1int\s0 nA, nNew;
+\s-1waveletfilter\s0 *wfltr;
+.ft R
+.fi
+.SH DESCRIPTION
+.LP
+These functions, which are part of the UBC Imager Wavelet Library,
+perform wavelet refinement on data.
+Every function uses a particular wavelet filter, specified by the
+.I wfltr
+pointer.
+The possible choices are described on the
+.I wfltr(3wvlt)
+man page.
+.LP
+Refinement is a general term which encompasses interpolation.
+A wavelet refinement is an interpolation if a refinement from
+.I nA
+points in
+.I a[]
+to
+.I nNew
+points in
+.I aRefined[]
+leaves the original
+.I nA
+points intact.
+Both
+.I nA
+and
+.I nNew
+(>=
+.IR nA )
+must be powers of two.
+.LP
+Whether or not it does so depends on the wavelet filter.
+Of the filters implemented in this package, these interpolate:
+Haar, all Splines, Daubechies 8, all Coiflets, and Pseudocoiflet.
+.LP
+The individual functions are:
+.TP 20
+.B wrefine_da1d()
+refines double-precision data.
+.TP 20
+.B wrefine_fa1d()
+refines float data.
+.SH DIAGNOSTICS
+If
+.I nA
+is less than 2, these functions return quietly.
+.SH FILES
+.TP 20
+.B libwvlt.a

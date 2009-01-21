@@ -1,0 +1,54 @@
+BINDEST = c:\exe
+PROG = wxfrm.exe
+
+CC = tcc
+LD = $(CC)
+PR = print
+
+INCLIST = -I..\lib
+
+LIBS = ..\lib\wvlt.lib
+
+CFLAGS = -O $(INCLIST) -DARCH_DOS -DLIBARRAY_NOT_INSTALLED
+
+LDFLAGS=
+
+EXTHDRS = \
+	..\lib\lintok.h \
+	..\lib\wvlt.h \
+	..\lib\util.h
+
+HDRS = \
+	local.h
+
+SRCS = \
+	main.c
+
+OBJS = \
+	main.obj
+
+EXTOBJS = 
+
+.c.obj:
+	$(CC) -c $(CFLAGS) $<
+
+default: $(PROG)
+
+clean:
+	del $(PROG)
+	del *.obj
+	del *.bak
+	del *.map
+
+install:	$(BINDEST)\$(PROG)
+
+$(BINDEST)\$(PROG):	$(PROG)
+	copy $(PROG) $(BINDEST)\$(PROG)
+
+list:	$(HDRS) $(SRCS)
+	@$(PR) $(HDRS) $(SRCS)
+
+$(OBJS): $(HDRS) $(EXTHDRS)
+
+$(PROG): $(OBJS) $(LIBS)
+	$(LD) $(LDFLAGS) -e$(PROG) $(LIBS) $(OBJS)

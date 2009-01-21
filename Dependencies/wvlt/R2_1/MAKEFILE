@@ -1,0 +1,24 @@
+SHELL = /bin/sh
+
+# default value
+OSREL_MAJOR = 0
+
+all:
+	@if [ "$(ARCH)" = "" ] ;\
+	then \
+		echo "You need to define ARCH, either as '$(MAKE) ARCH=val' or 'setenv ARCH val'"  1>&2 ;\
+		echo "  where val is 'HP', 'IBM', 'SGI', or 'SUN4'." 1>&2 ;\
+		exit 1 ;\
+	elif [ "$(ARCH)" = "SUN4" ] ;\
+	then \
+		if [ "$(OSREL_MAJOR)" != "4" -a "$(OSREL_MAJOR)" != "5" ] ;\
+		then \
+			echo "On SUN4 platforms, you need to define OSREL_MAJOR, either as"  1>&2 ;\
+			echo "  '$(MAKE) OSREL_MAJOR=val' or 'setenv OSREL_MAJOR val', where val is '4' or '5'." 1>&2 ;\
+			exit 1 ;\
+		fi ;\
+	fi
+	cd lib; $(MAKE) $(MFLAGS) ARCH=$(ARCH) OSREL_MAJOR=$(OSREL_MAJOR)
+	cd ppmwthresh; $(MAKE) $(MFLAGS) ARCH=$(ARCH) OSREL_MAJOR=$(OSREL_MAJOR)
+	cd wxfrm; $(MAKE) $(MFLAGS) ARCH=$(ARCH) OSREL_MAJOR=$(OSREL_MAJOR)
+	cd wrefine; $(MAKE) $(MFLAGS) ARCH=$(ARCH) OSREL_MAJOR=$(OSREL_MAJOR)

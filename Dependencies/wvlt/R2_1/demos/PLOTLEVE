@@ -1,0 +1,26 @@
+#! /bin/sh
+
+nvec=256
+
+case $# in
+0)	flag="-H"; title="Haar";;
+1)	flag="$1"; title="$1";;
+2)	flag="$1"; title="$2";;
+*)	echo "usage: $0" 1>&2;;
+esac
+
+gplfile="/tmp/plot$$.gpl"
+trap "rm -rf $gplfile" 0 2 3 15
+
+for ivec in 2 4 8 16 32 64 128
+do
+	jvec=`expr $ivec \* 3 / 2`
+	cat <<EOF
+	plot \
+		"< perl genvector $nvec $jvec | wxfrm $flag -i -g" title "$title ($jvec of $nvec)" with lines
+	pause -1
+
+EOF
+done >$gplfile
+
+gnuplot $gplfile
