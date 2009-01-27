@@ -1,0 +1,14 @@
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix aebl: <urn:2008:03:aebl-syntax-ns#> .
+@prefix opticks: <urn:2008:03:opticks-aebl-extension-ns#> .
+
+<urn:aebl:install-manifest>
+   aebl:id "{D066FF3A-1DF2-4D31-AD50-A2CA7B1453A1}" ;
+   aebl:name "Octave" ;
+   aebl:version "0.1" ;
+   aebl:type "2" ;
+   aebl:description "Octave scripting system" ;
+   aebl:targetApplication [
+      aebl:id "opticks@ballforge.net" ;
+      aebl:minVersion "4.2.0" ;
+      aebl:maxVersion "4.2.*" ] .

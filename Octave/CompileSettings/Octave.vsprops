@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="Windows-1252"?>
+<VisualStudioPropertySheet
+	ProjectType="Visual C++"
+	Version="8.00"
+	Name="Octave"
+	>
+	<Tool
+		Name="VCCLCompilerTool"
+		AdditionalIncludeDirectories="&quot;$(OCTAVE_DIR)\include\octave-3.0.1&quot;;&quot;$(OCTAVE_DIR)\include\octave-3.0.1\octave&quot;;&quot;$(OCTAVE_DIR)\include&quot;"
+	/>
+	<Tool
+		Name="VCLinkerTool"
+		AdditionalDependencies="octave.lib cruft.lib octinterp.lib lapack.lib blas.lib fftw3.lib octave.lib"
+		AdditionalLibraryDirectories="&quot;$(OCTAVE_DIR)\lib\octave-3.0.1&quot;;&quot;$(OCTAVE_DIR)\lib&quot;"
+	/>
+</VisualStudioPropertySheet>
