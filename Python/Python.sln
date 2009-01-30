@@ -1,0 +1,37 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 9.00
+# Visual Studio 2005
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Include", "Include", "{C64A74ED-0EAC-4CE8-9CDE-74DEDEAB6E6F}"
+	ProjectSection(SolutionItems) = preProject
+		Include\PythonVersion.h = Include\PythonVersion.h
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PythonMgr", "PythonMgr.vcproj", "{FAECD113-F553-48D2-83FC-E5CE26F25614}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PythonEngine", "PythonEngine\PythonEngine.vcproj", "{8825208B-259B-4973-86C8-BC79AA3E2A4A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Debug|x64 = Debug|x64
+		Release|Win32 = Release|Win32
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FAECD113-F553-48D2-83FC-E5CE26F25614}.Debug|Win32.ActiveCfg = Debug|Win32
+		{FAECD113-F553-48D2-83FC-E5CE26F25614}.Debug|x64.ActiveCfg = Debug|x64
+		{FAECD113-F553-48D2-83FC-E5CE26F25614}.Release|Win32.ActiveCfg = Release|Win32
+		{FAECD113-F553-48D2-83FC-E5CE26F25614}.Release|x64.ActiveCfg = Release|x64
+		{8825208B-259B-4973-86C8-BC79AA3E2A4A}.Debug|Win32.ActiveCfg = Debug|Win32
+		{8825208B-259B-4973-86C8-BC79AA3E2A4A}.Debug|Win32.Build.0 = Debug|Win32
+		{8825208B-259B-4973-86C8-BC79AA3E2A4A}.Debug|x64.ActiveCfg = Debug|x64
+		{8825208B-259B-4973-86C8-BC79AA3E2A4A}.Debug|x64.Build.0 = Debug|x64
+		{8825208B-259B-4973-86C8-BC79AA3E2A4A}.Release|Win32.ActiveCfg = Release|Win32
+		{8825208B-259B-4973-86C8-BC79AA3E2A4A}.Release|Win32.Build.0 = Release|Win32
+		{8825208B-259B-4973-86C8-BC79AA3E2A4A}.Release|x64.ActiveCfg = Release|x64
+		{8825208B-259B-4973-86C8-BC79AA3E2A4A}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

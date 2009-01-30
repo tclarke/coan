@@ -55,6 +55,7 @@ QWidget* OctaveScripting::createWidget()
 {
    return new ScriptWindow();
 }
+
 ScriptWindow::ScriptWindow(QWidget* pParent) : QTextEdit(pParent)
 {
    std::cout.rdbuf(mOut.rdbuf());

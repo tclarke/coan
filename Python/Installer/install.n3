@@ -1,0 +1,14 @@
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix aebl: <urn:2008:03:aebl-syntax-ns#> .
+@prefix opticks: <urn:2008:03:opticks-aebl-extension-ns#> .
+
+<urn:aebl:install-manifest>
+   aebl:id "{FC0FB63D-7C8B-42A0-9C75-D2C20B8C5385}" ;
+   aebl:name "Python" ;
+   aebl:version "0.1" ;
+   aebl:type "2" ;
+   aebl:description "Python scripting" ;
+   aebl:targetApplication [
+      aebl:id "opticks@ballforge.net" ;
+      aebl:minVersion "4.2.0" ;
+      aebl:maxVersion "4.2.*" ] .
