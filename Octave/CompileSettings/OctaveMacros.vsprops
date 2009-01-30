@@ -25,8 +25,8 @@
 		Name="EXTENSION_CODE_DIR"
 		Value="$(SolutionDir)"
 	/>
-        <UserMacro
-                Name="OCTAVE_DIR"
-                Value="c:\Program Files (x86)\Octave"
-        />
+	<UserMacro
+		Name="OCTAVE_DIR"
+		Value="c:\Program Files (x86)\Octave"
+	/>
 </VisualStudioPropertySheet>

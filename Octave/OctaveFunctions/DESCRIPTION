@@ -1,0 +1,11 @@
+Name: opticks
+Version: 0.1.0
+Date: 2009-01-28
+Author: Trevor Clarke
+Maintainer: The Opticks Team
+Title: Opticks connectivity
+Description: Connectivity functions for Opticks. These must be run from an embedded Octave instance.
+Depends: octave (>= 3.0.1)
+License: GPL version 2
+Autoload: no
+Categories: connector

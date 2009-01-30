@@ -1,14 +1,19 @@
 /*
  * The information in this file is
  * subject to the terms and conditions of the
- * GNU Lesser General Public License Version 2.1
+ * GNU General Public License Version 2
  * The license text is available from   
- * http://www.gnu.org/licenses/lgpl.html
+ * http://www.gnu.org/licenses/gpl.html
  */
 
+#include "ConfigurationSettings.h"
+#include "ModuleManager.h"
 #include "OctaveVersion.h"
 #include "OctaveScripting.h"
 #include "PlugInFactory.h"
+#ifdef WIN32
+#undef WIN32 // redefined without ifdef in the octave headers
+#endif
 #include <octave/config.h>
 #include <octave/error.h>
 #include <octave/octave.h>
@@ -50,7 +55,6 @@ QWidget* OctaveScripting::createWidget()
 {
    return new ScriptWindow();
 }
-
 ScriptWindow::ScriptWindow(QWidget* pParent) : QTextEdit(pParent)
 {
    std::cout.rdbuf(mOut.rdbuf());
@@ -58,10 +62,24 @@ ScriptWindow::ScriptWindow(QWidget* pParent) : QTextEdit(pParent)
    setTextInteractionFlags(Qt::TextEditorInteraction);
    setReadOnly(false);
    setWordWrapMode(QTextOption::WordWrap);
-   append("octave> ");
 
    const char *argv[1] = {"foo"};
    octave_main(1, (char**)argv, 1);
+   octave_value osVal(octave_uint64(reinterpret_cast<uint64_t>(ModuleManager::instance()->getService())));
+   set_global_value("opticksservice", osVal);
+
+   Service<ConfigurationSettings> pSettings;
+   ConfigurationSettingsExt2* pSettings2 = dynamic_cast<ConfigurationSettingsExt2*>(pSettings.get());
+   if (pSettings2 != NULL)
+   {
+      std::string path = pSettings2->getPlugInPath();
+      octave_call(QString("addpath(\"%1/oct\");").arg(QString::fromStdString(path)));
+   }
+   append(QString::fromStdString(mErr.str()));
+   append(QString::fromStdString(mOut.str()));
+   append("octave> ");
+   mErr.str("");
+   mOut.str("");
 }
 
 ScriptWindow::~ScriptWindow()

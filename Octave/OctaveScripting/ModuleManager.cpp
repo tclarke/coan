@@ -1,9 +1,9 @@
 /*
  * The information in this file is
  * subject to the terms and conditions of the
- * GNU Lesser General Public License Version 2.1
+ * GNU General Public License Version 2
  * The license text is available from   
- * http://www.gnu.org/licenses/lgpl.html
+ * http://www.gnu.org/licenses/gpl.html
  */
 
 #include "ModuleManager.h"

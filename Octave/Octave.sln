@@ -10,6 +10,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OctaveMgr", "OctaveMgr.vcpr
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OctaveScripting", "OctaveScripting\OctaveScripting.vcproj", "{7EE6CE3F-B7F6-4A5F-B9CC-E35EC192CA68}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OctaveFunctions", "OctaveFunctions\OctaveFunctions.vcproj", "{2C64D327-1726-4283-BC60-740794A0BF6F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -24,12 +26,16 @@ Global
 		{E34204D1-18B1-411B-B473-0AE938F7F800}.Release|x64.ActiveCfg = Release|x64
 		{7EE6CE3F-B7F6-4A5F-B9CC-E35EC192CA68}.Debug|Win32.ActiveCfg = Debug|Win32
 		{7EE6CE3F-B7F6-4A5F-B9CC-E35EC192CA68}.Debug|Win32.Build.0 = Debug|Win32
-		{7EE6CE3F-B7F6-4A5F-B9CC-E35EC192CA68}.Debug|x64.ActiveCfg = Debug|x64
-		{7EE6CE3F-B7F6-4A5F-B9CC-E35EC192CA68}.Debug|x64.Build.0 = Debug|x64
+		{7EE6CE3F-B7F6-4A5F-B9CC-E35EC192CA68}.Debug|x64.ActiveCfg = Debug|Win32
 		{7EE6CE3F-B7F6-4A5F-B9CC-E35EC192CA68}.Release|Win32.ActiveCfg = Release|Win32
 		{7EE6CE3F-B7F6-4A5F-B9CC-E35EC192CA68}.Release|Win32.Build.0 = Release|Win32
-		{7EE6CE3F-B7F6-4A5F-B9CC-E35EC192CA68}.Release|x64.ActiveCfg = Release|x64
-		{7EE6CE3F-B7F6-4A5F-B9CC-E35EC192CA68}.Release|x64.Build.0 = Release|x64
+		{7EE6CE3F-B7F6-4A5F-B9CC-E35EC192CA68}.Release|x64.ActiveCfg = Release|Win32
+		{2C64D327-1726-4283-BC60-740794A0BF6F}.Debug|Win32.ActiveCfg = Debug|Win32
+		{2C64D327-1726-4283-BC60-740794A0BF6F}.Debug|Win32.Build.0 = Debug|Win32
+		{2C64D327-1726-4283-BC60-740794A0BF6F}.Debug|x64.ActiveCfg = Debug|Win32
+		{2C64D327-1726-4283-BC60-740794A0BF6F}.Release|Win32.ActiveCfg = Release|Win32
+		{2C64D327-1726-4283-BC60-740794A0BF6F}.Release|Win32.Build.0 = Release|Win32
+		{2C64D327-1726-4283-BC60-740794A0BF6F}.Release|x64.ActiveCfg = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
