@@ -6,7 +6,7 @@
 	>
 	<Tool
 		Name="VCCLCompilerTool"
-		AdditionalIncludeDirectories="&quot;$(PYTHON_DIR)\include&quot;"
+		AdditionalIncludeDirectories="&quot;$(PYTHON_DIR)\include&quot;;&quot;$(PYTHON_DIR)\Lib\site-packages\numpy\core\include&quot;"
 	/>
 	<Tool
 		Name="VCLinkerTool"

@@ -6,113 +6,16 @@
  * http://www.gnu.org/licenses/lgpl.html
  */
 
+#include "OpticksModule.h"
 #include "PythonVersion.h"
 #include "PythonConsole.h"
 #include "PlugInFactory.h"
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 #include <QtGui/QKeyEvent>
+#include <QtGui/QTextBlock>
 
 PLUGINFACTORY(PythonConsole);
-
-namespace
-{
-   QString prompt1("python> ");
-   class auto_obj
-   {
-   public:
-      auto_obj(PyObject* pObj, bool takeOwnership=false) : mpObj(pObj), mOwned(takeOwnership) {}
-      ~auto_obj()
-      {
-         if (mOwned)
-         {
-            Py_XDECREF(mpObj);
-         }
-      }
-
-      /**
-       * Release ownership doing a decref if needed.
-       */
-      PyObject* release()
-      {
-         if (mpObj == NULL)
-         {
-            return NULL;
-         }
-         if (mOwned)
-         {
-            Py_DECREF(mpObj);
-            mOwned = false;
-         }
-         return mpObj;
-      }
-
-      /**
-       * Returns a borrowed reference. This object may not own the reference.
-       */
-      PyObject* get()
-      {
-         return mpObj;
-      }
-
-      /**
-       * Returns a borrowed reference. Ensures this object owns the reference.
-       */
-      PyObject* borrow()
-      {
-         if (mpObj == NULL)
-         {
-            return NULL;
-         }
-         if (!mOwned)
-         {
-            Py_INCREF(mpObj);
-            mOwned = true;
-         }
-         return mpObj;
-      }
-
-      operator PyObject*()
-      {
-         return get();
-      }
-
-   private:
-      PyObject* mpObj;
-      bool mOwned;
-   };
-
-   PyObject* QIODeviceWrite(PyObject* pSelf, PyObject* pArgs)
-   {
-      Py_ssize_t opaque = 0;
-      Py_ssize_t strLen = 0;
-      char* pStr = NULL;
-      if (PyArg_ParseTuple(pArgs, "ns#", &opaque, &pStr, &strLen) == 0)
-      {
-         PyErr_SetString(PyExc_ValueError, "Invalid arguments. Opaque handle and string required.");
-         return NULL;
-      }
-      QIODevice* pDev = reinterpret_cast<QIODevice*>(opaque);
-      if (pDev == NULL)
-      {
-         PyErr_SetString(PyExc_ValueError, "Invalid opaque handle.");
-         return NULL;
-      }
-      pDev->write(pStr, strLen);
-      Py_RETURN_NONE;
-   }
-
-
-   PyMethodDef opticksMethods[] = {
-      {"QIODeviceWrite", QIODeviceWrite, METH_VARARGS, "Pass an opaque handle and string."},
-      {NULL, NULL, 0, NULL} // sentinel
-   };
-}
-
-PyMODINIT_FUNC initOpticks(void)
-{
-   Py_InitModule("_opticks", opticksMethods);
-}
 
 PythonConsole::PythonConsole()
 {
@@ -144,31 +47,63 @@ ConsoleWindow::ConsoleWindow(QWidget* pParent) : QTextEdit(pParent)
    setReadOnly(false);
    setWordWrapMode(QTextOption::WordWrap);
 
-   mStdOut.open(QIODevice::ReadWrite);
-   mStdErr.open(QIODevice::ReadWrite);
+   try
+   {
+      Py_Initialize();
+      init_opticks();
+      checkErr();
+      auto_obj sysPath(PySys_GetObject("path"));
+      auto_obj newPathItem(PyString_FromString("c:/Opticks/COAN/Python/SupportFiles/site-packages"), true);
+      VERIFYNR(PyList_Append(sysPath, newPathItem) == 0);
+      VERIFYNR(PySys_SetObject("path", sysPath) == 0);
+      mOpticksModule.reset(PyImport_ImportModule("opticks"), true);
+      checkErr();
 
-   Py_Initialize();
-   initOpticks();
-   QString initStr = QString(
-      "class optickswrite:\n"
-      "  def __init__(self, opaque):\n"
-      "    self.__opaque = opaque\n"
-      "  def write(self, s):\n"
-      "    _opticks.QIODeviceWrite(self.__opaque, s)\n\n"
-      "import sys\n"
-      "sys.stdin = None\n"
-      "sys.stdout = optickswrite(%1)\n"
-      "sys.stderr = optickswrite(%2)\n").arg(reinterpret_cast<Py_ssize_t>(&mStdOut)).arg(reinterpret_cast<Py_ssize_t>(&mStdErr));
-   QByteArray initBytes = initStr.toAscii();
-   PyRun_SimpleString(initBytes.data());
+      auto_obj opticksDict(PyModule_GetDict(mOpticksModule));
+      auto_obj strBufStream(PyDict_GetItemString(opticksDict, "StrBufStream"));
+      checkErr();
+      Py_INCREF(Py_None);
+      Py_INCREF(Py_None);
+      mStdin.reset(PyObject_CallObject(strBufStream, NULL), true);
+      checkErr();
+      Py_INCREF(Py_None);
+      Py_INCREF(Py_None);
+      mStdout.reset(PyObject_CallObject(strBufStream, NULL), true);
+      checkErr();
+      Py_INCREF(Py_None);
+      Py_INCREF(Py_None);
+      mStderr.reset(PyObject_CallObject(strBufStream, NULL), true);
+      checkErr();
 
-   append(mStdErr.readAll());
-   append(mStdOut.readAll());
-   append(prompt1);
+      auto_obj pythonInteractiveInterpreter(PyDict_GetItemString(opticksDict, "PythonInteractiveInterpreter"));
+      Py_INCREF(Py_None);
+      Py_INCREF(Py_None);
+      mInterpreter.reset(PyObject_CallObject(pythonInteractiveInterpreter, NULL), true);
+      checkErr();
+
+      PyObject_SetAttrString(mInterpreter, "stdin", mStdin);
+      PyObject_SetAttrString(mInterpreter, "stdout", mStdout);
+      PyObject_SetAttrString(mInterpreter, "stderr", mStderr);
+      checkErr();
+
+      auto_obj useps1(PyObject_CallMethod(mInterpreter, "processEvent", NULL), true);
+      checkErr();
+      flushout();
+   }
+   catch(const PythonError&)
+   {
+      // nothing
+   }
+   mPos = textCursor().position();
 }
 
 ConsoleWindow::~ConsoleWindow()
 {
+   mOpticksModule.reset(NULL);
+   mStdin.reset(NULL);
+   mStdout.reset(NULL);
+   mStderr.reset(NULL);
+   mInterpreter.reset(NULL);
    Py_Finalize();
 }
 
@@ -176,27 +111,98 @@ void ConsoleWindow::keyPressEvent(QKeyEvent* pEvent)
 {
    if (pEvent->key() == Qt::Key_Enter || pEvent->key() == Qt::Key_Return)
    {
-      QStringList lines = toPlainText().split("\n", QString::SkipEmptyParts);
-      if (!lines.empty())
+      if (mInterpreter.get() == NULL)
       {
-         QString cmd = lines.back();
-         if (cmd.startsWith(prompt1))
-         {
-            cmd.remove(0, prompt1.size());
-         }
-         if (PyRun_SimpleString(cmd.toAscii()) == -1)
-         {
-            append("Error occured!\n");
-            // err
-         }
+         return;
       }
-      append(mStdErr.readAll());
-      append(mStdOut.readAll());
-      append(prompt1);
+      try
+      {
+         QTextBlock block = textCursor().block();
+         int sz = mPos - block.position();
+         QString cmd = block.text().remove(0, sz) + "\n";
+         QByteArray cmdArray = cmd.toUtf8();
+         auto_obj cnt(PyObject_CallMethod(mStdin, "write", "sl", cmdArray.data(), cmdArray.size()), true);
+         checkErr();
+         auto_obj useps1(PyObject_CallMethod(mInterpreter, "processEvent", NULL), true);
+         checkErr();
+         flushout();
+      }
+      catch(const PythonError&)
+      {
+         // nothing
+      }
+      mPos = textCursor().position();
       pEvent->accept();
    }
    else
    {
       QTextEdit::keyPressEvent(pEvent);
+   }
+}
+
+void ConsoleWindow::flushout()
+{
+   auto_obj stderrAvailable(PyObject_CallMethod(mStderr, "available", NULL), true);
+   checkErr();
+   long stderrCount = PyInt_AsLong(stderrAvailable);
+   if (stderrCount > 0)
+   {
+      auto_obj stderrStr(PyObject_CallMethod(mStderr, "read", "O", stderrAvailable), true);
+      checkErr();
+      QColor cur = textColor();
+      setTextColor(Qt::red);
+      append(QString(PyString_AsString(stderrStr)));
+      setTextColor(cur);
+   }
+
+   auto_obj stdoutAvailable(PyObject_CallMethod(mStdout, "available", NULL), true);
+   checkErr();
+   long stdoutCount = PyInt_AsLong(stdoutAvailable);
+   if (stdoutCount > 0)
+   {
+      auto_obj stdoutStr(PyObject_CallMethod(mStdout, "read", "O", stdoutAvailable), true);
+      checkErr();
+      append(QString(PyString_AsString(stdoutStr)));
+   }
+}
+
+void ConsoleWindow::checkErr()
+{
+   if (PyErr_Occurred() != NULL)
+   {
+      PyObject* pException=NULL;
+      PyObject* pVal=NULL;
+      PyObject* pTb=NULL;
+      PyErr_Fetch(&pException, &pVal, &pTb);
+      PyErr_NormalizeException(&pException, &pVal, &pTb);
+      PyErr_Clear();
+      QString errStr;
+      auto_obj traceback(PyImport_ImportModule("traceback"), true);
+      if (PyErr_Occurred() != NULL)
+      {
+         PyErr_Clear();
+         auto_obj msg(PyObject_GetAttrString(pVal, "message"), true);
+         errStr = QString("Unable to import traceback module.\n%1: %2\npath=%3\n")
+            .arg(PyObject_REPR(pException)).arg(PyObject_REPR(msg)).arg(PyObject_REPR(PySys_GetObject("path")));
+      }
+      else
+      {
+         auto_obj tracebackDict(PyModule_GetDict(traceback));
+         auto_obj format_exception_only(PyDict_GetItemString(tracebackDict, "format_exception_only"));
+         auto_obj exc(PyObject_CallFunction(format_exception_only, "OO", pException, pVal), true);
+         errStr = QString("%1\n").arg(PyObject_REPR(exc));
+         if (pTb != NULL)
+         {
+            auto_obj format_tb(PyDict_GetItemString(tracebackDict, "format_tb"));
+            auto_obj tb(PyObject_CallFunction(format_tb, "O", pTb), true);
+            errStr += QString("%1\n").arg(PyObject_REPR(tb));
+         }
+      }
+      errStr.replace("\\n", "\n");
+      QColor cur = textColor();
+      setTextColor(Qt::red);
+      append(errStr);
+      setTextColor(cur);
+      throw PythonError(errStr);
    }
 }
