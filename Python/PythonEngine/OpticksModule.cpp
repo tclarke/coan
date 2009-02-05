@@ -10,6 +10,7 @@
 #include "DataAccessor.h"
 #include "DataAccessorImpl.h"
 #include "DataRequest.h"
+#include "DataVariant.h"
 #include "DesktopServices.h"
 #include "LayerList.h"
 #include "ObjectResource.h"
@@ -18,6 +19,7 @@
 #include "RasterDataDescriptor.h"
 #include "RasterElement.h"
 #include "RasterUtilities.h"
+#include "Signature.h"
 #include "SpatialDataView.h"
 #include "SpatialDataWindow.h"
 #include "StringUtilities.h"
@@ -32,45 +34,89 @@ auto_obj opticksErr;
 PyObject* get_data_element(PyObject* pSelf, PyObject* pArgs)
 {
    const char* pName = NULL;
-   if (PyArg_ParseTuple(pArgs, "|z", &pName) == 0)
+   const char* pType = NULL;
+   const char* pParent = NULL;
+   if (PyArg_ParseTuple(pArgs, "s|zz", &pType, &pName, &pParent) == 0)
    {
       return NULL;
    }
+   std::string type(pType);
 
-   SpatialDataView* pView = NULL;
-   if (pName == NULL)
+   if (type == "signature")
    {
-      // get the primary in the active view
-      pView = dynamic_cast<SpatialDataView*>(Service<DesktopServices>()->getCurrentWorkspaceWindowView());
-      if (pView == NULL)
+      if (pName == NULL)
       {
-         PyErr_SetString(opticksErr, "There is no active spatial data view.");
+         PyErr_SetString(opticksErr, "When getting a signature, an element name must be specified.");
          return NULL;
       }
-   }
-   else
-   {
-      SpatialDataWindow* pWindow = static_cast<SpatialDataWindow*>(Service<DesktopServices>()->getWindow(pName, SPATIAL_DATA_WINDOW));
-      pView = (pWindow == NULL) ? NULL : pWindow->getSpatialDataView();
-      if (pView == NULL)
+      DataElement* pParentElement = NULL;
+      if (pParent != NULL)
       {
-         PyErr_SetString(opticksErr, "Invalid view name.");
+         pParentElement = Service<ModelServices>()->getElement(pParent, std::string(), NULL);
+      }
+      Signature* pSig = static_cast<Signature*>(Service<ModelServices>()->getElement(
+                  pName, TypeConverter::toString<Signature>(), pParentElement));
+      if (pSig == NULL)
+      {
+         PyErr_SetString(opticksErr, "Invalid signature name.");
          return NULL;
       }
+      auto_obj names(PySet_New(NULL), true);
+      std::set<std::string> dataNames = pSig->getDataNames();
+      for (std::set<std::string>::const_iterator dataName = dataNames.begin(); dataName != dataNames.end(); ++dataName)
+      {
+         auto_obj name(PyString_FromString(dataName->c_str()));
+         PySet_Add(names, name);
+      }
+      auto_obj opaque(PyCObject_FromVoidPtr(reinterpret_cast<void*>(pSig), NULL), true);
+      
+      return Py_BuildValue("{sssssOsO}", "name", pSig->getName().c_str(),
+            "type", "signature",
+            "dataNames", names.take(),
+            "opaque", opaque.take());
    }
-   RasterElement* pElement = pView->getLayerList()->getPrimaryRasterElement();
-   if (pElement == NULL)
+   else if (type == "raster")
    {
-      PyErr_SetString(opticksErr, "Invalid raster element.");
-      return NULL;
+      SpatialDataView* pView = NULL;
+      if (pName == NULL)
+      {
+         // get the primary in the active view
+         pView = dynamic_cast<SpatialDataView*>(Service<DesktopServices>()->getCurrentWorkspaceWindowView());
+         if (pView == NULL)
+         {
+            PyErr_SetString(opticksErr, "There is no active spatial data view.");
+            return NULL;
+         }
+      }
+      else
+      {
+         SpatialDataWindow* pWindow = static_cast<SpatialDataWindow*>(Service<DesktopServices>()->getWindow(pName, SPATIAL_DATA_WINDOW));
+         pView = (pWindow == NULL) ? NULL : pWindow->getSpatialDataView();
+         if (pView == NULL)
+         {
+            PyErr_SetString(opticksErr, "Invalid view name.");
+            return NULL;
+         }
+      }
+      RasterElement* pElement = pView->getLayerList()->getPrimaryRasterElement();
+      if (pElement == NULL)
+      {
+         PyErr_SetString(opticksErr, "Invalid raster element.");
+         return NULL;
+      }
+      const RasterDataDescriptor* pDesc = static_cast<const RasterDataDescriptor*>(pElement->getDataDescriptor());
+      auto_obj opaque(PyCObject_FromVoidPtr(reinterpret_cast<void*>(pElement), NULL), true);
+      auto_obj opaqueview(PyCObject_FromVoidPtr(reinterpret_cast<void*>(pView), NULL), true);
+      return Py_BuildValue("{sssss(III)sssssOsO}", "name", pElement->getName().c_str(),
+            "type", "raster",
+            "dims", pDesc->getRowCount(), pDesc->getColumnCount(), pDesc->getBandCount(),
+            "interleave", StringUtilities::toXmlString(pDesc->getInterleaveFormat()).c_str(),
+            "datatype", StringUtilities::toXmlString(pDesc->getDataType()).c_str(),
+            "opaque", opaque.take(),
+            "opaqueview", opaqueview.take());
    }
-   const RasterDataDescriptor* pDesc = static_cast<const RasterDataDescriptor*>(pElement->getDataDescriptor());
-   auto_obj opaque(PyCObject_FromVoidPtr(reinterpret_cast<void*>(pElement), NULL), true);
-   return Py_BuildValue("{sss(III)sssssO}", "name", pElement->getName().c_str(),
-         "dims", pDesc->getRowCount(), pDesc->getColumnCount(), pDesc->getBandCount(),
-         "interleave", StringUtilities::toXmlString(pDesc->getInterleaveFormat()).c_str(),
-         "datatype", StringUtilities::toXmlString(pDesc->getDataType()).c_str(),
-         "opaque", opaque);
+   PyErr_Format(opticksErr, "Unknown or unsupported data element type '%s'.", pType);
+   return NULL;
 }
 
 void free_data_accessor(void* pPtr)
@@ -85,6 +131,11 @@ PyObject* get_raster_data(PyObject* pSelf, PyObject* pArgs)
    PyObject* pSubcubeDict = NULL;
    if (PyArg_ParseTuple(pArgs, "O!|O", &PyDict_Type, &pElementDict, &pSubcubeDict) == 0)
    {
+      return NULL;
+   }
+   if (std::string(PyString_AsString(PyDict_GetItemString(pElementDict, "type"))) != "raster")
+   {
+      PyErr_SetString(PyExc_TypeError, "A raster element is required.");
       return NULL;
    }
    RasterElement* pElement = reinterpret_cast<RasterElement*>(
@@ -207,14 +258,72 @@ PyObject* get_raster_data(PyObject* pSelf, PyObject* pArgs)
       return NULL;
    }
    auto_obj opaque(PyCObject_FromVoidPtr(reinterpret_cast<void*>(pAcc), free_data_accessor), true);
-   return Py_BuildValue("OO", opaque.take(), numpyArray);
+   return Py_BuildValue("OO", opaque.take(), numpyArray.take());
+}
+
+PyObject* get_signature_data(PyObject* pSelf, PyObject* pArgs)
+{
+   PyObject* pSignatureDict = NULL;
+   const char* pName = NULL;
+   if (PyArg_ParseTuple(pArgs, "O!|z", &PyDict_Type, &pSignatureDict, &pName) == 0)
+   {
+      return NULL;
+   }
+   if (std::string(PyString_AsString(PyDict_GetItemString(pSignatureDict, "type"))) != "signature")
+   {
+      PyErr_SetString(PyExc_TypeError, "A signature is required.");
+      return NULL;
+   }
+   Signature* pSig = reinterpret_cast<Signature*>(
+      PyCObject_AsVoidPtr(PyDict_GetItemString(pSignatureDict, "opaque")));
+   if (pSig == NULL)
+   {
+      PyErr_SetString(opticksErr, "Invalid signature.");
+      return NULL;
+   }
+
+   std::string name((pName == NULL) ? "" : pName);
+   if (name.empty())
+   {
+      if (pSig->getDataNames().size() != 1)
+      {
+         PyErr_SetString(opticksErr, "A data name must be specified.");
+         return NULL;
+      }
+      name = *(pSig->getDataNames().begin());
+   }
+   std::vector<double> data;
+   try
+   {
+      data = dv_cast<std::vector<double> >(pSig->getData(name));
+   }
+   catch (const std::bad_cast&)
+   {
+      PyErr_Format(PyExc_ValueError, "Data item '%s' is not a vector of doubles.", name.c_str());
+      return NULL;
+   }
+
+   // create numpy array
+   npy_intp pDims[] = {data.size()};
+   PyArray_Descr* pArrayDesc = PyArray_DescrFromType(NPY_DOUBLE);
+
+   auto_obj numpyArray(PyArray_NewFromDescr(&PyArray_Type, pArrayDesc, 1, pDims, NULL, NULL, 0, NULL), true);
+   if (numpyArray.get() == NULL || PyErr_Occurred())
+   {
+      PyErr_SetString(opticksErr, "Unable to create numpy array.");
+      return NULL;
+   }
+   memcpy(PyArray_DATA(numpyArray.get()), &data.front(), data.size() * sizeof(double));
+   return Py_BuildValue("O", numpyArray.take());
 }
 
 PyObject* new_raster_from_array(PyObject* pSelf, PyObject* pArgs)
 {
    const char* pName = NULL;
    PyObject* pArr = NULL;
-   if (PyArg_ParseTuple(pArgs, "sO!", &pName, &PyArray_Type, &pArr) == 0)
+   const char* pType = NULL;
+   PyObject* pElementDict = NULL;
+   if (PyArg_ParseTuple(pArgs, "sO!|sO!", &pName, &PyArray_Type, &pArr, &pType, &PyDict_Type, &pElementDict) == 0)
    {
       return NULL;
    }
@@ -285,17 +394,49 @@ PyObject* new_raster_from_array(PyObject* pSelf, PyObject* pArgs)
       return NULL;
    }
 
-   SpatialDataWindow* pWindow = static_cast<SpatialDataWindow*>(
-      Service<DesktopServices>()->createWindow(pName, SPATIAL_DATA_WINDOW));
-   SpatialDataView* pView = (pWindow == NULL) ? NULL : pWindow->getSpatialDataView();
-   if (pView == NULL)
+   std::string type(pType);
+   if (type == "view")
    {
-      PyErr_SetString(opticksErr, "Unable to create view.");
-      return NULL;
+      SpatialDataWindow* pWindow = static_cast<SpatialDataWindow*>(
+         Service<DesktopServices>()->createWindow(pName, SPATIAL_DATA_WINDOW));
+      SpatialDataView* pView = (pWindow == NULL) ? NULL : pWindow->getSpatialDataView();
+      if (pView == NULL)
+      {
+         PyErr_SetString(opticksErr, "Unable to create view.");
+         return NULL;
+      }
+      pView->setPrimaryRasterElement(pElement.get());
+      UndoLock undo(pView);
+      pView->createLayer(RASTER, pElement.release());
    }
-   pView->setPrimaryRasterElement(pElement.get());
-   UndoLock undo(pView);
-   pView->createLayer(RASTER, pElement.release());
+   else if (type == "raster" || type == "pseudocolor" || type == "threshold")
+   {
+      SpatialDataView* pView = (pElementDict == NULL) ? NULL : reinterpret_cast<SpatialDataView*>(
+               PyCObject_AsVoidPtr(PyDict_GetItemString(pElementDict, "opaqueview")));
+      if (pView == NULL)
+      {
+         PyErr_SetString(opticksErr, "Can't locate view.");
+         return NULL;
+      }
+      UndoLock undo(pView);
+      if (type == "raster")
+      {
+         pView->createLayer(RASTER, pElement.release());
+      }
+      else if (type == "pseudocolor")
+      {
+         pView->createLayer(PSEUDOCOLOR, pElement.release());
+      }
+      else if (type == "threshold")
+      {
+         pView->createLayer(THRESHOLD, pElement.release());
+      }
+   }
+   else
+   {
+      // don't create any layers
+      pElement.release();
+   }
    Py_RETURN_NONE;
 }
 
@@ -303,6 +444,7 @@ PyMethodDef opticksMethods[] = {
    {"get_data_element", get_data_element, METH_VARARGS, ""},
    {"get_raster_data", get_raster_data, METH_VARARGS, ""},
    {"new_raster_from_array", new_raster_from_array, METH_VARARGS, ""},
+   {"get_signature_data", get_signature_data, METH_VARARGS, ""},
    {NULL, NULL, 0, NULL} // sentinel
 };
 
