@@ -65,11 +65,18 @@ PyObject* get_data_element(PyObject* pSelf, PyObject* pArgs)
       return NULL;
    }
    const RasterDataDescriptor* pDesc = static_cast<const RasterDataDescriptor*>(pElement->getDataDescriptor());
-   return Py_BuildValue("{sss(III)sssssn}", "name", pElement->getName().c_str(),
+   auto_obj opaque(PyCObject_FromVoidPtr(reinterpret_cast<void*>(pElement), NULL), true);
+   return Py_BuildValue("{sss(III)sssssO}", "name", pElement->getName().c_str(),
          "dims", pDesc->getRowCount(), pDesc->getColumnCount(), pDesc->getBandCount(),
          "interleave", StringUtilities::toXmlString(pDesc->getInterleaveFormat()).c_str(),
          "datatype", StringUtilities::toXmlString(pDesc->getDataType()).c_str(),
-         "opaque", reinterpret_cast<Py_ssize_t>(pElement));
+         "opaque", opaque);
+}
+
+void free_data_accessor(void* pPtr)
+{
+   DataAccessor* pAcc = reinterpret_cast<DataAccessor*>(pPtr);
+   delete pAcc;
 }
 
 PyObject* get_raster_data(PyObject* pSelf, PyObject* pArgs)
@@ -81,7 +88,7 @@ PyObject* get_raster_data(PyObject* pSelf, PyObject* pArgs)
       return NULL;
    }
    RasterElement* pElement = reinterpret_cast<RasterElement*>(
-      PyNumber_AsSsize_t(PyDict_GetItemString(pElementDict, "opaque"), PyExc_OverflowError));
+      PyCObject_AsVoidPtr(PyDict_GetItemString(pElementDict, "opaque")));
    if (pElement == NULL)
    {
       PyErr_SetString(opticksErr, "Invalid raster element.");
@@ -199,24 +206,8 @@ PyObject* get_raster_data(PyObject* pSelf, PyObject* pArgs)
       delete pAcc;
       return NULL;
    }
-   return Py_BuildValue("nO", reinterpret_cast<Py_ssize_t>(pAcc), numpyArray);
-}
-
-PyObject* free_raster_data(PyObject* pSelf, PyObject* pArgs)
-{
-   Py_ssize_t acc=0;
-   if (PyArg_ParseTuple(pArgs, "n", &acc) == 0)
-   {
-      return NULL;
-   }
-   DataAccessor* pAcc = reinterpret_cast<DataAccessor*>(acc);
-   if (pAcc == NULL)
-   {
-      PyErr_SetString(opticksErr, "Invalid data accessor.");
-      return NULL;
-   }
-   delete pAcc;
-   Py_RETURN_NONE;
+   auto_obj opaque(PyCObject_FromVoidPtr(reinterpret_cast<void*>(pAcc), free_data_accessor), true);
+   return Py_BuildValue("OO", opaque.take(), numpyArray);
 }
 
 PyObject* new_raster_from_array(PyObject* pSelf, PyObject* pArgs)
@@ -311,7 +302,6 @@ PyObject* new_raster_from_array(PyObject* pSelf, PyObject* pArgs)
 PyMethodDef opticksMethods[] = {
    {"get_data_element", get_data_element, METH_VARARGS, ""},
    {"get_raster_data", get_raster_data, METH_VARARGS, ""},
-   {"free_raster_data", free_raster_data, METH_VARARGS, ""},
    {"new_raster_from_array", new_raster_from_array, METH_VARARGS, ""},
    {NULL, NULL, 0, NULL} // sentinel
 };
