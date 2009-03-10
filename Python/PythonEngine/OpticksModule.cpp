@@ -151,6 +151,7 @@ PyObject* get_raster_data(PyObject* pSelf, PyObject* pArgs)
    int rows = pDesc->getRowCount();
    int cols = pDesc->getColumnCount();
    int bands = pDesc->getBandCount();
+   void* pRawData = NULL;
    if (pSubcubeDict != NULL && pSubcubeDict != Py_None)
    {
       if (!PyDict_Check(pSubcubeDict))
@@ -202,9 +203,14 @@ PyObject* get_raster_data(PyObject* pSelf, PyObject* pArgs)
          pReq->setBands(band, band, bands);
       }
    }
+   else
+   {
+      // no sub-cube...try and get raw data pointer for efficiency..if this fails continue with the more generic method
+      pRawData = pElement->getRawData();
+   }
    pReq->setWritable(false);
-   DataAccessor* pAcc = new DataAccessor(pElement->getDataAccessor(pReq.release()));
-   if (!pAcc->isValid())
+   DataAccessor* pAcc = (pRawData != NULL) ? NULL : new DataAccessor(pElement->getDataAccessor(pReq.release()));
+   if (pAcc != NULL && !pAcc->isValid())
    {
       PyErr_SetString(opticksErr, "Unable to access the requested sub-cube in the requested format.");
       delete pAcc;
@@ -250,7 +256,8 @@ PyObject* get_raster_data(PyObject* pSelf, PyObject* pArgs)
       delete pAcc;
       return NULL;
    }
-   auto_obj numpyArray(PyArray_NewFromDescr(&PyArray_Type, pArrayDesc, 3, pDims, NULL, (*pAcc)->getRow(), NPY_CARRAY_RO, NULL), true);
+   auto_obj numpyArray(PyArray_NewFromDescr(&PyArray_Type, pArrayDesc, 3, pDims, NULL,
+      (pRawData != NULL) ? pRawData : (*pAcc)->getRow(), NPY_CARRAY_RO, NULL), true);
    if (numpyArray.get() == NULL || PyErr_Occurred())
    {
       PyErr_SetString(opticksErr, "Unable to create numpy array.");
