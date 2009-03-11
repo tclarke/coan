@@ -7,6 +7,9 @@
  * http://www.gnu.org/licenses/lgpl.html
  */
 
+#include "AnimationController.h"
+#include "AnimationServices.h"
+#include "AnimationToolBar.h"
 #include "DataAccessor.h"
 #include "DataAccessorImpl.h"
 #include "DataRequest.h"
@@ -24,8 +27,53 @@
 #include "SpatialDataWindow.h"
 #include "StringUtilities.h"
 #include "Undo.h"
+#include <boost/any.hpp>
 #include <numpy/arrayobject.h>
 #include <QtCore/QtDebug>
+
+class AnimationCallbackManager
+{
+public:
+   static void free(void* pPtr)
+   {
+      delete reinterpret_cast<AnimationCallbackManager*>(pPtr);
+   }
+
+   AnimationCallbackManager(AnimationController* pController, PyObject* pCoroutine) :
+            mpController(pController), mpCoroutine(pCoroutine)
+   {
+      mpController->attach(SIGNAL_NAME(Subject, Deleted), Slot(this, &AnimationCallbackManager::subjectDeleted));
+      mpController->attach(SIGNAL_NAME(AnimationController, FrameChanged), Slot(this, &AnimationCallbackManager::frameChanged));
+      Py_INCREF(mpCoroutine);
+   }
+   virtual ~AnimationCallbackManager()
+   {
+      mpController->detach(SIGNAL_NAME(Subject, Deleted), Slot(this, &AnimationCallbackManager::subjectDeleted));
+      mpController->detach(SIGNAL_NAME(AnimationController, FrameChanged), Slot(this, &AnimationCallbackManager::frameChanged));
+      Py_DECREF(mpCoroutine);
+   }
+
+private:
+   void subjectDeleted(Subject& subject, const std::string& signal, const boost::any& data)
+   {
+      if (&subject == mpController)
+      {
+         mpController = NULL;
+      }
+   }
+
+   void frameChanged(Subject& subject, const std::string& signal, const boost::any& data)
+   {
+      if (&subject == mpController)
+      {
+         double frame = boost::any_cast<double>(data);
+         Py_XDECREF(PyObject_CallMethod(mpCoroutine, "send", "d", frame));
+      }
+   }
+
+   AnimationController* mpController;
+   PyObject* mpCoroutine;
+};
 
 namespace OpticksModule
 {
@@ -373,7 +421,7 @@ PyObject* new_raster_from_array(PyObject* pSelf, PyObject* pArgs)
    unsigned int rows = (ndim == 2) ? PyArray_DIM(pArr, 0) : 0;
    unsigned int cols = (ndim == 2) ? PyArray_DIM(pArr, 1) : 0;
    unsigned int bands = 1;
-   if (ndim == 3):pwd
+   if (ndim == 3)
    {
       switch (interleave)
       {
@@ -529,11 +577,47 @@ PyObject* new_raster_from_array(PyObject* pSelf, PyObject* pArgs)
    Py_RETURN_NONE;
 }
 
+PyObject* connect_animation(PyObject* pSelf, PyObject* pArgs)
+{
+   const char* pControllerName = NULL;
+   PyObject* pCoroutine = NULL;
+   if (PyArg_ParseTuple(pArgs, "zO!", &pControllerName, &PyGen_Type, &pCoroutine) == 0)
+   {
+      return NULL;
+   }
+   if (pCoroutine == NULL)
+   {
+      PyErr_SetString(opticksErr, "Invalid coroutine.");
+      return NULL;
+   }
+   AnimationController* pController = NULL;
+   if (pControllerName == NULL)
+   {
+      AnimationToolBar* pToolBar = static_cast<AnimationToolBar*>(Service<DesktopServices>()->getWindow("Animation", TOOLBAR));
+      pController = (pToolBar == NULL) ? NULL : pToolBar->getAnimationController();
+   }
+   else
+   {
+      std::string controllerName(pControllerName);
+      pController = Service<AnimationServices>()->getAnimationController(controllerName);
+   }
+   if (pController == NULL)
+   {
+      PyErr_SetString(opticksErr, "Animation controller not found.");
+      return NULL;
+   }
+   AnimationCallbackManager* pCallback = new AnimationCallbackManager(pController, pCoroutine);
+
+   auto_obj opaque(PyCObject_FromVoidPtr(reinterpret_cast<void*>(pCallback), AnimationCallbackManager::free), true);
+   return Py_BuildValue("O", opaque.take());
+}
+
 PyMethodDef opticksMethods[] = {
    {"get_data_element", get_data_element, METH_VARARGS, ""},
    {"get_raster_data", get_raster_data, METH_VARARGS, ""},
    {"new_raster_from_array", new_raster_from_array, METH_VARARGS, ""},
    {"get_signature_data", get_signature_data, METH_VARARGS, ""},
+   {"connect_animation", connect_animation, METH_VARARGS, ""},
    {NULL, NULL, 0, NULL} // sentinel
 };
 
