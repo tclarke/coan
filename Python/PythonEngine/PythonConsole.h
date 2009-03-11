@@ -122,7 +122,7 @@ protected:
    void checkErr();
 
 private:
-   auto_obj mOpticksModule;
+   auto_obj mInterpModule;
    auto_obj mStdin;
    auto_obj mStdout;
    auto_obj mStderr;

@@ -56,11 +56,11 @@ ConsoleWindow::ConsoleWindow(QWidget* pParent) : QTextEdit(pParent)
       auto_obj newPathItem(PyString_FromString("c:/Opticks/COAN/Python/SupportFiles/site-packages"), true);
       VERIFYNR(PyList_Append(sysPath, newPathItem) == 0);
       VERIFYNR(PySys_SetObject("path", sysPath) == 0);
-      mOpticksModule.reset(PyImport_ImportModule("opticks"), true);
+      mInterpModule.reset(PyImport_ImportModule("interpreter"), true);
       checkErr();
 
-      auto_obj opticksDict(PyModule_GetDict(mOpticksModule));
-      auto_obj strBufStream(PyDict_GetItemString(opticksDict, "StrBufStream"));
+      auto_obj interpDict(PyModule_GetDict(mInterpModule));
+      auto_obj strBufStream(PyDict_GetItemString(interpDict, "StrBufStream"));
       checkErr();
       Py_INCREF(Py_None);
       Py_INCREF(Py_None);
@@ -75,7 +75,7 @@ ConsoleWindow::ConsoleWindow(QWidget* pParent) : QTextEdit(pParent)
       mStderr.reset(PyObject_CallObject(strBufStream, NULL), true);
       checkErr();
 
-      auto_obj pythonInteractiveInterpreter(PyDict_GetItemString(opticksDict, "PythonInteractiveInterpreter"));
+      auto_obj pythonInteractiveInterpreter(PyDict_GetItemString(interpDict, "PythonInteractiveInterpreter"));
       Py_INCREF(Py_None);
       Py_INCREF(Py_None);
       mInterpreter.reset(PyObject_CallObject(pythonInteractiveInterpreter, NULL), true);
@@ -99,7 +99,7 @@ ConsoleWindow::ConsoleWindow(QWidget* pParent) : QTextEdit(pParent)
 
 ConsoleWindow::~ConsoleWindow()
 {
-   mOpticksModule.reset(NULL);
+   mInterpModule.reset(NULL);
    mStdin.reset(NULL);
    mStdout.reset(NULL);
    mStderr.reset(NULL);

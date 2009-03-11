@@ -218,7 +218,25 @@ PyObject* get_raster_data(PyObject* pSelf, PyObject* pArgs)
    }
 
    // create numpy array
-   npy_intp pDims[] = {rows,cols,bands};
+   npy_intp pDims[3];
+   switch (pDesc->getInterleaveFormat())
+   {
+   case BIP:
+      pDims[0] = rows;
+      pDims[1] = cols;
+      pDims[2] = bands;
+      break;
+   case BIL:
+      pDims[0] = rows;
+      pDims[1] = bands;
+      pDims[2] = cols;
+      break;
+   case BSQ:
+      pDims[0] = bands;
+      pDims[1] = rows;
+      pDims[2] = cols;
+      break;
+   }
    PyArray_Descr* pArrayDesc = NULL;
    switch(pDesc->getDataType())
    {
@@ -329,8 +347,10 @@ PyObject* new_raster_from_array(PyObject* pSelf, PyObject* pArgs)
    const char* pName = NULL;
    PyObject* pArr = NULL;
    const char* pType = NULL;
+   const char* pInterleave = NULL;
+   PyObject* pReplace = NULL;
    PyObject* pElementDict = NULL;
-   if (PyArg_ParseTuple(pArgs, "sO!|sO!", &pName, &PyArray_Type, &pArr, &pType, &PyDict_Type, &pElementDict) == 0)
+   if (PyArg_ParseTuple(pArgs, "sO!|ssOO!", &pName, &PyArray_Type, &pArr, &pType, &pInterleave, &pReplace, &PyDict_Type, &pElementDict) == 0)
    {
       return NULL;
    }
@@ -340,9 +360,40 @@ PyObject* new_raster_from_array(PyObject* pSelf, PyObject* pArgs)
       PyErr_SetString(opticksErr, "Only two and three dimensional arrays are supported.");
       return NULL;
    }
-   unsigned int rows = PyArray_DIM(pArr, 0);
-   unsigned int cols = PyArray_DIM(pArr, 1);
-   unsigned int bands = (ndim == 3) ? PyArray_DIM(pArr, 2) : 1;
+   InterleaveFormatType interleave(BIP);
+   std::string interleaveStr(pInterleave);
+   if (interleaveStr == "BSQ")
+   {
+      interleave = BSQ;
+   }
+   else if (interleaveStr == "BIL")
+   {
+      interleave = BIL;
+   }
+   unsigned int rows = (ndim == 2) ? PyArray_DIM(pArr, 0) : 0;
+   unsigned int cols = (ndim == 2) ? PyArray_DIM(pArr, 1) : 0;
+   unsigned int bands = 1;
+   if (ndim == 3):pwd
+   {
+      switch (interleave)
+      {
+      case BIP:
+         rows = PyArray_DIM(pArr, 0);
+         cols = PyArray_DIM(pArr, 1);
+         bands = PyArray_DIM(pArr, 2);
+         break;
+      case BIL:
+         rows = PyArray_DIM(pArr, 0);
+         bands = PyArray_DIM(pArr, 1);
+         cols = PyArray_DIM(pArr, 2);
+         break;
+      case BSQ:
+         bands = PyArray_DIM(pArr, 0);
+         rows = PyArray_DIM(pArr, 1);
+         cols = PyArray_DIM(pArr, 2);
+         break;
+      }
+   }
    EncodingType dataType;
    switch (PyArray_TYPE(pArr))
    {
@@ -379,13 +430,34 @@ PyObject* new_raster_from_array(PyObject* pSelf, PyObject* pArgs)
       PyErr_SetString(opticksErr, "Numpy data type not supported.");
       return NULL;
    }
-   ModelResource<RasterElement> pElement(RasterUtilities::createRasterElement(pName, rows, cols, bands, dataType));
+
+   bool existingReplaced = false;
+   ModelResource<RasterElement> pElement(RasterUtilities::createRasterElement(pName, rows, cols, bands, dataType, interleave));
+   if (pElement.get() == NULL && (pReplace == NULL || PyObject_IsTrue(pReplace)))
+   {
+      // see if there's an existing data element we can overwrite
+      pElement = ModelResource<RasterElement>(static_cast<RasterElement*>(
+         Service<ModelServices>()->getElement(pName, TypeConverter::toString<RasterElement>(), NULL)));
+      existingReplaced = true;
+   }
    if (pElement.get() == NULL)
    {
       PyErr_SetString(opticksErr, "Unable to create data element.");
       return NULL;
    }
    const RasterDataDescriptor* pDesc = static_cast<const RasterDataDescriptor*>(pElement->getDataDescriptor());
+   if (pDesc->getRowCount() != rows || pDesc->getColumnCount() != cols || pDesc->getBandCount() != bands
+      || pDesc->getDataType() != dataType || pDesc->getInterleaveFormat() != interleave)
+   {
+      // The element must have existed but has different params
+      PyErr_SetString(opticksErr, "Data element exists and can not be replaced.");
+      if (existingReplaced)
+      {
+         pElement.release(); // don't want to delete the existing element
+      }
+      return NULL;
+   }
+
    if (PyArray_FLAGS(pArr) & (NPY_CARRAY_RO))
    {
       FactoryResource<DataRequest> pReq;
@@ -425,18 +497,28 @@ PyObject* new_raster_from_array(PyObject* pSelf, PyObject* pArgs)
          PyErr_SetString(opticksErr, "Can't locate view.");
          return NULL;
       }
-      UndoLock undo(pView);
+      LayerType layerType;
       if (type == "raster")
       {
-         pView->createLayer(RASTER, pElement.release());
+         layerType = RASTER;
       }
       else if (type == "pseudocolor")
       {
-         pView->createLayer(PSEUDOCOLOR, pElement.release());
+         layerType = PSEUDOCOLOR;
       }
       else if (type == "threshold")
       {
-         pView->createLayer(THRESHOLD, pElement.release());
+         layerType = THRESHOLD;
+      }
+      // see if we need to create a new layer
+      if (existingReplaced && (pView->getLayerList()->getLayer(layerType, pElement.get()) != NULL))
+      {
+         pElement.release();
+      }
+      else
+      {
+         UndoLock undo(pView);
+         pView->createLayer(layerType, pElement.release());
       }
    }
    else
