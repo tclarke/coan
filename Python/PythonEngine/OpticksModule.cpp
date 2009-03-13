@@ -42,36 +42,25 @@ public:
    AnimationCallbackManager(AnimationController* pController, PyObject* pCoroutine) :
             mpController(pController), mpCoroutine(pCoroutine)
    {
-      mpController->attach(SIGNAL_NAME(Subject, Deleted), Slot(this, &AnimationCallbackManager::subjectDeleted));
-      mpController->attach(SIGNAL_NAME(AnimationController, FrameChanged), Slot(this, &AnimationCallbackManager::frameChanged));
+      mpController.addSignal(SIGNAL_NAME(AnimationController, FrameChanged), Slot(this, &AnimationCallbackManager::frameChanged));
       Py_INCREF(mpCoroutine);
    }
    virtual ~AnimationCallbackManager()
    {
-      mpController->detach(SIGNAL_NAME(Subject, Deleted), Slot(this, &AnimationCallbackManager::subjectDeleted));
-      mpController->detach(SIGNAL_NAME(AnimationController, FrameChanged), Slot(this, &AnimationCallbackManager::frameChanged));
       Py_DECREF(mpCoroutine);
    }
 
 private:
-   void subjectDeleted(Subject& subject, const std::string& signal, const boost::any& data)
-   {
-      if (&subject == mpController)
-      {
-         mpController = NULL;
-      }
-   }
-
    void frameChanged(Subject& subject, const std::string& signal, const boost::any& data)
    {
-      if (&subject == mpController)
+      if (&subject == mpController.get())
       {
          double frame = boost::any_cast<double>(data);
          Py_XDECREF(PyObject_CallMethod(mpCoroutine, "send", "d", frame));
       }
    }
 
-   AnimationController* mpController;
+   AttachmentPtr<AnimationController> mpController;
    PyObject* mpCoroutine;
 };
 

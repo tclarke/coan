@@ -41,7 +41,7 @@ QWidget* PythonConsole::createWidget()
    return new ConsoleWindow();
 }
 
-ConsoleWindow::ConsoleWindow(QWidget* pParent) : QTextEdit(pParent)
+ConsoleWindow::ConsoleWindow(QWidget* pParent) : QTextEdit(pParent), mHistoryPos(mHistory.end())
 {
    setTextInteractionFlags(Qt::TextEditorInteraction);
    setReadOnly(false);
@@ -109,7 +109,72 @@ ConsoleWindow::~ConsoleWindow()
 
 void ConsoleWindow::keyPressEvent(QKeyEvent* pEvent)
 {
-   if (pEvent->key() == Qt::Key_Enter || pEvent->key() == Qt::Key_Return)
+   if (pEvent->key() == Qt::Key_Up && (pEvent->modifiers() | Qt::ShiftModifier))
+   {
+      append("\nHistory:");
+      for (QList<QString>::iterator it = mHistory.begin(); it != mHistory.end(); ++it)
+      {
+         if (mHistoryPos == it)
+         {
+            append(QString("* %1").arg(*it));
+         }
+         else
+         {
+            append(QString("  %1").arg(*it));
+         }
+      }
+   }
+   else if (pEvent->key() == Qt::Key_Up || pEvent->key() == Qt::Key_PageUp)
+   {
+      if (mHistory.empty())
+      {
+         return;
+      }
+      if (mHistoryPos != mHistory.begin())
+      {
+         int num = (pEvent->key() == Qt::Key_PageUp) ? 5 : 1;
+         for (int i = 0; mHistoryPos != mHistory.begin() && i < num; ++i)
+         {
+            --mHistoryPos;
+         }
+         QTextCursor c = textCursor();
+         c.movePosition(QTextCursor::EndOfBlock);
+         while (c.position() != mPos)
+         {
+            c.deletePreviousChar();
+         }
+         c.insertText(*mHistoryPos);
+      }
+      pEvent->accept();
+   }
+   else if (pEvent->key() == Qt::Key_Down || pEvent->key() == Qt::Key_PageDown)
+   {
+      if (mHistory.empty())
+      {
+         return;
+      }
+      if (mHistoryPos != mHistory.end())
+      {
+         int num = (pEvent->key() == Qt::Key_PageDown) ? 5 : 1;
+         for (int i = 0; mHistoryPos != mHistory.end() && i < num; ++i)
+         {
+            ++mHistoryPos;
+         }
+         QTextCursor c = textCursor();
+         c.movePosition(QTextCursor::EndOfBlock);
+         while (c.position() != mPos)
+         {
+            c.deletePreviousChar();
+         }
+         if (mHistoryPos != mHistory.end())
+         {
+            c.insertText(*mHistoryPos);
+         }
+      }
+      pEvent->accept();
+
+   }
+   else if (pEvent->key() == Qt::Key_Enter || pEvent->key() == Qt::Key_Return)
    {
       if (mInterpreter.get() == NULL)
       {
@@ -117,15 +182,26 @@ void ConsoleWindow::keyPressEvent(QKeyEvent* pEvent)
       }
       try
       {
-         QTextBlock block = textCursor().block();
-         int sz = mPos - block.position();
-         QString cmd = block.text().remove(0, sz) + "\n";
+         QString cmd;
+         if (mHistoryPos != mHistory.end())
+         {
+            cmd = *mHistoryPos;
+         }
+         else
+         {
+            QTextBlock block = textCursor().block();
+            int sz = mPos - block.position();
+            cmd = block.text().remove(0, sz) + "\n";
+         }
          QByteArray cmdArray = cmd.toUtf8();
          auto_obj cnt(PyObject_CallMethod(mStdin, "write", "sl", cmdArray.data(), cmdArray.size()), true);
          checkErr();
          auto_obj useps1(PyObject_CallMethod(mInterpreter, "processEvent", NULL), true);
          checkErr();
          flushout();
+         cmd.remove(cmd.size() - 1, 1);
+         mHistory.append(cmd);
+         mHistoryPos = mHistory.end();
       }
       catch(const PythonError&)
       {

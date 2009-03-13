@@ -12,6 +12,7 @@
 #include "DockWindowShell.h"
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
+#include <QtCore/QList>
 #include <QtGui/QTextEdit>
 
 class PythonConsole : public DockWindowShell
@@ -128,6 +129,8 @@ private:
    auto_obj mStderr;
    auto_obj mInterpreter;
    int mPos;
+   QList<QString> mHistory;
+   QList<QString>::iterator mHistoryPos;
 };
 
 #endif
