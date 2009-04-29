@@ -3,12 +3,16 @@
 @prefix opticks: <urn:2008:03:opticks-aebl-extension-ns#> .
 
 <urn:aebl:install-manifest>
-   aebl:id "{FC0FB63D-7C8B-42A0-9C75-D2C20B8C5385}" ;
-   aebl:name "Python" ;
-   aebl:version "0.1" ;
+   aebl:id "python@coan.sourceforge.net" ;
    aebl:type "2" ;
-   aebl:description "Python scripting" ;
+   aebl:creator "Trevor R.H. Clarke <tclarke@ball.com>" ;
+   aebl:homepageURL "http://coan.sourceforge.net" ;
+   aebl:licenseURL "aeb:///license/lgpl-2.1.txt" ;
+   aebl:iconURL "aeb:///icon/python.png" ;
    aebl:targetApplication [
       aebl:id "opticks@ballforge.net" ;
-      aebl:minVersion "4.2.0" ;
+      aebl:minVersion "4.2.5" ;
       aebl:maxVersion "4.2.*" ] .
+   opticks:helpEntry [
+      opticks:name "Python Command Help" ;
+      opticks:url "aeb:///Help/Python/html/index.html" ] .

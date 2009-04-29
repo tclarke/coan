@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="Windows-1252"?>
+<VisualStudioProject
+	ProjectType="Visual C++"
+	Version="8.00"
+	Name="ApiDocs"
+	ProjectGUID="{9CBD8E2A-E31A-484A-AF58-E1FB31E57F71}"
+	RootNamespace="ApiDocs"
+	Keyword="MakeFileProj"
+	>
+	<Platforms>
+		<Platform
+			Name="Win32"
+		/>
+	</Platforms>
+	<ToolFiles>
+	</ToolFiles>
+	<Configurations>
+		<Configuration
+			Name="Debug|Win32"
+			OutputDirectory="$(BuildDir)\$(PlatformName)\$(ConfigurationName)\$(ProjectName)"
+			IntermediateDirectory="$(BuildDir)\$(PlatformName)\$(ConfigurationName)\$(ProjectName)"
+			ConfigurationType="0"
+			InheritedPropertySheets="..\CompileSettings\PythonMacros.vsprops"
+			>
+			<Tool
+				Name="VCNMakeTool"
+				BuildCommandLine="&quot;$(SolutionDir)\..\build-Python.py&quot; --build-doxygen=html -v"
+				ReBuildCommandLine="&quot;$(SolutionDir)\..\build-Python.py&quot; --build-doxygen=html -v"
+				CleanCommandLine=""
+				Output="$(BUILDDIR)\DoxygenOutput\html\index.html"
+				PreprocessorDefinitions="WIN32;_DEBUG"
+				IncludeSearchPath=""
+				ForcedIncludes=""
+				AssemblySearchPath=""
+				ForcedUsingAssemblies=""
+				CompileAsManaged=""
+			/>
+		</Configuration>
+		<Configuration
+			Name="Release|Win32"
+			OutputDirectory="$(BuildDir)\$(PlatformName)\$(ConfigurationName)\$(ProjectName)"
+			IntermediateDirectory="$(BuildDir)\$(PlatformName)\$(ConfigurationName)\$(ProjectName)"
+			ConfigurationType="0"
+			InheritedPropertySheets="..\CompileSettings\PythonMacros.vsprops"
+			>
+			<Tool
+				Name="VCNMakeTool"
+				BuildCommandLine="&quot;$(SolutionDir)\..\build-Python.py&quot; --build-doxygen=html -v"
+				ReBuildCommandLine="&quot;$(SolutionDir)\..\build-Python.py&quot; --build-doxygen=html -v"
+				CleanCommandLine=""
+				Output="$(BUILDDIR)\DoxygenOutput\html\index.html"
+				PreprocessorDefinitions="WIN32;NDEBUG"
+				IncludeSearchPath=""
+				ForcedIncludes=""
+				AssemblySearchPath=""
+				ForcedUsingAssemblies=""
+				CompileAsManaged=""
+			/>
+		</Configuration>
+	</Configurations>
+	<References>
+	</References>
+	<Files>
+		<Filter
+			Name="Documentation"
+			>
+			<File
+				RelativePath=".\mainpage.txt"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="Doxygen Configuration"
+			>
+			<File
+				RelativePath=".\application.dox"
+				>
+			</File>
+			<File
+				RelativePath=".\trailer.html"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="Generated Doxygen"
+			>
+			<File
+				RelativePath="$(BUILDDIR)\DoxygenOutput\html\index.html"
+				>
+			</File>
+		</Filter>
+	</Files>
+	<Globals>
+	</Globals>
+</VisualStudioProject>

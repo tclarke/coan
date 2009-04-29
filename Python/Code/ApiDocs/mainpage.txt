@@ -1,0 +1,14 @@
+/**
+@mainpage Opticks Python Integration
+
+\section overview Overview
+The Python Interface to Opticks provides access to Opticks data and functionality through a defined set of Python commands.
+This interface supports interaction with data loaded in Opticks through both interactive Python and Python scripts.
+The interface is accessed through the scripting window in Opticks, which accepts Python commands and displays Python output in the interactive interpreter.
+The Python Interface also supports batch processing through the Opticks Wizard functionality.
+This capability allows users to run Opticks plug-ins from Python and run Python scripts from Opticks.
+Python commands can be run from a wizard by adding the <tt>Python Interpreter</tt> desktop wizard item to a wizard and passing the Python code as a string.
+
+The Python Interface is designed to provide a mechanism for rapidly prototyping new algorithms in Python while leveraging Opticks functionality.
+Introductory material on Python use is beyond the scope of this document which assumes at least a basic familiarity with the Python language.
+*/

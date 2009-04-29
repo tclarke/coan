@@ -24,9 +24,18 @@
 			CharacterSet="2"
 			>
 			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+			/>
+			<Tool
 				Name="VCPostBuildEventTool"
 				Description="Prepping for run..."
-				CommandLine="&quot;$(SolutionDir)\build-Python.py&quot; --prep --mode=debug --arch=32 -v"
+				CommandLine="&quot;$(SolutionDir)\..\build-Python.py&quot; --prep --mode=debug --arch=32 -v"
 			/>
 		</Configuration>
 		<Configuration
@@ -35,6 +44,15 @@
 			InheritedPropertySheets=".\CompileSettings\PythonMacros.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\AllCommonSettings-Debug-64bit.vsprops"
 			CharacterSet="2"
 			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+			/>
 			<Tool
 				Name="VCPostBuildEventTool"
 				Description="Prepping for run..."
@@ -49,9 +67,18 @@
 			WholeProgramOptimization="1"
 			>
 			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+			/>
+			<Tool
 				Name="VCPostBuildEventTool"
 				Description="Prepping for run..."
-				CommandLine="&quot;$(SolutionDir)\build-Python.py&quot; --prep --mode=release --arch=32 -v"
+				CommandLine="&quot;$(SolutionDir)\..\build-Python.py&quot; --prep --mode=release --arch=32 -v"
 			/>
 		</Configuration>
 		<Configuration
@@ -62,15 +89,48 @@
 			WholeProgramOptimization="1"
 			>
 			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+			/>
+			<Tool
 				Name="VCPostBuildEventTool"
 				Description="Prepping for run..."
-				CommandLine="&quot;$(SolutionDir)\build-Python.py&quot; --prep --mode=release --arch=64 -v"
+				CommandLine="&quot;$(SolutionDir)\..\build-Python.py&quot; --prep --mode=release --arch=64 -v"
 			/>
 		</Configuration>
 	</Configurations>
 	<References>
 	</References>
 	<Files>
+		<Filter
+			Name="Include"
+			>
+			<File
+				RelativePath=".\Include\PythonVersion.h"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="SupportFiles"
+			>
+			<File
+				RelativePath=".\SupportFiles\site-packages\amf.py"
+				>
+			</File>
+			<File
+				RelativePath=".\SupportFiles\site-packages\interpreter.py"
+				>
+			</File>
+			<File
+				RelativePath=".\SupportFiles\site-packages\opticks.py"
+				>
+			</File>
+		</Filter>
 	</Files>
 	<Globals>
 	</Globals>

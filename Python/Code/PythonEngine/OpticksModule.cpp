@@ -10,6 +10,7 @@
 #include "AnimationController.h"
 #include "AnimationServices.h"
 #include "AnimationToolBar.h"
+#include "AttachmentPtr.h"
 #include "DataAccessor.h"
 #include "DataAccessorImpl.h"
 #include "DataRequest.h"
@@ -18,7 +19,7 @@
 #include "LayerList.h"
 #include "ObjectResource.h"
 #include "OpticksModule.h"
-#include "PythonConsole.h"
+#include "PythonEngine.h"
 #include "RasterDataDescriptor.h"
 #include "RasterElement.h"
 #include "RasterUtilities.h"
@@ -29,7 +30,6 @@
 #include "Undo.h"
 #include <boost/any.hpp>
 #include <numpy/arrayobject.h>
-#include <QtCore/QtDebug>
 
 class AnimationCallbackManager
 {
@@ -407,27 +407,27 @@ PyObject* new_raster_from_array(PyObject* pSelf, PyObject* pArgs)
    {
       interleave = BIL;
    }
-   unsigned int rows = (ndim == 2) ? PyArray_DIM(pArr, 0) : 0;
-   unsigned int cols = (ndim == 2) ? PyArray_DIM(pArr, 1) : 0;
+   unsigned int rows = (ndim == 2) ? static_cast<unsigned int>(PyArray_DIM(pArr, 0)) : 0;
+   unsigned int cols = (ndim == 2) ? static_cast<unsigned int>(PyArray_DIM(pArr, 1)) : 0;
    unsigned int bands = 1;
    if (ndim == 3)
    {
       switch (interleave)
       {
       case BIP:
-         rows = PyArray_DIM(pArr, 0);
-         cols = PyArray_DIM(pArr, 1);
-         bands = PyArray_DIM(pArr, 2);
+         rows = static_cast<unsigned int>(PyArray_DIM(pArr, 0));
+         cols = static_cast<unsigned int>(PyArray_DIM(pArr, 1));
+         bands = static_cast<unsigned int>(PyArray_DIM(pArr, 2));
          break;
       case BIL:
-         rows = PyArray_DIM(pArr, 0);
-         bands = PyArray_DIM(pArr, 1);
-         cols = PyArray_DIM(pArr, 2);
+         rows = static_cast<unsigned int>(PyArray_DIM(pArr, 0));
+         bands = static_cast<unsigned int>(PyArray_DIM(pArr, 1));
+         cols = static_cast<unsigned int>(PyArray_DIM(pArr, 2));
          break;
       case BSQ:
-         bands = PyArray_DIM(pArr, 0);
-         rows = PyArray_DIM(pArr, 1);
-         cols = PyArray_DIM(pArr, 2);
+         bands = static_cast<unsigned int>(PyArray_DIM(pArr, 0));
+         rows = static_cast<unsigned int>(PyArray_DIM(pArr, 1));
+         cols = static_cast<unsigned int>(PyArray_DIM(pArr, 2));
          break;
       }
    }
