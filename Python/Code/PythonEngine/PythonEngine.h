@@ -101,6 +101,7 @@ public:
    virtual bool getOutputSpecification(PlugInArgList*& pArgList);
    virtual bool execute(PlugInArgList* pInArgList, PlugInArgList* pOutArgList);
 
+   virtual std::string getPrompt() const;
    bool processCommand(const std::string& command, std::string& returnText, std::string& errorText, Progress* pProgress);
 
    class PythonError : public std::exception
@@ -118,6 +119,7 @@ private:
    auto_obj mStdout;
    auto_obj mStderr;
    auto_obj mInterpreter;
+   std::string mPrompt;
 };
 
 class PythonInterpreter : public InterpreterShell
@@ -125,13 +127,8 @@ class PythonInterpreter : public InterpreterShell
 public:
    PythonInterpreter();
    virtual ~PythonInterpreter();
-   virtual bool getInputSpecification(PlugInArgList*& pArgList);
-   virtual bool getOutputSpecification(PlugInArgList*& pArgList);
    virtual bool execute(PlugInArgList* pInArgList, PlugInArgList* pOutArgList);
-   virtual void getKeywordList(std::vector<std::string>& list) const;
-   virtual bool getKeywordDescription(const std::string& keyword, std::string& description) const;
-   virtual void getUserDefinedTypes(std::vector<std::string>& list) const ;
-   virtual bool getTypeDescription(const std::string& type, std::string& description) const ;
+   virtual std::string getPrompt() const;
 };
 
 class PythonInterpreterWizardItem : public WizardShell

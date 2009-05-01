@@ -119,15 +119,15 @@
 			Name="SupportFiles"
 			>
 			<File
-				RelativePath=".\SupportFiles\site-packages\amf.py"
+				RelativePath="..\Release\SupportFiles\site-packages\amf.py"
 				>
 			</File>
 			<File
-				RelativePath=".\SupportFiles\site-packages\interpreter.py"
+				RelativePath="..\Release\SupportFiles\site-packages\interpreter.py"
 				>
 			</File>
 			<File
-				RelativePath=".\SupportFiles\site-packages\opticks.py"
+				RelativePath="..\Release\SupportFiles\site-packages\opticks.py"
 				>
 			</File>
 		</Filter>

@@ -22,7 +22,7 @@
 PLUGINFACTORY(PythonEngine);
 PLUGINFACTORY(PythonInterpreter);
 
-PythonEngine::PythonEngine()
+PythonEngine::PythonEngine() : mPrompt(">>> ")
 {
    setName(PlugInName());
    setDescription("Python execution engine");
@@ -116,6 +116,11 @@ bool PythonEngine::execute(PlugInArgList* pInArgList, PlugInArgList* pOutArgList
    return true;
 }
 
+std::string PythonEngine::getPrompt() const
+{
+   return mPrompt;
+}
+
 bool PythonEngine::processCommand(const std::string& command,
                                   std::string& returnText,
                                   std::string& errorText,
@@ -127,10 +132,23 @@ bool PythonEngine::processCommand(const std::string& command,
    }
    try
    {
-      auto_obj cnt(PyObject_CallMethod(mStdin, "write", "sl", command.c_str(), command.size()), true);
+      std::string tmpCommand = command;
+      if (tmpCommand.empty() || tmpCommand[tmpCommand.size() - 1] != '\n')
+      {
+         tmpCommand.append("\n");
+      }
+      auto_obj cnt(PyObject_CallMethod(mStdin, "write", "sl", tmpCommand.c_str(), tmpCommand.size()), true);
       checkErr();
       auto_obj useps1(PyObject_CallMethod(mInterpreter, "processEvent", NULL), true);
       checkErr();
+      if (useps1 == Py_True)
+      {
+         mPrompt = ">>> ";
+      }
+      else
+      {
+         mPrompt = "... ";
+      }
 
       auto_obj stderrAvailable(PyObject_CallMethod(mStderr, "available", NULL), true);
       checkErr();
@@ -202,7 +220,6 @@ void PythonEngine::checkErr()
    }
 }
 
-
 PythonInterpreter::PythonInterpreter()
 {
    setName("PythonInterpreter");
@@ -217,24 +234,6 @@ PythonInterpreter::PythonInterpreter()
 
 PythonInterpreter::~PythonInterpreter()
 {
-}
-
-bool PythonInterpreter::getInputSpecification(PlugInArgList*& pArgList)
-{
-   VERIFY((pArgList = Service<PlugInManagerServices>()->getPlugInArgList()) != NULL);
-   VERIFY(pArgList->addArg<Progress>(Executable::ProgressArg(), NULL));
-   VERIFY(pArgList->addArg<std::string>(Interpreter::CommandArg(), std::string()));
-
-   return true;
-}
-
-bool PythonInterpreter::getOutputSpecification(PlugInArgList*& pArgList)
-{
-   VERIFY((pArgList = Service<PlugInManagerServices>()->getPlugInArgList()) != NULL);
-   VERIFY(pArgList->addArg<std::string>(Interpreter::OutputTextArg()));
-   VERIFY(pArgList->addArg<std::string>(Interpreter::ReturnTypeArg()));
-
-   return true;
 }
 
 bool PythonInterpreter::execute(PlugInArgList* pInArgList, PlugInArgList* pOutArgList)
@@ -290,24 +289,16 @@ bool PythonInterpreter::execute(PlugInArgList* pInArgList, PlugInArgList* pOutAr
    return true;
 }
 
-void PythonInterpreter::getKeywordList(std::vector<std::string>& list) const
+std::string PythonInterpreter::getPrompt() const
 {
-   list.clear();
-}
-
-bool PythonInterpreter::getKeywordDescription(const std::string& keyword, std::string& description) const
-{
-   return false;
-}
-
-void PythonInterpreter::getUserDefinedTypes(std::vector<std::string>& list) const 
-{
-   list.clear();
-}
-
-bool PythonInterpreter::getTypeDescription(const std::string&, std::string&) const 
-{
-   return false;
+   std::vector<PlugIn*> plugins = Service<PlugInManagerServices>()->getPlugInInstances(PythonEngine::PlugInName());
+   if (plugins.size() != 1)
+   {
+      return ">>> ";
+   }
+   PythonEngine* pEngine = dynamic_cast<PythonEngine*>(plugins.front());
+   VERIFYRV(pEngine != NULL, ">>> ");
+   return pEngine->getPrompt();
 }
 
 PythonInterpreterWizardItem::PythonInterpreterWizardItem()
