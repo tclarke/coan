@@ -19,7 +19,7 @@
 #include "ImportDescriptor.h"
 #include "ImportersVersion.h"
 #include "PlugInArgList.h"
-#include "PlugInFactory.h"
+#include "PlugInRegistration.h"
 #include "PlugInResource.h"
 #include "RasterDataDescriptor.h"
 #include "RasterElement.h"
@@ -36,8 +36,8 @@
 #include <dcmtk/dcmjpeg/djdecode.h>
 #include <QtCore/QString>
 
-PLUGINFACTORY(DicomImporter);
-PLUGINFACTORY(DicomRasterPager);
+REGISTER_PLUGIN_BASIC(DICOM, DicomImporter);
+REGISTER_PLUGIN_BASIC(DICOM, DicomRasterPager);
 
 namespace
 {
@@ -258,7 +258,7 @@ std::vector<ImportDescriptor*> DicomImporter::getImportDescriptors(const std::st
       }
       pImportDescriptor->getDataDescriptor()->setMetadata(pMeta.release());
    }
-   RasterUtilities::generateAndSetFileDescriptor(pImportDescriptor->getDataDescriptor(), filename, std::string(), LITTLE_ENDIAN);
+   RasterUtilities::generateAndSetFileDescriptor(pImportDescriptor->getDataDescriptor(), filename, std::string(), LITTLE_ENDIAN_ORDER);
 
    return descriptors;
 }

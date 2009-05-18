@@ -18,8 +18,8 @@
 #include "LasImporter.h"
 #include "ObjectResource.h"
 #include "PlugInArgList.h"
-#include "PlugInFactory.h"
 #include "PlugInManagerServices.h"
+#include "PlugInRegistration.h"
 #include "ProgressTracker.h"
 #include "RasterDataDescriptor.h"
 #include "RasterFileDescriptor.h"
@@ -32,7 +32,7 @@
 #include <liblas/lasheader.hpp>
 #include <QtCore/QString>
 
-PLUGINFACTORY(LasImporter);
+REGISTER_PLUGIN_BASIC(Las, LasImporter);
 
 LasImporter::LasImporter()
 {
@@ -66,10 +66,10 @@ std::vector<ImportDescriptor*> LasImporter::getImportDescriptors(const std::stri
    ImportDescriptorResource descI(las.GetName(), TypeConverter::toString<RasterElement>(), NULL, false);
    VERIFYRV(descZ.get() && descI.get(), descriptors);
    std::vector<liblas::uint32_t> pointsByReturn = header.GetPointRecordsByReturnCount();
-   RasterDataDescriptor* pDataDescZ = RasterUtilities::generateRasterDataDescriptor(las.GetName(), NULL,
+   RasterDataDescriptor* pDataDescZ = RasterUtilities::generateRasterDataDescriptor(las.GetName()+":height", NULL,
       static_cast<unsigned int>(std::ceil(width)), static_cast<unsigned int>(std::ceil(height)),
       std::max<unsigned int>(1, pointsByReturn.size()), BSQ, FLT8BYTES, IN_MEMORY);
-   RasterDataDescriptor* pDataDescI = RasterUtilities::generateRasterDataDescriptor(las.GetName(), NULL,
+   RasterDataDescriptor* pDataDescI = RasterUtilities::generateRasterDataDescriptor(las.GetName()+":intensity", NULL,
       static_cast<unsigned int>(std::ceil(width)), static_cast<unsigned int>(std::ceil(height)),
       std::max<unsigned int>(1, pointsByReturn.size()), BSQ, INT2UBYTES, IN_MEMORY);
 
@@ -81,8 +81,8 @@ std::vector<ImportDescriptor*> LasImporter::getImportDescriptors(const std::stri
    descZ->setDataDescriptor(pDataDescZ);
    descI->setDataDescriptor(pDataDescI);
 
-   VERIFYRV(RasterUtilities::generateAndSetFileDescriptor(pDataDescZ, filename, "height", LITTLE_ENDIAN), descriptors);
-   VERIFYRV(RasterUtilities::generateAndSetFileDescriptor(pDataDescI, filename, "intensity", LITTLE_ENDIAN), descriptors);
+   VERIFYRV(RasterUtilities::generateAndSetFileDescriptor(pDataDescZ, filename, "height", LITTLE_ENDIAN_ORDER), descriptors);
+   VERIFYRV(RasterUtilities::generateAndSetFileDescriptor(pDataDescI, filename, "intensity", LITTLE_ENDIAN_ORDER), descriptors);
 
    DynamicObject* pMetadataZ = pDataDescZ->getMetadata();
    DynamicObject* pMetadataI = pDataDescI->getMetadata();
@@ -99,7 +99,7 @@ std::vector<ImportDescriptor*> LasImporter::getImportDescriptors(const std::stri
    pMetadataZ->setAttributeByPath("LAS/Offset/X", header.GetOffsetX());
    pMetadataZ->setAttributeByPath("LAS/Offset/Y", header.GetOffsetY());
    pMetadataZ->setAttributeByPath("LAS/Offset/Z", header.GetOffsetZ());
-   pMetadataZ->setAttributeByPath("LAS/Projection", header.GetProj4());
+   //pMetadataZ->setAttributeByPath("LAS/Projection", header.GetProj4());
    pMetadataI->merge(pMetadataZ);
 
    RasterFileDescriptor* pFileDescZ = static_cast<RasterFileDescriptor*>(pDataDescZ->getFileDescriptor());
