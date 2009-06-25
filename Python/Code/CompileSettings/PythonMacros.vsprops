@@ -29,4 +29,8 @@
 		Name="PYTHON_DIR"
 		Value="c:\Python25"
 	/>
+	<UserMacro
+		Name="QSCINTILLA"
+		Value="$(OPTICKSDEPENDENCIES)/QScintilla"
+	/>
 </VisualStudioPropertySheet>

@@ -74,7 +74,10 @@ bool SkinsPlugIn::getOutputSpecification(PlugInArgList*& pArgList)
 
 bool SkinsPlugIn::execute(PlugInArgList* pInArgList, PlugInArgList* pOutArgList)
 {
-   mpSkinsMenu = Service<DesktopServices>()->getMainMenuBar()->addMenu("&View/&Skins");
+   MenuBar* pMenu = Service<DesktopServices>()->getMainMenuBar();
+   QAction* pBefore = pMenu->getMenuItem("&View/&Status Bar");
+   mpSkinsMenu = pMenu->addMenu("&View/S&kins", pBefore);
+   mpSkinsMenu->setStatusTip("Change the current application skin.");
    VERIFY(mpSkinsMenu);
    VERIFY(connect(mpSkinsMenu, SIGNAL(triggered(QAction*)), this, SLOT(changeSkin(QAction*))));
    

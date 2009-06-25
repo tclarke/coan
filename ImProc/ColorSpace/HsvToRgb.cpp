@@ -10,9 +10,9 @@
 #include "HsvToRgb.h"
 #include "ImProcVersion.h"
 #include "PlugInArgList.h"
-#include "PlugInFactory.h"
+#include "PlugInRegistration.h"
 
-PLUGINFACTORY(HsvToRgb);
+REGISTER_PLUGIN_BASIC(ColorSpace, HsvToRgb);
 
 #define EPSILON 0.000001
 

@@ -11,7 +11,7 @@
 #include "GcpList.h"
 #include "LayerList.h"
 #include "PlugInArgList.h"
-#include "PlugInFactory.h"
+#include "PlugInRegistration.h"
 #include "PlugInManagerServices.h"
 #include "RasterDataDescriptor.h"
 #include "RasterElement.h"
@@ -27,13 +27,16 @@
 
 #include <QtGui/QDialog.h>
 
-PLUGINFACTORY(Rescale);
+REGISTER_PLUGIN_BASIC(ImProcSupport, Rescale);
 
+namespace StringUtilities
+{
 BEGIN_ENUM_MAPPING(InterpType)
 ADD_ENUM_MAPPING(NEAREST, "Nearest Neighbor", "Nearest Neighbor")
 ADD_ENUM_MAPPING(BILINEAR, "Bilinear", "Bilinear")
 ADD_ENUM_MAPPING(BICUBIC, "Bicubic", "Bicubic")
 END_ENUM_MAPPING()
+}
 
 Rescale::Rescale() :
    mpSourceView(NULL),

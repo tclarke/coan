@@ -10,9 +10,9 @@
 #include "IhsToRgb.h"
 #include "ImProcVersion.h"
 #include "PlugInArgList.h"
-#include "PlugInFactory.h"
+#include "PlugInRegistration.h"
 
-PLUGINFACTORY(IhsToRgb);
+REGISTER_PLUGIN_BASIC(ColorSpace, IhsToRgb);
 
 #define EPSILON 0.000001
 

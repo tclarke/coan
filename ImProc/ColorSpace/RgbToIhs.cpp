@@ -9,10 +9,10 @@
 #include "AppVerify.h"
 #include "ImProcVersion.h"
 #include "PlugInArgList.h"
-#include "PlugInFactory.h"
+#include "PlugInRegistration.h"
 #include "RgbToIhs.h"
 
-PLUGINFACTORY(RgbToIhs);
+REGISTER_PLUGIN_BASIC(ColorSpace, RgbToIhs);
 
 #define EPSILON 0.000001
 

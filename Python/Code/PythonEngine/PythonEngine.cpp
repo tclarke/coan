@@ -12,15 +12,16 @@
 #include "PythonEngine.h"
 #include "PythonVersion.h"
 #include "PlugInArgList.h"
-#include "PlugInFactory.h"
+#include "PlugInRegistration.h"
 #include "PlugInManagerServices.h"
 #include "ProgressTracker.h"
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 #include <sstream>
+//#include <Qsci/qscilexerpython.h>
 
-PLUGINFACTORY(PythonEngine);
-PLUGINFACTORY(PythonInterpreter);
+REGISTER_PLUGIN_BASIC(Python, PythonEngine);
+REGISTER_PLUGIN_BASIC(Python, PythonInterpreter);
 
 PythonEngine::PythonEngine() : mPrompt(">>> ")
 {
@@ -301,6 +302,12 @@ std::string PythonInterpreter::getPrompt() const
    return pEngine->getPrompt();
 }
 
+QsciLexer* PythonInterpreter::getLexer() const
+{
+   //return new QsciLexerPython();
+   return NULL;
+}
+
 PythonInterpreterWizardItem::PythonInterpreterWizardItem()
 {
    setName("Python Interpreter");
@@ -379,4 +386,40 @@ bool PythonInterpreterWizardItem::execute(PlugInArgList* pInArgList, PlugInArgLi
    progress.report("Executing Python command.", 100, NORMAL);
    progress.upALevel();
    return true;
+}
+
+
+bool PythonInterpreter::getInputSpecification(PlugInArgList*& pArgList)
+{
+   VERIFY((pArgList = Service<PlugInManagerServices>()->getPlugInArgList()) != NULL);
+   VERIFY(pArgList->addArg<std::string>(Interpreter::CommandArg()));
+   return true;
+}
+
+bool PythonInterpreter::getOutputSpecification(PlugInArgList*& pArgList)
+{
+   VERIFY((pArgList = Service<PlugInManagerServices>()->getPlugInArgList()) != NULL);
+   VERIFY(pArgList->addArg<std::string>(Interpreter::ReturnTypeArg(), "Output"));
+   VERIFY(pArgList->addArg<std::string>(Interpreter::OutputTextArg()));
+   return true;
+}
+
+void PythonInterpreter::getKeywordList(std::vector<std::string>& list) const
+{
+   list.clear();
+}
+
+bool PythonInterpreter::getKeywordDescription(const std::string& keyword, std::string& description) const
+{
+   return false;
+}
+
+void PythonInterpreter::getUserDefinedTypes(std::vector<std::string>& list) const
+{
+   list.clear();
+}
+
+bool PythonInterpreter::getTypeDescription(const std::string& type, std::string& description) const
+{
+   return false;
 }

@@ -12,7 +12,7 @@
 #include "DesktopServices.h"
 #include "DockWindow.h"
 #include "MenuBar.h"
-#include "PlugInFactory.h"
+#include "PlugInRegistration.h"
 #include "RasterElement.h"
 #include "RasterLayer.h"
 #include "SessionManager.h"
@@ -23,7 +23,7 @@
 #include <QtGui/QAction>
 #include <QtGui/QMenu>
 
-PLUGINFACTORY(Timeline);
+REGISTER_PLUGIN_BASIC(TimelineModule, Timeline);
 
 namespace
 {

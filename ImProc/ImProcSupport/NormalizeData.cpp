@@ -9,8 +9,8 @@
 #include "ImProcVersion.h"
 #include "NormalizeData.h"
 #include "PlugInArgList.h"
-#include "PlugInFactory.h"
 #include "PlugInManagerServices.h"
+#include "PlugInRegistration.h"
 #include "RasterDataDescriptor.h"
 #include "RasterElement.h"
 #include "RasterLayer.h"
@@ -21,7 +21,7 @@
 #include "switchOnEncoding.h"
 #include "Undo.h"
 
-PLUGINFACTORY(NormalizeData);
+REGISTER_PLUGIN_BASIC(ImProcSupport, NormalizeData);
 
 NormalizeData::NormalizeData() :
    mAbortFlag(false)

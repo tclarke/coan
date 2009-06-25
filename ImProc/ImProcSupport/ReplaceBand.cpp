@@ -13,10 +13,10 @@
 #include "ReplaceBand.h"
 #include "ReplaceBandInputWizard.h"
 #include "PlugInArgList.h"
-#include "PlugInFactory.h"
+#include "PlugInRegistration.h"
 #include "PlugInManagerServices.h"
 
-PLUGINFACTORY(ReplaceBand);
+REGISTER_PLUGIN_BASIC(ImProcSupport, ReplaceBand);
 
 ReplaceBand::ReplaceBand() : mAbortFlag(false)
 {

@@ -15,6 +15,8 @@
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 
+class QsciLexer;
+
 class auto_obj
 {
 public:
@@ -127,8 +129,16 @@ class PythonInterpreter : public InterpreterShell
 public:
    PythonInterpreter();
    virtual ~PythonInterpreter();
+   virtual bool getInputSpecification(PlugInArgList*& pArgList);
+   virtual bool getOutputSpecification(PlugInArgList*& pArgList);
+   virtual void getKeywordList(std::vector<std::string>& list) const;
+   virtual bool getKeywordDescription(const std::string& keyword, std::string& description) const;
+   virtual void getUserDefinedTypes(std::vector<std::string>& list) const;
+   virtual bool getTypeDescription(const std::string& type, std::string& description) const;
+
    virtual bool execute(PlugInArgList* pInArgList, PlugInArgList* pOutArgList);
    virtual std::string getPrompt() const;
+   virtual QsciLexer* getLexer() const;
 };
 
 class PythonInterpreterWizardItem : public WizardShell
