@@ -5,10 +5,13 @@
 <urn:aebl:install-manifest>
    aebl:id "video@coan.sf.net" ;
    aebl:name "Video" ;
-   aebl:version "1.0a" ;
+   aebl:version "1.0b" ;
    aebl:type "2" ;
    aebl:description "COAN Video Extensions" ;
+   aebl:creator "Trevor R.H. Clarke <tclarke@ballforge.net>" ;
+   aebl:homepageURL "http://coan.sourceforge.net" ;
+   aebl:licenseURL "aeb:///license/lgpl-2.1.txt" ;
    aebl:targetApplication [
       aebl:id "opticks@ballforge.net" ;
-      aebl:minVersion "4.2.0" ;
-      aebl:maxVersion "4.2.*" ] .
+      aebl:minVersion "4.3.0" ;
+      aebl:maxVersion "4.3.*" ] .

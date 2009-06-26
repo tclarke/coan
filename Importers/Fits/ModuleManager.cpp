@@ -7,4 +7,4 @@
  */
 
 #include "PlugInRegistration.h"
-REGISTER_MODULE(FITS);
+REGISTER_MODULE(FitsModule);

@@ -3,12 +3,15 @@
 @prefix opticks: <urn:2008:03:opticks-aebl-extension-ns#> .
 
 <urn:aebl:install-manifest>
-   aebl:id "{1F1A1D11-6B61-4962-B6CB-166A7C2FD6F5}" ;
+   aebl:id "improc@coan.sf.net" ;
    aebl:name "ImProc" ;
-   aebl:version "0.1" ;
+   aebl:version "1.0a" ;
    aebl:type "2" ;
    aebl:description "General image processing functionality." ;
+   aebl:creator "Trevor R.H. Clarke <tclarke@ballforge.net>" ;
+   aebl:homepageURL "http://coan.sourceforge.net" ;
+   aebl:licenseURL "aeb:///license/lgpl-2.1.txt" ;
    aebl:targetApplication [
       aebl:id "opticks@ballforge.net" ;
-      aebl:minVersion "4.2.0" ;
-      aebl:maxVersion "4.2.*" ] .
+      aebl:minVersion "4.3.0" ;
+      aebl:maxVersion "4.3.*" ] .

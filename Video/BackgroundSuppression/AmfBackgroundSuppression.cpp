@@ -15,7 +15,7 @@
 #include "DataRequest.h"
 #include "DynamicObject.h"
 #include "ObjectResource.h"
-#include "PlugInFactory.h"
+#include "PlugInRegistration.h"
 #include "ProgressTracker.h"
 #include "RasterDataDescriptor.h"
 #include "RasterElement.h"
@@ -25,7 +25,7 @@
 #include "ThresholdLayer.h"
 #include "VideoVersion.h"
 
-PLUGINFACTORY(AmfBackgroundSuppression);
+REGISTER_PLUGIN_BASIC(BackgroundSuppressionModule, AmfBackgroundSuppression);
 
 namespace
 {

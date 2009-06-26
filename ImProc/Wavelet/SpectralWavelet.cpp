@@ -9,8 +9,8 @@
 #include "ImProcVersion.h"
 #include "SpectralWavelet.h"
 #include "PlugInArgList.h"
-#include "PlugInFactory.h"
 #include "PlugInManagerServices.h"
+#include "PlugInRegistration.h"
 #include "RasterDataDescriptor.h"
 #include "RasterElement.h"
 #include "RasterLayer.h"
@@ -26,8 +26,10 @@ extern "C" {
 #include <local.h>
 };
 
-PLUGINFACTORY(SpectralWavelet);
+REGISTER_PLUGIN_BASIC(WaveletModule, SpectralWavelet);
 
+namespace StringUtilities
+{
 BEGIN_ENUM_MAPPING(WaveletBasis)
 ADD_ENUM_MAPPING(BATTLE_LEMARIE, "Battle-Lemarie", "BL")
 ADD_ENUM_MAPPING(BURT_ADELSON, "Burt-Adelson", "BA")
@@ -47,6 +49,7 @@ ADD_ENUM_MAPPING(SPLINE_2_4, "Spline 2,4", "S2-4")
 ADD_ENUM_MAPPING(SPLINE_3_3, "Spline 3,3", "S3-3")
 ADD_ENUM_MAPPING(SPLINE_3_7, "Spline 3,7", "S3-7")
 END_ENUM_MAPPING()
+}
 
 SpectralWavelet::SpectralWavelet() :
    mAbortFlag(false)

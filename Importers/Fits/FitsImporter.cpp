@@ -21,7 +21,7 @@
 #include "MessageLogResource.h"
 #include "ObjectResource.h"
 #include "PlugInArgList.h"
-#include "PlugInFactory.h"
+#include "PlugInRegistration.h"
 #include "PlugInResource.h"
 #include "RasterDataDescriptor.h"
 #include "RasterElement.h"
@@ -42,8 +42,8 @@
 #include <QtCore/QStringList>
 #include <QtCore/QVariant>
 
-PLUGINFACTORY(FitsImporter);
-PLUGINFACTORY(FitsRasterPager);
+REGISTER_PLUGIN_BASIC(FitsModule, FitsImporter);
+REGISTER_PLUGIN_BASIC(FitsModule, FitsRasterPager);
 
 #define METADATA_SIG_LENGTH "FITS_TEMP/length"
 #define METADATA_SIG_ENCODING "FITS_TEMP/DataType"
@@ -364,7 +364,7 @@ std::vector<ImportDescriptor*> FitsImporter::getImportDescriptors(const std::str
                }
                pSigMetadata->setAttributeByPath(CENTER_WAVELENGTHS_METADATA_PATH, centerWavelengths);
                RasterUtilities::generateAndSetFileDescriptor(pSigDesc->getDataDescriptor(),
-                  filename, StringUtilities::toDisplayString(hdu), BIG_ENDIAN);
+                  filename, StringUtilities::toDisplayString(hdu), BIG_ENDIAN_ORDER);
                descriptors.push_back(pSigDesc.release());
             }
 
@@ -380,7 +380,7 @@ std::vector<ImportDescriptor*> FitsImporter::getImportDescriptors(const std::str
       }
       RasterFileDescriptor *pFileDesc = 
          dynamic_cast<RasterFileDescriptor*>(RasterUtilities::generateAndSetFileDescriptor(pImportDescriptor->getDataDescriptor(),
-         filename, StringUtilities::toDisplayString(hdu), BIG_ENDIAN));
+         filename, StringUtilities::toDisplayString(hdu), BIG_ENDIAN_ORDER));
       if(pFileDesc != NULL && !gcps.empty())
       {
          pFileDesc->setGcps(gcps);
