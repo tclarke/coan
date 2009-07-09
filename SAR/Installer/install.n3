@@ -1,0 +1,14 @@
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix aebl: <urn:2008:03:aebl-syntax-ns#> .
+@prefix opticks: <urn:2008:03:opticks-aebl-extension-ns#> .
+
+<urn:aebl:install-manifest>
+   aebl:id "sar@extras.ballforge.net" ;
+   aebl:type "2" ;
+   aebl:creator "Ball Aerospace & Technologies Corp." ;
+   aebl:homepageURL "http://extras.ballforge.net" ;
+   aebl:licenseURL "aeb:///license/lgpl-2.1.txt" ;
+   aebl:targetApplication [
+      aebl:id "opticks@ballforge.net" ;
+      aebl:minVersion "4.3.0rc1" ;
+      aebl:maxVersion "4.3.*" ] .

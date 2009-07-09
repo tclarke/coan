@@ -4,11 +4,6 @@
 * and is subject to the terms and conditions of the
 * Opticks Limited Open Source License Agreement Version 1.0
 * The license text is available from https://www.ballforge.net/
-* 
-* This material (software and user documentation) is subject to export
-* controls imposed by the United States Export Administration Act of 1979,
-* as amended and the International Traffic In Arms Regulation (ITAR),
-* 22 CFR 120-130
 */
 
 #include "ComplexData.h"

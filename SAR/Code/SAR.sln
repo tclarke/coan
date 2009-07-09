@@ -1,0 +1,32 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 9.00
+# Visual Studio 2005
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SARMgr", "SARMgr.vcproj", "{11EFDD36-3574-4B06-A14F-1D215354E0E4}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CeosImporter", "CeosImporter\CeosImporter.vcproj", "{FF484086-8789-4A10-B362-12FDD3678FB1}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Debug|x64 = Debug|x64
+		Release|Win32 = Release|Win32
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{11EFDD36-3574-4B06-A14F-1D215354E0E4}.Debug|Win32.ActiveCfg = Debug|Win32
+		{11EFDD36-3574-4B06-A14F-1D215354E0E4}.Debug|x64.ActiveCfg = Debug|x64
+		{11EFDD36-3574-4B06-A14F-1D215354E0E4}.Release|Win32.ActiveCfg = Release|Win32
+		{11EFDD36-3574-4B06-A14F-1D215354E0E4}.Release|x64.ActiveCfg = Release|x64
+		{FF484086-8789-4A10-B362-12FDD3678FB1}.Debug|Win32.ActiveCfg = Debug|Win32
+		{FF484086-8789-4A10-B362-12FDD3678FB1}.Debug|Win32.Build.0 = Debug|Win32
+		{FF484086-8789-4A10-B362-12FDD3678FB1}.Debug|x64.ActiveCfg = Debug|x64
+		{FF484086-8789-4A10-B362-12FDD3678FB1}.Debug|x64.Build.0 = Debug|x64
+		{FF484086-8789-4A10-B362-12FDD3678FB1}.Release|Win32.ActiveCfg = Release|Win32
+		{FF484086-8789-4A10-B362-12FDD3678FB1}.Release|Win32.Build.0 = Release|Win32
+		{FF484086-8789-4A10-B362-12FDD3678FB1}.Release|x64.ActiveCfg = Release|x64
+		{FF484086-8789-4A10-B362-12FDD3678FB1}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
