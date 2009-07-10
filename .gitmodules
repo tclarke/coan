@@ -1,0 +1,3 @@
+[submodule "RasterMath"]
+	path = RasterMath
+	url = git://github.com/tjohnson/RasterMath.git
