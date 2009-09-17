@@ -62,40 +62,33 @@ std::vector<ImportDescriptor*> DiHdfImporter::getImportDescriptors(const std::st
    VERIFYRV(pImportDescriptor.get(), descriptors);
    descriptors.push_back(pImportDescriptor.release());
 
-   int32 hid = Hopen(filename.c_str(), DFACC_READ, 0);
-   if (hid == FAIL)
+   HdfContext hdf(filename);
+   if (hdf.grid() == FAIL)
    {
-      mErrors.push_back("File is not HDF4.");
+      mErrors.push_back("Invalid DI HDF file.");
       return descriptors;
    }
-
-   int32 grid = GRstart(hid);
-   if (grid == FAIL)
-   {
-      mErrors.push_back("Dataset does not contain raster graphics.");
-      Hclose(hid);
-      return descriptors;
-   }
-
 
    int32 frames = 0;
    int32 attrs = 0;
-   GRfileinfo(grid, &frames, &attrs);
+   GRfileinfo(hdf.grid(), &frames, &attrs);
    if (frames <= 0)
    {
       mErrors.push_back("Dataset does not contain and frames.");
-      GRend(grid);
-      Hclose(hid);
       return descriptors;
    }
-   int32 riid = GRselect(grid, 0);
+   if (hdf.toFrame(0) == FAIL)
+   {
+      mErrors.push_back("Unable to access image data.");
+      return descriptors;
+   }
    char pName[256];
    int32 comps = 0;
    int32 data_type = 0;
    int32 interlace_mode = 0;
    int32 pDims[2] = {0,0};
    EncodingType encoding;
-   GRgetiminfo(riid, pName, &comps, &data_type, &interlace_mode, pDims, &attrs);
+   GRgetiminfo(hdf.riid(), pName, &comps, &data_type, &interlace_mode, pDims, &attrs);
    switch(data_type)
    {
    case DFNT_FLOAT32:
@@ -134,21 +127,17 @@ std::vector<ImportDescriptor*> DiHdfImporter::getImportDescriptors(const std::st
             filename, NULL, pDims[1], pDims[0], frames, BSQ, encoding, IN_MEMORY));
    RasterUtilities::generateAndSetFileDescriptor(pImportDescriptor->getDataDescriptor(), filename,
       std::string(), LITTLE_ENDIAN_ORDER);
-   GRendaccess(riid);
-   GRend(grid);
-   Hclose(hid);
 
    return descriptors;
 }
 
 unsigned char DiHdfImporter::getFileAffinity(const std::string &filename)
 {
-   int32 id = Hopen(filename.c_str(), DFACC_READ, 0);
-   if (id == FAIL)
+   HdfContext hdf(filename);
+   if (hdf.grid() == FAIL)
    {
       return CAN_NOT_LOAD;
    }
-   Hclose(id);
    return CAN_LOAD;
 }
 
@@ -239,7 +228,7 @@ bool DiHdfImporter::createRasterPager(RasterElement *pRaster) const
    return true;
 }
 
-DiHdfRasterPager::DiHdfRasterPager() : mHid(FAIL), mGrid(FAIL)
+DiHdfRasterPager::DiHdfRasterPager()
 {
    setName("DiHdfRasterPager");
    setCopyright(IMPORTERS_COPYRIGHT);
@@ -253,37 +242,19 @@ DiHdfRasterPager::DiHdfRasterPager() : mHid(FAIL), mGrid(FAIL)
 
 DiHdfRasterPager::~DiHdfRasterPager()
 {
-   if (mGrid != FAIL)
-   {
-      GRend(mGrid);
-   }
-   if (mHid != FAIL)
-   {
-      Hclose(mHid);
-   }
 }
 
 bool DiHdfRasterPager::openFile(const std::string &filename)
 {
-   mHid = Hopen(filename.c_str(), DFACC_READ, 0);
-   if (mHid == FAIL)
-   {
-      return false;
-   }
-   mGrid = GRstart(mHid);
-   if (mGrid == FAIL)
-   {
-      return false;
-   }
-   return true;
+   mHdf.open(filename);
+   return mHdf.grid() != FAIL;
 }
 
 CachedPage::UnitPtr DiHdfRasterPager::fetchUnit(DataRequest *pOriginalRequest)
 {
    VERIFYRV(pOriginalRequest != NULL, CachedPage::UnitPtr());
    unsigned int frame = pOriginalRequest->getStartBand().getOnDiskNumber();
-   int32 riid = GRselect(mGrid, frame);
-   if (riid == FAIL)
+   if (mHdf.toFrame(frame) == FAIL)
    {
       return CachedPage::UnitPtr();
    }
@@ -294,13 +265,11 @@ CachedPage::UnitPtr DiHdfRasterPager::fetchUnit(DataRequest *pOriginalRequest)
    int32 pStart[] = {pDesc->getActiveColumn(0).getOnDiskNumber(), pOriginalRequest->getStartRow().getOnDiskNumber()};
    int32 pCount[] = {pDesc->getColumnCount(), pOriginalRequest->getConcurrentRows()};
    int32 pStride[] = {1, 1};
-   if (GRreadimage(riid, pStart, pStride, pCount, pBuffer) == FAIL)
+   if (GRreadimage(mHdf.riid(), pStart, pStride, pCount, pBuffer) == FAIL)
    {
-      GRendaccess(riid);
       delete pBuffer;
       return CachedPage::UnitPtr();
    }
-   GRendaccess(riid);
    return CachedPage::UnitPtr(new CachedPage::CacheUnit(
       pBuffer, pOriginalRequest->getStartRow(), pOriginalRequest->getConcurrentRows(),
       bufsize, pOriginalRequest->getStartBand()));

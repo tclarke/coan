@@ -97,7 +97,7 @@ class Builder:
                 print "Creating Importers.dep file..."
             extension_dep = open(extension_dep_file, "w")
             extension_dep.write("!depV1 { deployment: { "\
-                "AppHomePath: $E(OPTICKS_CODE_DIR)/Release, "\
+                "AppHomePath: $E(OPTICKS_HOME), "\
                 "UserConfigPath: ../../ApplicationUserSettings, "\
                 "PlugInPath: ../PlugIns } } ")
             extension_dep.close()
