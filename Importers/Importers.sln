@@ -14,6 +14,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Fits", "Fits\Fits.vcproj", 
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Las", "Las\Las.vcproj", "{2C2BA439-DAD6-43ED-BAD4-ED0A52835EE5}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DI_HDF", "DI_HDF\DI_HDF.vcproj", "{D069B27C-3F2D-4BC0-8738-6C1AE3C7DEC3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -50,6 +52,12 @@ Global
 		{2C2BA439-DAD6-43ED-BAD4-ED0A52835EE5}.Release|Win32.Build.0 = Release|Win32
 		{2C2BA439-DAD6-43ED-BAD4-ED0A52835EE5}.Release|x64.ActiveCfg = Release|x64
 		{2C2BA439-DAD6-43ED-BAD4-ED0A52835EE5}.Release|x64.Build.0 = Release|x64
+		{D069B27C-3F2D-4BC0-8738-6C1AE3C7DEC3}.Debug|Win32.ActiveCfg = Debug|Win32
+		{D069B27C-3F2D-4BC0-8738-6C1AE3C7DEC3}.Debug|Win32.Build.0 = Debug|Win32
+		{D069B27C-3F2D-4BC0-8738-6C1AE3C7DEC3}.Debug|x64.ActiveCfg = Debug|Win32
+		{D069B27C-3F2D-4BC0-8738-6C1AE3C7DEC3}.Release|Win32.ActiveCfg = Release|Win32
+		{D069B27C-3F2D-4BC0-8738-6C1AE3C7DEC3}.Release|Win32.Build.0 = Release|Win32
+		{D069B27C-3F2D-4BC0-8738-6C1AE3C7DEC3}.Release|x64.ActiveCfg = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
