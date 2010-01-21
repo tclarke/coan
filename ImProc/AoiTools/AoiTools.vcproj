@@ -1,0 +1,38 @@
+<VisualStudioProject Name="AoiTools" ProjectGUID="{235E5BD9-0779-4223-BE42-1FA8087E91B8}" ProjectType="Visual C++" RootNamespace="AoiTools" Version="8.00">
+	<Platforms>
+		<Platform Name="Win32" />
+		<Platform Name="x64" />
+	</Platforms>
+	<ToolFiles>
+	</ToolFiles>
+	<Configurations>
+		<Configuration ATLMinimizesCRunTimeLibraryUsage="false" CharacterSet="2" ConfigurationType="2" InheritedPropertySheets="$(OPTICKS_CODE_DIR)\application\CompileSettings\32bitSettings.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\PlugInCommonSettings.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\Qt-Release.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\AllCommonSettings-Release-32bit.vsprops;..\CompileSettings\GeointMacros.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\boost.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\Xerces-Release.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\pthreads.vsprops" Name="Release|Win32" UseOfMFC="0">
+			<Tool Culture="1033" Name="VCResourceCompilerTool" PreprocessorDefinitions="NDEBUG" />
+			<Tool AdditionalLibraryDirectories="" GenerateDebugInformation="true" GenerateMapFile="true" IgnoreDefaultLibraryNames="" MapExports="true" MapFileName="$(OutDir)\$(TargetName).map" Name="VCLinkerTool" ProgramDatabaseFile="$(OutDir)\$(ProjectName).pdb" Version="" />
+		</Configuration>
+		<Configuration ATLMinimizesCRunTimeLibraryUsage="false" CharacterSet="2" ConfigurationType="2" InheritedPropertySheets="$(OPTICKS_CODE_DIR)\application\CompileSettings\PlugInCommonSettings.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\Qt-Release.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\AllCommonSettings-Release-64bit.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\64bitSettings.vsprops;..\CompileSettings\GeointMacros.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\boost.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\Xerces-Release.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\pthreads.vsprops" Name="Release|x64" UseOfMFC="0">
+			<Tool Culture="1033" Name="VCResourceCompilerTool" PreprocessorDefinitions="NDEBUG" />
+			<Tool AdditionalLibraryDirectories="" GenerateDebugInformation="true" GenerateMapFile="true" IgnoreDefaultLibraryNames="" MapExports="true" MapFileName="$(OutDir)\$(TargetName).map" Name="VCLinkerTool" ProgramDatabaseFile="$(OutDir)\$(ProjectName).pdb" Version="" />
+		</Configuration>
+		<Configuration ATLMinimizesCRunTimeLibraryUsage="false" CharacterSet="2" ConfigurationType="2" InheritedPropertySheets="$(OPTICKS_CODE_DIR)\application\CompileSettings\32bitSettings.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\PlugInCommonSettings.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\Qt-Debug.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\AllCommonSettings-Debug-32bit.vsprops;..\CompileSettings\GeointMacros.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\boost.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\Xerces-Debug.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\pthreads.vsprops" Name="Debug|Win32" UseOfMFC="0">
+			<Tool Culture="1033" Name="VCResourceCompilerTool" PreprocessorDefinitions="_DEBUG" />
+		</Configuration>
+		<Configuration ATLMinimizesCRunTimeLibraryUsage="false" CharacterSet="2" ConfigurationType="2" InheritedPropertySheets="$(OPTICKS_CODE_DIR)\application\CompileSettings\PlugInCommonSettings.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\Qt-Debug.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\AllCommonSettings-Debug-64bit.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\64bitSettings.vsprops;..\CompileSettings\GeointMacros.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\boost.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\Xerces-Debug.vsprops;$(OPTICKS_CODE_DIR)\application\CompileSettings\pthreads.vsprops" Name="Debug|x64" UseOfMFC="0">
+			<Tool Culture="1033" Name="VCResourceCompilerTool" PreprocessorDefinitions="_DEBUG" />
+		</Configuration>
+	</Configurations>
+	<References>
+	</References>
+	<Files>
+		<Filter Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat" Name="Source Files">
+			<File RelativePath=".\ModuleManager.cpp">
+			</File>
+		<File RelativePath="AoiLogical.cpp" /><File RelativePath="FlattenAoi.cpp" /></Filter>
+		<Filter Filter="h;hpp;hxx;hm;inl" Name="Header Files">
+			<File RelativePath=".\AoiToolsFactory.h">
+			</File>
+		<File RelativePath="AoiLogical.h" /><File RelativePath="FlattenAoi.h" /></Filter>
+	</Files>
+	<Globals>
+	</Globals>
+</VisualStudioProject>
