@@ -278,11 +278,35 @@
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 			>
 			<File
+				RelativePath=".\imgfeatures.c"
+				>
+			</File>
+			<File
+				RelativePath=".\kdtree.c"
+				>
+			</File>
+			<File
+				RelativePath=".\minpq.c"
+				>
+			</File>
+			<File
 				RelativePath=".\ModuleManager.cpp"
 				>
 			</File>
 			<File
 				RelativePath=".\OpticalFlow.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\sift.c"
+				>
+			</File>
+			<File
+				RelativePath=".\utils.c"
+				>
+			</File>
+			<File
+				RelativePath=".\xform.c"
 				>
 			</File>
 		</Filter>
@@ -291,7 +315,31 @@
 			Filter="h;hpp;hxx;hm;inl"
 			>
 			<File
+				RelativePath=".\imgfeatures.h"
+				>
+			</File>
+			<File
+				RelativePath=".\kdtree.h"
+				>
+			</File>
+			<File
+				RelativePath=".\minpq.h"
+				>
+			</File>
+			<File
 				RelativePath=".\OpticalFlow.h"
+				>
+			</File>
+			<File
+				RelativePath=".\sift.h"
+				>
+			</File>
+			<File
+				RelativePath=".\utils.h"
+				>
+			</File>
+			<File
+				RelativePath=".\xform.h"
 				>
 			</File>
 		</Filter>

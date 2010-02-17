@@ -17,10 +17,32 @@
 #include "RasterLayer.h"
 #include "RasterUtilities.h"
 #include "SpatialDataView.h"
+#include "StringUtilities.h"
 #include <opencv/cv.h>
 #include <opencv/highgui.h>
+#include "sift.h"
+#include "imgfeatures.h"
+#include "kdtree.h"
+#include "xform.h"
+#include <stdarg.h>
 
 REGISTER_PLUGIN_BASIC(Thesis, OpticalFlow);
+
+Progress* pProgress(NULL);
+
+extern "C" void fatal_error(char* format, ...)
+{
+   if (pProgress == NULL)
+   {
+      return;
+   }
+   va_list ap;
+   char err[256];
+   va_start(ap, format);
+   vsnprintf(err, 255, format, ap);
+   va_end(ap);
+   pProgress->updateProgress(std::string(err), 0, ERRORS);
+}
 
 OpticalFlow::OpticalFlow()
 {
@@ -102,47 +124,62 @@ bool OpticalFlow::execute(PlugInArgList* pInArgList, PlugInArgList* pOutArgList)
       pBaseFrame->imageData = reinterpret_cast<char*>(baseAcc->getColumn());
       pCurrentFrame->imageData = reinterpret_cast<char*>(currentAcc->getColumn());
 
-      IplImage* pEig = cvCreateImage(sz, IPL_DEPTH_32F, 1);
-      IplImage* pTemp = cvCreateImage(sz, IPL_DEPTH_32F, 1);
+      progress.report("Locating SIFT features in base frame.", 20, NORMAL);
+      struct feature* pBaseFeatures(NULL);
+      int numBaseFeatures = sift_features(pBaseFrame, &pBaseFeatures);
+      progress.report("Locating SIFT features in current frame.", 40, NORMAL);
+      struct feature* pCurrentFeatures(NULL);
+      int numCurrentFeatures = sift_features(pCurrentFrame, &pCurrentFeatures);
 
-      int numBaseCorners(10);
-      int numCurrentCorners(10);
-      CvPoint2D32f* pBaseCorners(new CvPoint2D32f[numBaseCorners]);
-      CvPoint2D32f* pCurrentCorners(new CvPoint2D32f[numCurrentCorners]);
-      progress.report("Calculating features in base frame.", 10, NORMAL);
-      cvGoodFeaturesToTrack(pBaseFrame, pEig, pTemp, pBaseCorners, &numBaseCorners, 0.8, 100.0);
-      progress.report("Calculating features in current frame.", 60, NORMAL);
-      cvGoodFeaturesToTrack(pCurrentFrame, pEig, pTemp, pCurrentCorners, &numCurrentCorners, 0.8, 100.0);
+      progress.report("Building kD tree.", 60, NORMAL);
+      struct kd_node* pKdRoot = kdtree_build(pCurrentFeatures, numCurrentFeatures);
 
-      progress.report("Adding features.", 90, NORMAL);
-      { // scope
-         ModelResource<AnnotationElement> pBaseAnno("Base Corners", pElement);
-         GraphicGroup* pBaseGroup = pBaseAnno->getGroup();
-         ModelResource<AnnotationElement> pCurrentAnno("Current Corners", pElement);
-         GraphicGroup* pCurrentGroup = pCurrentAnno->getGroup();
-         GraphicObject* pBasePoints = pBaseGroup->addObject(MULTIPOINT_OBJECT);
-         GraphicObject* pCurrentPoints = pCurrentGroup->addObject(MULTIPOINT_OBJECT);
-         std::vector<LocationType> basePoints;
-         basePoints.reserve(numBaseCorners);
-         for (int idx = 0; idx < numBaseCorners; ++idx)
+      /*ModelResource<AnnotationElement> pAnno("Matches", pElement);
+      GraphicGroup* pGrp = pAnno->getGroup();*/
+      int m = 0;
+      for (int idx = 0; idx < numBaseFeatures; ++idx)
+      {
+         if (idx % 20 == 0) progress.report("Matching features.", 80 * idx / numBaseFeatures, NORMAL);
+         struct feature** pNbrs = NULL;
+         int k = kdtree_bbf_knn(pKdRoot, &(pBaseFeatures[idx]), 2, &pNbrs, 200);
+         if (k == 2)
          {
-            basePoints.push_back(LocationType(pBaseCorners[idx].x, pBaseCorners[idx].y));
+            double dist0 = descr_dist_sq(&(pBaseFeatures[idx]), pNbrs[0]);
+            double dist1 = descr_dist_sq(&(pBaseFeatures[idx]), pNbrs[1]);
+            if (dist0 < dist1 * 0.49)
+            {
+               /*LocationType pt1(pBaseFeatures[idx].x, pBaseFeatures[idx].y);
+               LocationType pt2(pNbrs[0]->x, pNbrs[0]->y);
+               GraphicObject* pLine = pGrp->addObject(LINE_OBJECT);
+               pLine->setBoundingBox(pt1, pt2);*/
+               pBaseFeatures[idx].fwd_match = pNbrs[0];
+               m++;
+            }
          }
-         pBasePoints->addVertices(basePoints);
-         std::vector<LocationType> currentPoints;
-         currentPoints.reserve(numCurrentCorners);
-         for (int idx = 0; idx < numCurrentCorners; ++idx)
-         {
-            currentPoints.push_back(LocationType(pCurrentCorners[idx].x, pCurrentCorners[idx].y));
-         }
-         pCurrentPoints->addVertices(currentPoints);
-         pView->createLayer(ANNOTATION, pBaseAnno.release());
-         pView->createLayer(ANNOTATION, pCurrentAnno.release());
+         free(pNbrs);
       }
-      delete pBaseCorners;
-      delete pCurrentCorners;
-      cvReleaseImage(&pEig);
-      cvReleaseImage(&pTemp);
+      progress.report("Found " + StringUtilities::toDisplayString(m) + " matches.", 80, WARNING);
+      //pView->createLayer(ANNOTATION, pAnno.release());
+
+      CvMat* pXform = ransac_xform(pBaseFeatures, numBaseFeatures, FEATURE_FWD_MATCH,
+                                   lsq_homog, 6, 0.1, homog_xfer_err, 10.0, NULL, NULL);
+      if (pXform != NULL)
+      {
+         IplImage* pXformed = cvCreateImage(cvGetSize(pCurrentFrame), IPL_DEPTH_8U, 1);
+         cvWarpPerspective(pBaseFrame, pXformed, pXform, CV_INTER_LINEAR | CV_WARP_FILL_OUTLIERS, cvScalarAll(0));
+         CvSize sz = cvGetSize(pXformed);
+         ModelResource<RasterElement> pOut(RasterUtilities::createRasterElement("Transformed", sz.height, sz.width, INT1UBYTE, true, pElement));
+         memcpy(pOut->getRawData(), pXformed->imageData, pXformed->imageSize);
+         pView->createLayer(RASTER, pOut.release());
+         cvReleaseImage(&pXformed);
+         cvReleaseMat(&pXform);
+      }
+      else
+      {
+         progress.report("Unable to transform data.", 0, WARNING, true);
+      }
+      free(pCurrentFeatures);
+      free(pBaseFeatures);
       pBaseFrame->imageData = pCurrentFrame->imageData = NULL;
       cvReleaseImage(&pBaseFrame);
       cvReleaseImage(&pCurrentFrame);
