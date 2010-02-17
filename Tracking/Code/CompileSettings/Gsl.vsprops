@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="Windows-1252"?>
+<VisualStudioPropertySheet
+	ProjectType="Visual C++"
+	Version="8.00"
+	Name="Gsl"
+	>
+	<Tool
+		Name="VCCLCompilerTool"
+		AdditionalIncludeDirectories="&quot;$(GSL_DIR)\include&quot;"
+	/>
+	<Tool
+		Name="VCLinkerTool"
+		AdditionalDependencies="libgsl.lib libgslcblas.lib"
+		AdditionalLibraryDirectories="&quot;$(GSL_DIR)\lib\$(PlatformName)&quot;"
+	/>
+</VisualStudioPropertySheet>
