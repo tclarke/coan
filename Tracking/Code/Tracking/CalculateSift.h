@@ -7,16 +7,16 @@
  * http://www.gnu.org/licenses/lgpl.html
  */
 
-#ifndef OPTICALFLOW_H__
-#define OPTICALFLOW_H__
+#ifndef CALCULATESIFT_H__
+#define CALCULATESIFT_H__
 
 #include "ExecutableShell.h"
 
-class OpticalFlow : public ExecutableShell
+class CalculateSift : public ExecutableShell
 {
 public:
-   OpticalFlow();
-   virtual ~OpticalFlow();
+   CalculateSift();
+   virtual ~CalculateSift();
    virtual bool getInputSpecification(PlugInArgList*& pArgList);
    virtual bool getOutputSpecification(PlugInArgList*& pArgList);
    virtual bool execute(PlugInArgList* pInArgList, PlugInArgList* pOutArgList);

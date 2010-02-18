@@ -278,6 +278,10 @@
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 			>
 			<File
+				RelativePath=".\CalculateSift.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\imgfeatures.c"
 				>
 			</File>
@@ -314,6 +318,10 @@
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl"
 			>
+			<File
+				RelativePath=".\CalculateSift.h"
+				>
+			</File>
 			<File
 				RelativePath=".\imgfeatures.h"
 				>
