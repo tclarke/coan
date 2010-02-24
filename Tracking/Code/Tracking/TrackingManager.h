@@ -12,6 +12,7 @@
 
 #include "Animation.h"
 #include "AttachmentPtr.h"
+#include "ConfigurationSettings.h"
 #include "ExecutableShell.h"
 #include "RasterLayer.h"
 #include <boost/any.hpp>
@@ -19,6 +20,8 @@
 class TrackingManager : public ExecutableShell
 {
 public:
+   SETTING(InitialSubcubeSize, TrackingManager, unsigned int, 0);
+
    static const char* spPlugInName;
 
    TrackingManager();
@@ -34,8 +37,11 @@ protected:
    void processFrame(Subject& subject, const std::string& signal, const boost::any& val);
 
 private:
+   void initializeFrame0();
+
    AttachmentPtr<RasterLayer> mpLayer;
    AttachmentPtr<Animation> mpAnimation;
+   const RasterDataDescriptor* mpDesc;
 };
 
 #endif

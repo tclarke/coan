@@ -12,7 +12,11 @@
 
 #include "AppConfig.h"
 #include "LocationType.h"
+#include <boost/cstdint.hpp>
+using boost::uint8_t;
 
+namespace TrackingUtils
+{
 typedef uint32_t subcubeid_t;
 
 /**
@@ -143,6 +147,7 @@ uint8_t calculateNeededLevels(uint32_t maxSubcubeSize, Opticks::PixelLocation ma
       maxBb.mY /= 2;
    }
    return 0xff; // Invalid return
+}
 }
 
 #endif

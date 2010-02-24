@@ -115,6 +115,14 @@
 				>
 			</File>
 		</Filter>
+		<Filter
+			Name="DefaultSettings"
+			>
+			<File
+				RelativePath="..\Release\DefaultSettings\120-Tracking.cfg"
+				>
+			</File>
+		</Filter>
 	</Files>
 	<Globals>
 	</Globals>
