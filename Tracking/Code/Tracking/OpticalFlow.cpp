@@ -8,28 +8,12 @@
  */
 
 #include "AppVerify.h"
-#include "DataAccessor.h"
-#include "DataAccessorImpl.h"
-#include "DataRequest.h"
+#include "DesktopServices.h"
+#include "MenuBar.h"
 #include "OpticalFlow.h"
-#include "PlugInArgList.h"
-#include "PlugInManagerServices.h"
+#include "OpticalFlowWidget.h"
 #include "PlugInRegistration.h"
-#include "ProgressTracker.h"
-#include "RasterElement.h"
-#include "RasterDataDescriptor.h"
-#include "RasterLayer.h"
-#include "RasterUtilities.h"
-#include "SpatialDataView.h"
-#include "StringUtilities.h"
-
-#include "imgfeatures.h"
-#include "kdtree.h"
-#include "sift.h"
-#include "xform.h"
-
-#include <opencv/cv.h>
-#include <stdarg.h>
+#include "ToolBar.h"
 
 REGISTER_PLUGIN_BASIC(Tracking, OpticalFlow);
 
@@ -38,8 +22,6 @@ OpticalFlow::OpticalFlow()
    setName("OpticalFlow");
    setDescription("Calculate optical flow field.");
    setDescriptorId("{38c907e0-1a57-11df-8a39-0800200c9a66}");
-   setMenuLocation("[Tracking]/Optical Flow");
-   setType("Algorithm");
    setSubtype("Video");
 }
 
@@ -47,19 +29,25 @@ OpticalFlow::~OpticalFlow()
 {
 }
 
-bool OpticalFlow::getInputSpecification(PlugInArgList*& pArgList)
+QAction* OpticalFlow::createAction()
 {
-   pArgList = NULL;
-   return true;
+   // Add a menu command to invoke the window
+   MenuBar* pMenuBar = Service<DesktopServices>()->getMainMenuBar();
+   VERIFYRV(pMenuBar, NULL);
+   QAction* pAction = pMenuBar->addCommand("&View/&Optical Flow");
+
+   ToolBar* pToolBar = static_cast<ToolBar*>(Service<DesktopServices>()->getWindow("Tracking", TOOLBAR));
+   if (pToolBar == NULL)
+   {
+      pToolBar = static_cast<ToolBar*>(Service<DesktopServices>()->createWindow("Tracking", TOOLBAR));
+   }
+   VERIFYRV(pToolBar, NULL);
+   pToolBar->addButton(pAction);
+
+   return pAction;
 }
 
-bool OpticalFlow::getOutputSpecification(PlugInArgList*& pArgList)
+QWidget* OpticalFlow::createWidget()
 {
-   pArgList = NULL;
-   return true;
-}
-
-bool OpticalFlow::execute(PlugInArgList* pInArgList, PlugInArgList* pOutArgList)
-{
-   return true;
+   return new OpticalFlowWidget();
 }

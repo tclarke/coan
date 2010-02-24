@@ -1,0 +1,10 @@
+NOTE: Much of the code in this extension is licensed under the LGPL v2.1
+as noted in the copyright header for the individual files. The extension overall
+is licensed under the GPL v3 due to use of some GPL files. These files are
+marked as copyright Rob Hess which he has licensed under the GPL v2 (see the zip
+archive of the source for more information). I've decided to upgrade the
+license to v3 of the GPL at the same time. If I ever remove the dependence
+on Rob Hess' code, the overall license will likely revert to the LGPL v2.1.
+
+If you have further questions, please contact the dev@opticks.ballforge.net
+mailing list.

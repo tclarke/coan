@@ -10,16 +10,18 @@
 #ifndef OPTICALFLOW_H__
 #define OPTICALFLOW_H__
 
-#include "ExecutableShell.h"
+#include "DockWindowShell.h"
 
-class OpticalFlow : public ExecutableShell
+class OpticalFlow : public DockWindowShell
 {
 public:
    OpticalFlow();
    virtual ~OpticalFlow();
-   virtual bool getInputSpecification(PlugInArgList*& pArgList);
-   virtual bool getOutputSpecification(PlugInArgList*& pArgList);
-   virtual bool execute(PlugInArgList* pInArgList, PlugInArgList* pOutArgList);
+
+protected:
+   virtual QAction* createAction();
+   virtual QWidget* createWidget();
+
 };
 
 #endif
