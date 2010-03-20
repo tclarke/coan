@@ -14,8 +14,15 @@
 #include "AttachmentPtr.h"
 #include "ConfigurationSettings.h"
 #include "ExecutableShell.h"
+#include "RasterData.h"
 #include "RasterLayer.h"
+#include "TrackingUtils.h"
 #include <boost/any.hpp>
+
+class RasterDataDescriptor;
+class RasterElement;
+struct kd_node;
+struct feature;
 
 class TrackingManager : public ExecutableShell
 {
@@ -42,6 +49,13 @@ private:
    AttachmentPtr<RasterLayer> mpLayer;
    AttachmentPtr<Animation> mpAnimation;
    const RasterDataDescriptor* mpDesc;
+   RasterElement* mpElement;
+
+   DataPointerArgs mDpargs;
+   struct kd_node* mpKdRoot;
+   IplImageResource mpBaseFrame;
+   ca_ptr<struct feature> mpBaseFeatures;
+   DataElement* mpTemp;
 };
 
 #endif

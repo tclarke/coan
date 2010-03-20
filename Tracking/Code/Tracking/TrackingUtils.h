@@ -12,8 +12,13 @@
 
 #include "AppConfig.h"
 #include "LocationType.h"
+#include "RasterData.h"
+
+#include <opencv/cv.h>
+#if defined(WIN_API)
 #include <boost/cstdint.hpp>
 using boost::uint8_t;
+#endif
 
 namespace TrackingUtils
 {
@@ -42,36 +47,8 @@ typedef uint32_t subcubeid_t;
  *        The smallest x, y values (inclusive) of the bounding box used for calculations.
  * @return The sub-cube ID.
  */
-subcubeid_t calculateSubcubeId(LocationType location, uint8_t levels, Opticks::PixelLocation maxBb, Opticks::PixelLocation minBb = Opticks::PixelLocation(0, 0))
-{
-   subcubeid_t id(levels);
-   for (uint8_t level = 0; level < levels; ++level)
-   {
-      Opticks::PixelLocation center((maxBb.mX - minBb.mX + 1) / 2.0 + minBb.mX, (maxBb.mY - minBb.mY + 1) / 2.0 + minBb.mY);
-      if (location.mX >= center.mX && location.mY <= center.mY) // quadrant 0
-      {
-         minBb.mX = center.mX;
-         maxBb.mY = center.mY;
-      }
-      else if (location.mX < center.mX && location.mY <= center.mY) // quadrant 1
-      {
-         id |= 1 << (level * 2 + 4);
-         maxBb = center;
-      }
-      else if (location.mX < center.mX && location.mY > center.mY) // quadrant 2
-      {
-         id |= 2 << (level * 2 + 4);
-         maxBb.mX = center.mX;
-         minBb.mY = center.mY;
-      }
-      else // quadrant 3
-      {
-         id |= 3 << (level * 2 + 4);
-         minBb = center;
-      }
-   }
-   return id;
-}
+subcubeid_t calculateSubcubeId(LocationType location, uint8_t levels, Opticks::PixelLocation maxBb,
+                               Opticks::PixelLocation minBb = Opticks::PixelLocation(0, 0));
 
 /**
  * Calculate the extents in the sub-cube for a sub-cube ID.
@@ -91,36 +68,7 @@ subcubeid_t calculateSubcubeId(LocationType location, uint8_t levels, Opticks::P
  * @return True on success, false otherwise. If false, the output parameters are undefined. False usually
  *         indicates an invalid subcubeId
  */
-bool calculateSubcubeBounds(subcubeid_t subcubeId, uint8_t& levels, Opticks::PixelLocation& maxBb, Opticks::PixelLocation& minBb)
-{
-   levels = subcubeId & 0x0f;
-   subcubeId >>= 4;
-   for (uint8_t level = 0; level < levels; ++level)
-   {
-      Opticks::PixelLocation center((maxBb.mX - minBb.mX + 1) / 2.0 + minBb.mX, (maxBb.mY - minBb.mY + 1) / 2.0 + minBb.mY);
-      switch (subcubeId & 0x03) // quadrant number
-      {
-      case 0:
-         minBb.mX = center.mX;
-         maxBb.mY = center.mY;
-         break;
-      case 1:
-         maxBb = center;
-         break;
-      case 2:
-         maxBb.mX = center.mX;
-         minBb.mY = center.mY;
-         break;
-      case 3:
-         minBb = center;
-         break;
-      default:
-         break; // unreachable
-      }
-      subcubeId >>= 2;
-   }
-   return subcubeId == 0;
-}
+bool calculateSubcubeBounds(subcubeid_t subcubeId, uint8_t& levels, Opticks::PixelLocation& maxBb, Opticks::PixelLocation& minBb);
 
 /**
  * Calculate the quadtree level needed to get a sub-cube of at most the specified size.
@@ -133,21 +81,106 @@ bool calculateSubcubeBounds(subcubeid_t subcubeId, uint8_t& levels, Opticks::Pix
  *        The smallest x, y values (inclusive) of the bounding box used for calculations.
  * @return The level needed. If it can't be represented, 0xff will be returned.
  */
-uint8_t calculateNeededLevels(uint32_t maxSubcubeSize, Opticks::PixelLocation maxBb, Opticks::PixelLocation minBb = Opticks::PixelLocation(0, 0))
+uint8_t calculateNeededLevels(uint32_t maxSubcubeSize, Opticks::PixelLocation maxBb, Opticks::PixelLocation minBb = Opticks::PixelLocation(0, 0));
+
+}
+
+/**
+ * C allocation memory resource.
+ *
+ * Functions like an std::auto_ptr but for memory allocated with malloc() and friends.
+ */
+template<typename T>
+class ca_ptr
 {
-   maxBb = (maxBb - minBb) + 1;
-   for (uint8_t level = 0; level <= 12; ++level) // maximum number of levels which can be represented
+public:
+   ca_ptr() : mpData(NULL) {}
+
+   ca_ptr(T* pData) : mpData(pData) {}
+
+   ~ca_ptr()
    {
-      uint32_t curSize = maxBb.mX * maxBb.mY;
-      if (curSize <= maxSubcubeSize)
+      if (mpData != NULL)
       {
-         return level;
+         free(mpData);
       }
-      maxBb.mX /= 2;
-      maxBb.mY /= 2;
    }
-   return 0xff; // Invalid return
-}
-}
+
+   T* get()
+   {
+      return mpData;
+   }
+
+   T* release()
+   {
+      T* pData = mpData;
+      mpData = NULL;
+      return pData;
+   }
+
+   void reset(T* pData)
+   {
+      if (mpData != NULL)
+      {
+         free(mpData);
+      }
+      mpData = pData;
+   }
+
+   operator T*()
+   {
+      return get();
+   }
+
+   T** operator&()
+   {
+      return &mpData;
+   }
+
+private:
+   T* mpData;
+};
+
+/**
+ * Resource to manage an OpenCV IplImage.
+ *
+ * Can wrap existing memory (shared) or alloc its own memory.
+ */
+class IplImageResource
+{
+public:
+   IplImageResource();
+   IplImageResource(IplImage* pImage);
+   IplImageResource(IplImageResource& other);
+   IplImageResource(int width, int height, int depth, int channels);
+   IplImageResource(int width, int height, int depth, int channels, char* pData);
+   ~IplImageResource();
+   bool isShallow();
+   void reset(IplImage* pImage);
+   IplImage* get();
+   IplImage* release();
+   IplImage* take();
+   operator IplImage*();
+   IplImage& operator*();
+   IplImageResource& operator=(IplImageResource& other);
+
+private:
+   IplImage* mpImage;
+   bool mShallow;
+};
+
+class dataptr
+{
+public:
+   dataptr(DataElement* pElement, DataPointerArgs args);
+   ~dataptr();
+   operator void*();
+   operator char*();
+   void* get();
+
+private:
+   void* mpData;
+   bool mOwns;
+};
 
 #endif

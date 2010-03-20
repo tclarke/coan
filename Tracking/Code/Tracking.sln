@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 9.00
 # Visual Studio 2005
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TrackingMgr", "TrackingMgr.vcproj", "{766A5DE0-1BE4-11DF-8A39-0800200C9A66}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Tracking", "Tracking\Thesis.vcproj", "{0E4F3050-1A54-11DF-8A39-0800200C9A66}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Tracking", "Tracking\Tracking.vcproj", "{0E4F3050-1A54-11DF-8A39-0800200C9A66}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
