@@ -1,756 +1,123 @@
-<html xmlns:v="urn:schemas-microsoft-com:vml"
-xmlns:o="urn:schemas-microsoft-com:office:office"
-xmlns:w="urn:schemas-microsoft-com:office:word"
-xmlns:st1="urn:schemas-microsoft-com:office:smarttags"
-xmlns="http://www.w3.org/TR/REC-html40">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+    <head>
+        <title>Opticks Extension Development : Opticks Open Source Programming Contest</title>
+	    <link rel="stylesheet" href="styles/all.css" type="text/css" />
+        <META http-equiv="Content-Type" content="text/html; charset=UTF-8">	    
+    </head>
 
-<head>
-<meta http-equiv=Content-Type content="text/html; charset=utf-8">
-<meta name=ProgId content=Word.Document>
-<meta name=Generator content="Microsoft Word 11">
-<meta name=Originator content="Microsoft Word 11">
-<link rel=File-List
-href="Opticks%20Open%20Source%20Programming%20Contest_files/filelist.xml">
-<link rel=Edit-Time-Data
-href="Opticks%20Open%20Source%20Programming%20Contest_files/editdata.mso">
-<!--[if !mso]>
-<style>
-v\:* {behavior:url(#default#VML);}
-o\:* {behavior:url(#default#VML);}
-w\:* {behavior:url(#default#VML);}
-.shape {behavior:url(#default#VML);}
-</style>
-<![endif]-->
-<title>Opticks Extension Development : Opticks Open Source Programming Contest</title>
-<o:SmartTagType namespaceuri="urn:schemas-microsoft-com:office:smarttags"
- name="place"/>
-<!--[if gte mso 9]><xml>
- <o:DocumentProperties>
-  <o:Author>tclarke</o:Author>
-  <o:LastAuthor>tclarke</o:LastAuthor>
-  <o:Revision>2</o:Revision>
-  <o:TotalTime>0</o:TotalTime>
-  <o:Created>2009-10-21T16:46:00Z</o:Created>
-  <o:LastSaved>2009-10-21T16:46:00Z</o:LastSaved>
-  <o:Pages>1</o:Pages>
-  <o:Words>1285</o:Words>
-  <o:Characters>7329</o:Characters>
-  <o:Company>Ball Aerospace</o:Company>
-  <o:Lines>61</o:Lines>
-  <o:Paragraphs>17</o:Paragraphs>
-  <o:CharactersWithSpaces>8597</o:CharactersWithSpaces>
-  <o:Version>11.9999</o:Version>
- </o:DocumentProperties>
-</xml><![endif]--><!--[if gte mso 9]><xml>
- <w:WordDocument>
-  <w:SpellingState>Clean</w:SpellingState>
-  <w:GrammarState>Clean</w:GrammarState>
-  <w:ValidateAgainstSchemas/>
-  <w:SaveIfXMLInvalid>false</w:SaveIfXMLInvalid>
-  <w:IgnoreMixedContent>false</w:IgnoreMixedContent>
-  <w:AlwaysShowPlaceholderText>false</w:AlwaysShowPlaceholderText>
-  <w:BrowserLevel>MicrosoftInternetExplorer4</w:BrowserLevel>
- </w:WordDocument>
-</xml><![endif]--><!--[if gte mso 9]><xml>
- <w:LatentStyles DefLockedState="false" LatentStyleCount="156">
- </w:LatentStyles>
-</xml><![endif]--><!--[if !mso]><object
- classid="clsid:38481807-CA0E-42D2-BF39-B33AF135CC4D" id=ieooui></object>
-<style>
-st1\:*{behavior:url(#ieooui) }
-</style>
-<![endif]-->
-<link rel=Stylesheet type="text/css" media=all href="styles/site.css">
-<style>
-<!--
- /* Font Definitions */
- @font-face
-	{font-family:Wingdings;
-	panose-1:5 0 0 0 0 0 0 0 0 0;
-	mso-font-charset:2;
-	mso-generic-font-family:auto;
-	mso-font-pitch:variable;
-	mso-font-signature:0 268435456 0 0 -2147483648 0;}
- /* Style Definitions */
- p.MsoNormal, li.MsoNormal, div.MsoNormal
-	{mso-style-parent:"";
-	margin:0in;
-	margin-bottom:.0001pt;
-	mso-pagination:widow-orphan;
-	font-size:12.0pt;
-	font-family:"Times New Roman";
-	mso-fareast-font-family:"Times New Roman";}
-h1
-	{mso-margin-top-alt:auto;
-	margin-right:0in;
-	mso-margin-bottom-alt:auto;
-	margin-left:0in;
-	mso-pagination:widow-orphan;
-	mso-outline-level:1;
-	font-size:24.0pt;
-	font-family:"Times New Roman";
-	font-weight:bold;}
-h2
-	{mso-margin-top-alt:auto;
-	margin-right:0in;
-	mso-margin-bottom-alt:auto;
-	margin-left:0in;
-	mso-pagination:widow-orphan;
-	mso-outline-level:2;
-	font-size:18.0pt;
-	font-family:"Times New Roman";
-	font-weight:bold;}
-h3
-	{mso-margin-top-alt:auto;
-	margin-right:0in;
-	mso-margin-bottom-alt:auto;
-	margin-left:0in;
-	mso-pagination:widow-orphan;
-	mso-outline-level:3;
-	font-size:13.5pt;
-	font-family:"Times New Roman";
-	font-weight:bold;}
-h5
-	{mso-margin-top-alt:auto;
-	margin-right:0in;
-	mso-margin-bottom-alt:auto;
-	margin-left:0in;
-	mso-pagination:widow-orphan;
-	mso-outline-level:5;
-	font-size:10.0pt;
-	font-family:"Times New Roman";
-	font-weight:bold;}
-p
-	{font-size:12.0pt;
-	font-family:"Times New Roman";
-	mso-fareast-font-family:"Times New Roman";}
-tt
-	{font-family:"Courier New";
-	mso-ascii-font-family:"Courier New";
-	mso-fareast-font-family:"Times New Roman";
-	mso-hansi-font-family:"Courier New";
-	mso-bidi-font-family:"Courier New";}
-p.pagetitle, li.pagetitle, div.pagetitle
-	{mso-style-name:pagetitle;
-	font-size:12.0pt;
-	font-family:"Times New Roman";
-	mso-fareast-font-family:"Times New Roman";}
-p.steptitle, li.steptitle, div.steptitle
-	{mso-style-name:steptitle;
-	font-size:12.0pt;
-	font-family:"Times New Roman";
-	mso-fareast-font-family:"Times New Roman";}
-p.substeptitle, li.substeptitle, div.substeptitle
-	{mso-style-name:substeptitle;
-	font-size:12.0pt;
-	font-family:"Times New Roman";
-	mso-fareast-font-family:"Times New Roman";}
-p.formtitle, li.formtitle, div.formtitle
-	{mso-style-name:formtitle;
-	font-size:12.0pt;
-	font-family:"Times New Roman";
-	mso-fareast-font-family:"Times New Roman";}
-p.label, li.label, div.label
-	{mso-style-name:label;
-	font-size:12.0pt;
-	font-family:"Times New Roman";
-	mso-fareast-font-family:"Times New Roman";}
-p.form-element-large, li.form-element-large, div.form-element-large
-	{mso-style-name:form-element-large;
-	font-size:12.0pt;
-	font-family:"Times New Roman";
-	mso-fareast-font-family:"Times New Roman";}
-p.form-element-small, li.form-element-small, div.form-element-small
-	{mso-style-name:form-element-small;
-	font-size:12.0pt;
-	font-family:"Times New Roman";
-	mso-fareast-font-family:"Times New Roman";}
-p.wiki-content-preview, li.wiki-content-preview, div.wiki-content-preview
-	{mso-style-name:wiki-content-preview;
-	font-size:12.0pt;
-	font-family:"Times New Roman";
-	mso-fareast-font-family:"Times New Roman";}
-p.pagesectionheader, li.pagesectionheader, div.pagesectionheader
-	{mso-style-name:pagesectionheader;
-	font-size:12.0pt;
-	font-family:"Times New Roman";
-	mso-fareast-font-family:"Times New Roman";}
-p.panel, li.panel, div.panel
-	{mso-style-name:panel;
-	font-size:12.0pt;
-	font-family:"Times New Roman";
-	mso-fareast-font-family:"Times New Roman";}
-p.panelheader, li.panelheader, div.panelheader
-	{mso-style-name:panelheader;
-	font-size:12.0pt;
-	font-family:"Times New Roman";
-	mso-fareast-font-family:"Times New Roman";}
-p.menuheading, li.menuheading, div.menuheading
-	{mso-style-name:menuheading;
-	font-size:12.0pt;
-	font-family:"Times New Roman";
-	mso-fareast-font-family:"Times New Roman";}
-p.pageheader, li.pageheader, div.pageheader
-	{mso-style-name:pageheader;
-	font-size:12.0pt;
-	font-family:"Times New Roman";
-	mso-fareast-font-family:"Times New Roman";}
-p.sectionbottom, li.sectionbottom, div.sectionbottom
-	{mso-style-name:sectionbottom;
-	font-size:12.0pt;
-	font-family:"Times New Roman";
-	mso-fareast-font-family:"Times New Roman";}
-p.toprow, li.toprow, div.toprow
-	{mso-style-name:toprow;
-	font-size:12.0pt;
-	font-family:"Times New Roman";
-	mso-fareast-font-family:"Times New Roman";}
-p.tabletitle, li.tabletitle, div.tabletitle
-	{mso-style-name:tabletitle;
-	font-size:12.0pt;
-	font-family:"Times New Roman";
-	mso-fareast-font-family:"Times New Roman";}
-p.spacenametitle-printable, li.spacenametitle-printable, div.spacenametitle-printable
-	{mso-style-name:spacenametitle-printable;
-	font-size:12.0pt;
-	font-family:"Times New Roman";
-	mso-fareast-font-family:"Times New Roman";}
-p.navitem, li.navitem, div.navitem
-	{mso-style-name:navitem;
-	font-size:12.0pt;
-	font-family:"Times New Roman";
-	mso-fareast-font-family:"Times New Roman";}
-p.navbackgroundbox, li.navbackgroundbox, div.navbackgroundbox
-	{mso-style-name:navbackgroundbox;
-	font-size:12.0pt;
-	font-family:"Times New Roman";
-	mso-fareast-font-family:"Times New Roman";}
-p.previewboxtop, li.previewboxtop, div.previewboxtop
-	{mso-style-name:previewboxtop;
-	font-size:12.0pt;
-	font-family:"Times New Roman";
-	mso-fareast-font-family:"Times New Roman";}
-p.previewcontent, li.previewcontent, div.previewcontent
-	{mso-style-name:previewcontent;
-	font-size:12.0pt;
-	font-family:"Times New Roman";
-	mso-fareast-font-family:"Times New Roman";}
-p.previewboxbottom, li.previewboxbottom, div.previewboxbottom
-	{mso-style-name:previewboxbottom;
-	font-size:12.0pt;
-	font-family:"Times New Roman";
-	mso-fareast-font-family:"Times New Roman";}
-p.functionbox, li.functionbox, div.functionbox
-	{mso-style-name:functionbox;
-	font-size:12.0pt;
-	font-family:"Times New Roman";
-	mso-fareast-font-family:"Times New Roman";}
-p.smalltext-blue, li.smalltext-blue, div.smalltext-blue
-	{mso-style-name:smalltext-blue;
-	font-size:12.0pt;
-	font-family:"Times New Roman";
-	mso-fareast-font-family:"Times New Roman";}
-p.tabnav, li.tabnav, div.tabnav
-	{mso-style-name:tabnav;
-	font-size:12.0pt;
-	font-family:"Times New Roman";
-	mso-fareast-font-family:"Times New Roman";}
-p.foldertab-box, li.foldertab-box, div.foldertab-box
-	{mso-style-name:foldertab-box;
-	font-size:12.0pt;
-	font-family:"Times New Roman";
-	mso-fareast-font-family:"Times New Roman";}
-p.searchgroupheading, li.searchgroupheading, div.searchgroupheading
-	{mso-style-name:searchgroupheading;
-	font-size:12.0pt;
-	font-family:"Times New Roman";
-	mso-fareast-font-family:"Times New Roman";}
-p.permissiontab, li.permissiontab, div.permissiontab
-	{mso-style-name:permissiontab;
-	font-size:12.0pt;
-	font-family:"Times New Roman";
-	mso-fareast-font-family:"Times New Roman";}
-p.permissionsupertab, li.permissionsupertab, div.permissionsupertab
-	{mso-style-name:permissionsupertab;
-	font-size:12.0pt;
-	font-family:"Times New Roman";
-	mso-fareast-font-family:"Times New Roman";}
-p.topbar, li.topbar, div.topbar
-	{mso-style-name:topbar;
-	font-size:12.0pt;
-	font-family:"Times New Roman";
-	mso-fareast-font-family:"Times New Roman";}
-p.basicpanelcontainer, li.basicpanelcontainer, div.basicpanelcontainer
-	{mso-style-name:basicpanelcontainer;
-	font-size:12.0pt;
-	font-family:"Times New Roman";
-	mso-fareast-font-family:"Times New Roman";}
-p.greynavbar, li.greynavbar, div.greynavbar
-	{mso-style-name:greynavbar;
-	font-size:12.0pt;
-	font-family:"Times New Roman";
-	mso-fareast-font-family:"Times New Roman";}
-p.minitab, li.minitab, div.minitab
-	{mso-style-name:minitab;
-	font-size:12.0pt;
-	font-family:"Times New Roman";
-	mso-fareast-font-family:"Times New Roman";}
-p.breadcrumbs, li.breadcrumbs, div.breadcrumbs
-	{mso-style-name:breadcrumbs;
-	font-size:12.0pt;
-	font-family:"Times New Roman";
-	mso-fareast-font-family:"Times New Roman";}
-p.logospacelink, li.logospacelink, div.logospacelink
-	{mso-style-name:logospacelink;
-	font-size:12.0pt;
-	font-family:"Times New Roman";
-	mso-fareast-font-family:"Times New Roman";}
-p.selectedminitab, li.selectedminitab, div.selectedminitab
-	{mso-style-name:selectedminitab;
-	font-size:12.0pt;
-	font-family:"Times New Roman";
-	mso-fareast-font-family:"Times New Roman";}
-p.unselectedminitab, li.unselectedminitab, div.unselectedminitab
-	{mso-style-name:unselectedminitab;
-	font-size:12.0pt;
-	font-family:"Times New Roman";
-	mso-fareast-font-family:"Times New Roman";}
-p.heading-text-color, li.heading-text-color, div.heading-text-color
-	{mso-style-name:heading-text-color;
-	font-size:12.0pt;
-	font-family:"Times New Roman";
-	mso-fareast-font-family:"Times New Roman";}
-p.unselected, li.unselected, div.unselected
-	{mso-style-name:unselected;
-	font-size:12.0pt;
-	font-family:"Times New Roman";
-	mso-fareast-font-family:"Times New Roman";}
-p.ajs-drop-down, li.ajs-drop-down, div.ajs-drop-down
-	{mso-style-name:ajs-drop-down;
-	font-size:12.0pt;
-	font-family:"Times New Roman";
-	mso-fareast-font-family:"Times New Roman";}
-span.mcetext1
-	{mso-style-name:mcetext1;
-	color:#003366;}
-span.mcetext2
-	{mso-style-name:mcetext2;
-	color:#003366;}
-span.mcetext3
-	{mso-style-name:mcetext3;
-	color:#003366;}
-span.mcetext4
-	{mso-style-name:mcetext4;
-	color:#003366;}
-span.mcetext5
-	{mso-style-name:mcetext5;
-	color:#003366;}
-span.mcetext6
-	{mso-style-name:mcetext6;
-	color:#003366;}
-p.tabnav1, li.tabnav1, div.tabnav1
-	{mso-style-name:tabnav1;
-	mso-margin-top-alt:auto;
-	margin-right:0in;
-	mso-margin-bottom-alt:auto;
-	margin-left:0in;
-	mso-pagination:widow-orphan;
-	font-size:12.0pt;
-	font-family:"Times New Roman";
-	mso-fareast-font-family:"Times New Roman";}
-p.unselected1, li.unselected1, div.unselected1
-	{mso-style-name:unselected1;
-	mso-margin-top-alt:auto;
-	margin-right:0in;
-	mso-margin-bottom-alt:auto;
-	margin-left:0in;
-	mso-pagination:widow-orphan;
-	background:#6699CC;
-	font-size:12.0pt;
-	font-family:"Times New Roman";
-	mso-fareast-font-family:"Times New Roman";}
-p.ajs-drop-down1, li.ajs-drop-down1, div.ajs-drop-down1
-	{mso-style-name:ajs-drop-down1;
-	mso-margin-top-alt:auto;
-	margin-right:0in;
-	mso-margin-bottom-alt:auto;
-	margin-left:0in;
-	mso-pagination:widow-orphan;
-	font-size:12.0pt;
-	font-family:"Times New Roman";
-	mso-fareast-font-family:"Times New Roman";}
-span.pagetitle1
-	{mso-style-name:pagetitle1;
-	color:#003366;}
-span.SpellE
-	{mso-style-name:"";
-	mso-spl-e:yes;}
-span.GramE
-	{mso-style-name:"";
-	mso-gram-e:yes;}
-@page Section1
-	{size:8.5in 11.0in;
-	margin:1.0in 1.25in 1.0in 1.25in;
-	mso-header-margin:.5in;
-	mso-footer-margin:.5in;
-	mso-paper-source:0;}
-div.Section1
-	{page:Section1;}
- /* List Definitions */
- @list l0
-	{mso-list-id:551036738;
-	mso-list-template-ids:-2139610738;}
-@list l1
-	{mso-list-id:1270893065;
-	mso-list-template-ids:-604627914;}
-@list l2
-	{mso-list-id:1436444018;
-	mso-list-template-ids:655414322;}
-@list l2:level1
-	{mso-level-number-format:bullet;
-	mso-level-text:;
-	mso-level-tab-stop:.5in;
-	mso-level-number-position:left;
-	text-indent:-.25in;
-	mso-ansi-font-size:10.0pt;
-	font-family:Symbol;}
-ol
-	{margin-bottom:0in;}
-ul
-	{margin-bottom:0in;}
--->
-</style>
-<!--[if gte mso 10]>
-<style>
- /* Style Definitions */
- table.MsoNormalTable
-	{mso-style-name:"Table Normal";
-	mso-tstyle-rowband-size:0;
-	mso-tstyle-colband-size:0;
-	mso-style-noshow:yes;
-	mso-style-parent:"";
-	mso-padding-alt:0in 5.4pt 0in 5.4pt;
-	mso-para-margin:0in;
-	mso-para-margin-bottom:.0001pt;
-	mso-pagination:widow-orphan;
-	font-size:10.0pt;
-	font-family:"Times New Roman";
-	mso-ansi-language:#0400;
-	mso-fareast-language:#0400;
-	mso-bidi-language:#0400;}
-</style>
-<![endif]-->
-</head>
+    <body>
+	    <table class="pagecontent" border="0" cellpadding="0" cellspacing="0" width="100%" bgcolor="#ffffff">
+		    <tr>
+			    <td valign="top" class="pagebody">
+<div class="wiki-content">
+				    <div class='panelMacro'><table class='noteMacro'><colgroup><col width='24'><col></colgroup><tr><td valign='top'><img src="images/icons/emoticons/warning.gif" width="16" height="16" align="absmiddle" alt="" border="0"></td><td><b>This is a mirror</b><br /><p>This page is a static mirror of the <a href="http://opticks.org/confluence/display/opticksSDK/Opticks+Open+Source+Programming+Contest" title="Opticks Open Source Programming Contest">original page</a>. We've mirrored the original so our web server does not become overloaded. We'll do our best to keep this mirror running and up to date.</p></td></tr></table></div>
+<h1><a name="OpticksOpenSourceProgrammingContest-OpticksOpenSourceProgrammingContest"></a>Opticks Open Source Programming Contest</h1>
+<hr />
+<h5><a name="OpticksOpenSourceProgrammingContest-What%27sthePrize%3F"></a>What's the Prize?</h5>
 
-<body lang=EN-US link=blue vlink=blue style='tab-interval:.5in'>
+<p><b>Playstation<sup>®</sup> 3</b> and <b>Nintendo<sup>®</sup> Wii</b>.</p>
 
-<div class=Section1>
+<p>The first place finisher gets to choose between the Playstation<sup>®</sup> 3 and Nintendo<sup>®</sup> Wii. The second place finisher gets the prize that the first place finisher did not select.</p>
 
-<table class=MsoNormalTable border=0 cellspacing=0 cellpadding=0 width="100%"
- style='width:100.0%;mso-cellspacing:0in;background:white;mso-padding-alt:0in 0in 0in 0in'>
- <tr style='mso-yfti-irow:0;mso-yfti-firstrow:yes;mso-yfti-lastrow:yes'>
-  <td valign=top style='padding:0in 0in 0in 0in'>
-  <div>
-  <table class=MsoNormalTable border=0 cellpadding=0 style='mso-cellspacing:
-   1.5pt'>
-   <tr style='mso-yfti-irow:0;mso-yfti-firstrow:yes;mso-yfti-lastrow:yes'>
-    <td valign=top style='padding:.75pt .75pt .75pt .75pt'>
-    <p class=MsoNormal><img width=16 height=16 id="_x0000_i1025"
-    src="images/icons/emoticons/warning.gif" align=absmiddle border=0></p>
-    </td>
-    <td style='padding:.75pt .75pt .75pt .75pt'>
-    <p class=MsoNormal><b>This is a mirror</b></p>
-    <p>This page is a static mirror of the <a href="http://opticks.org/confluence/display/opticksSDK/Opticks+Open+Source+Programming+Contest">
-    original page</a>. We've mirrored the original
-    so our web server does not become overloaded. We'll do our best to keep
-    this mirror running and up to date.</p>
-    </td>
-   </tr>
-  </table>
-  </div>
-  <h1><a name=OpticksOpenSourceProgrammingContest-Opti></a>Opticks Open Source
-  Programming Contest</h1>
-  <table class=MsoNormalTable border=0 cellspacing=0 cellpadding=0 width="100%"
-   style='width:100.0%;mso-cellspacing:0in;mso-padding-alt:3.75pt 3.75pt 3.75pt 3.75pt'>
-   <tr style='mso-yfti-irow:0;mso-yfti-firstrow:yes;mso-yfti-lastrow:yes'>
-    <td valign=top style='padding:3.75pt 3.75pt 3.75pt 3.75pt'>
-    <p><a href="http://github.com/tclarke/coan">COAN</a><sup>1</sup> announces
-    the first <a
-    href="http://opticks.org/confluence/display/opticks/Welcome+To+Opticks"
-    title="Welcome To Opticks">Opticks</a> Open Source Programming contest. The
-    contest is to write an Opticks extension that does something interesting. <em>Interesting</em>
-    is a fairly open ended criteria but submissions should somehow related to
-    the core focus of Opticks which is remote sensing and video analysis. We
-    don't want to stifle ideas so feel free to suggest something a little
-    different but don't expect a Twitter client for Opticks to be an acceptable
-    submission. If you have an idea and you're not sure if you're on the right
-    track, feel free to talk with Opticks developers for feedback and
-    suggestions. You can contact us in a variety of ways, such as our <a
-    href="http://opticks.org/confluence/display/opticks/Mailing+Lists"
-    title="Mailing Lists">developer's email list</a> and <a
-    href="http://opticks.org/confluence/display/opticksChat/Welcome+To+Chat"
-    title="Welcome To Chat">IRC chat channel</a>.</p>
-    <p><b>The winning submission will receive a Nintendo<sup>®</sup> <span
-    class=SpellE>Wii</span></b> and bragging rights. All valid submissions will
-    receive constructive feedback.</p>
-    <p>The last day for submission will be March 15, 2010 and the contest
-    results will be announced on April 1, 2010.<o:p></o:p></p>
-    </td>
-    <td width="20%" valign=top style='width:20.0%;padding:3.75pt 3.75pt 3.75pt 3.75pt'>
-    <div>
-    <table class=MsoNormalTable border=0 cellpadding=0 style='mso-cellspacing:
-     1.5pt'>
-     <colgroup><col width='24'><col></colgroup>
-     <tr style='mso-yfti-irow:0;mso-yfti-firstrow:yes;mso-yfti-lastrow:yes'>
-      <td valign=top style='padding:.75pt .75pt .75pt .75pt'>
-      <p class=MsoNormal><img border=0 width=16 height=16 id="_x0000_i1026"
-      src="images/icons/emoticons/information.gif" align=absmiddle></p>
-      </td>
-      <td style='padding:.75pt .75pt .75pt .75pt'>
-      <p class=MsoNormal><b>What is Opticks?</b><br>
-      Opticks is an extensible imagery analysis workbench. To get a quick
-      understanding, read the <a
-      href="http://opticks.org/confluence/display/opticks/Feature+Tour+-+Your+Data"
-      title="Feature Tour - Your Data">Feature Tour</a>.</p>
-      </td>
-     </tr>
-    </table>
-    </div>
-    <p class=MsoNormal><o:p></o:p></p>
-    </td>
-   </tr>
-  </table>
-  <h1><a name=OpticksOpenSourceProgrammingContest-FAQ></a>FAQ</h1>
-  <ol start=1 type=1>
-   <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:
-       auto;mso-list:l0 level1 lfo1;tab-stops:list .5in'><b>What computer
-       languages can I use to develop my extension?</b><br>
-       Most Opticks extensions are written in C++ but support is in place for
-       IDL (Interactive Data Language) extensions and some initial support
-       exists for Python extensions. Any of these are acceptable languages. IDL
-       and Python extensions can be found on the <a
-       href="http://opticks.org/confluence/display/opticksExt/All+Opticks+Extensions"
-       title="All Opticks Extensions">extensions</a> page.</li>
-   <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:
-       auto;mso-list:l0 level1 lfo1;tab-stops:list .5in'><b>What operating
-       system can I use to develop my extension?</b><br>
-       Opticks officially supports Microsoft Windows XP (32-bit and 64-bit) and
-       SUN Solaris for SPARC 64-bit. A non-official port to Linux for x86
-       64-bit may also be used. Testing for Microsoft Windows Vista (32-bit and
-       64-bit) is pending but initial smoke tests show that Opticks works fine
-       on <st1:place w:st="on">Vista</st1:place>. We try to develop extensions
-       which will work on all supported platforms but at least one of the above
-       must be supported. See the <a
-       href="http://opticks.org/confluence/display/opticks/System+Requirements"
-       title="System Requirements">System Requirements</a> page for more
-       information.</li>
-   <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:
-       auto;mso-list:l0 level1 lfo1;tab-stops:list .5in'><b>Where can I find
-       more information on Opticks?</b><br>
-       Go to the official Opticks web site at <a href="http://opticks.org">http://opticks.org</a>.
-       There's quite a bit of information there as well as ways you can contact
-       Opticks developers. Information for extension developers can be found on
-       the <a
-       href="http://opticks.org/confluence/display/opticksSDK/Welcome+To+Extension+Development"
-       title="Welcome To Extension Development">extension <span class=SpellE>development</span></a>
-       page.</li>
-   <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:
-       auto;mso-list:l0 level1 lfo1;tab-stops:list .5in'><b>Where can I host my
-       source code?</b><br>
-       The COAN repository is hosted on <a href="http://github.com"><span
-       class=SpellE>Github</span></a> which provides free hosting for open
-       source projects using the <span class=SpellE>Git</span> revision control
-       system. There are similar services provided by <a
-       href="http://code.google.com">Google Code</a>, <a
-       href="http://sourceforge.net"><span class=SpellE>Sourceforge</span></a>,
-       <a href="http://launchpad.net"><span class=SpellE>Launchpad</span></a>,
-       and <a href="http://bitbucket.org/"><span class=SpellE>bitbucket</span></a>.</li>
-   <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:
-       auto;mso-list:l0 level1 lfo1;tab-stops:list .5in'><b>Can I submit
-       multiple times?</b><br>
-       Sure, the most recent submission of a single extension will be used. You
-       are welcome to solicit feedback on the developer's mailing list at any
-       time you'd like. If you want to submit multiple entries you can do that
-       too but if we are overwhelmed with submissions, we may not look at all
-       of your entries.</li>
-   <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:
-       auto;mso-list:l0 level1 lfo1;tab-stops:list .5in'><b>I'm a
-       scientist/analyst and not a programmer, can I still enter?</b><br>
-       Sure! We are looking not just at code quality but also capabilities. You
-       should be able to write reasonably clean and maintainable code, as that
-       is part of the review criteria. If you don't know C++ you can submit IDL
-       or Python extensions, but be aware that only part of the extension API
-       is available to non-C++ extensions.</li>
-   <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:
-       auto;mso-list:l0 level1 lfo1;tab-stops:list .5in'><b>I'm not sure where
-       to begin. Do you have any extension ideas I can use?</b><br>
-       There are some ideas on the <a
-       href="http://opticks.org/confluence/display/opticksDev/Summer+of+Code+2009"
-       title="Summer of Code 2009"><span class=GramE>Summer</span> of Code 2009</a>
-       page which might get you started. Not all of these are necessarily
-       applicable to the contest as they are not extensions but changes to the
-       core application. Here's a summary of a few applicable ones: </li>
-   <ol start=1 type=1>
-    <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:
-        auto;mso-list:l0 level2 lfo1;tab-stops:list 1.0in'>Basic synthetic
-        aperture RADAR (SAR) processing tools such as FFT analysis, image
-        formation, and sub-aperture processing.</li>
-    <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:
-        auto;mso-list:l0 level2 lfo1;tab-stops:list 1.0in'>Video processing and
-        object tracking tools such as background suppression, optical flow
-        tracking, and shape recognition tracking.</li>
-    <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:
-        auto;mso-list:l0 level2 lfo1;tab-stops:list 1.0in'>Hyperspectral data
-        point clustering and classification. (supervised or unsupervised)</li>
-    <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:
-        auto;mso-list:l0 level2 lfo1;tab-stops:list 1.0in'><span class=SpellE>Astonomical</span>
-        image processing tools such as noise removal and point source intensity
-        classification.</li>
-    <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:
-        auto;mso-list:l0 level2 lfo1;tab-stops:list 1.0in'>Index all data in a
-        directory or directories and place markers on a globe view (NASA World
-        Wind, KDE marble, etc.) such that the user can click them to load the
-        data.</li>
-   </ol>
-  </ol>
-  <h1><a name=OpticksOpenSourceProgrammingContest-Cont></a>Contest Rules</h1>
-  <ol start=1 type=1>
-   <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:
-       auto;mso-list:l1 level1 lfo2;tab-stops:list .5in'>The Opticks Open
-       Source Programming Contest is open to individuals or teams, but not to
-       corporate entities. Core developers<sup>2</sup> and members of their
-       immediate families are not eligible to enter.</li>
-   <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:
-       auto;mso-list:l1 level1 lfo2;tab-stops:list .5in'>All submissions must
-       be open source including but not limited to the software, algorithms, techniques,
-       and concepts associated with the entry and must be licensed under <a
-       href="http://www.gnu.org/licenses/lgpl-2.1.html">GNU LGPL v2.1 license</a>
-       or a compatible license.</li>
-   <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:
-       auto;mso-list:l1 level1 lfo2;tab-stops:list .5in'>If you enter, you
-       agree that COAN and members of the Opticks development team may
-       publicize your name, likeness, and the description of work submitted for
-       the contest.</li>
-   <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:
-       auto;mso-list:l1 level1 lfo2;tab-stops:list .5in'>There will be no
-       compensation for submissions. The contest winner will receive a Nintendo<sup>®</sup>
-       <span class=SpellE>Wii</span> and will not be required to pay applicable
-       shipping costs.</li>
-   <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:
-       auto;mso-list:l1 level1 lfo2;tab-stops:list .5in'>Submissions must be
-       made to the Opticks <a
-       href="http://opticks.org/confluence/display/opticks/Mailing+Lists"
-       title="Mailing Lists">developer's mailing list</a>. Submissions may be <tt><span
-       style='font-size:10.0pt'>zip</span></tt>, <span class=SpellE><tt><span
-       style='font-size:10.0pt'>tar.gz</span></tt></span>, or <tt><span
-       style='font-size:10.0pt'>tar.bz2</span></tt> files with all source code
-       and build files needed to build the extension. Alternately, a link to a
-       publicly accessible source code repository may be sent to the
-       developer's mailing list. Binary builds of the extension or Opticks AEB
-       install files are not required, but may be submitted as well.
-       Submissions must be received by the mailing list server by 11:59pm EST
-       on March 15, 2010. It is suggested that you submit earlier. A single
-       entity may submit multiple extensions but, if many entries are
-       submitted, one entry will be given priority. If a single entry is submitted
-       multiple times, the most recent submission prior to the deadline will be
-       used.</li>
-   <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:
-       auto;mso-list:l1 level1 lfo2;tab-stops:list .5in'>The winner will be
-       selected by three arbitrary and punctilious judges with no formal
-       criteria. When making their decision, judges will account for: </li>
-   <ol start=1 type=1>
-    <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:
-        auto;mso-list:l1 level2 lfo2;tab-stops:list 1.0in'>interesting and
-        novel capability</li>
-    <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:
-        auto;mso-list:l1 level2 lfo2;tab-stops:list 1.0in'>usefulness of the
-        extension</li>
-    <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:
-        auto;mso-list:l1 level2 lfo2;tab-stops:list 1.0in'>end user
-        documentation and code commenting</li>
-    <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:
-        auto;mso-list:l1 level2 lfo2;tab-stops:list 1.0in'>general code quality
-        and readability</li>
-    <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:
-        auto;mso-list:l1 level2 lfo2;tab-stops:list 1.0in'>reuse and
-        integration of existing Opticks functionality</li>
-   </ol>
-  </ol>
-  <p>The judges are Trevor Clarke, Kip Streithorst and David Sulgrove. All
-  entrants will receive constructive feedback. Submissions which are deemed
-  non-applicable will be ignored.</p>
-  <div class=MsoNormal align=center style='text-align:center'>
-  <hr size=2 width="100%" align=center>
-  </div>
-  <p><sup>1</sup> This contest is sponsored by Comprehensive Opticks Archive
-  Network (COAN) not by or related to Ball Corporation or its subsidiaries.<br>
-  <sup>2</sup> Core developers are:</p>
-  <ul type=disc>
-   <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:
-       auto;mso-list:l2 level1 lfo3;tab-stops:list .5in'>Dustan Adkins &lt;<span
-       class=SpellE>dadkins</span>&gt;</li>
-   <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:
-       auto;mso-list:l2 level1 lfo3;tab-stops:list .5in'>David Sulgrove &lt;<span
-       class=SpellE>dsulgrov</span>&gt;</li>
-   <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:
-       auto;mso-list:l2 level1 lfo3;tab-stops:list .5in'>John Prikkel &lt;<span
-       class=SpellE>jprikkel</span>&gt;</li>
-   <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:
-       auto;mso-list:l2 level1 lfo3;tab-stops:list .5in'>Kip Streithorst &lt;<span
-       class=SpellE>kstreith</span>&gt;</li>
-   <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:
-       auto;mso-list:l2 level1 lfo3;tab-stops:list .5in'>Michael Considine &lt;<span
-       class=SpellE>mconsidi</span>&gt;</li>
-   <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:
-       auto;mso-list:l2 level1 lfo3;tab-stops:list .5in'>Ryan Evans &lt;<span
-       class=SpellE>raevans</span>&gt;</li>
-   <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:
-       auto;mso-list:l2 level1 lfo3;tab-stops:list .5in'>Richard Forehand &lt;<span
-       class=SpellE>rforehan</span>&gt;</li>
-   <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:
-       auto;mso-list:l2 level1 lfo3;tab-stops:list .5in'>Trevor Clarke
-       &lt;tclarke&gt;</li>
-   <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:
-       auto;mso-list:l2 level1 lfo3;tab-stops:list .5in'>Todd Johnson &lt;<span
-       class=SpellE>tjohnson</span>&gt;</li>
-  </ul>
-  </td>
- </tr>
-</table>
+<h5><a name="OpticksOpenSourceProgrammingContest-Whatarethedates%3F"></a>What are the dates?</h5>
 
-<p class=MsoNormal><span style='display:none;mso-hide:all'><o:p>&nbsp;</o:p></span></p>
-
-<table class=MsoNormalTable border=0 cellspacing=0 cellpadding=0 width="100%"
- style='width:100.0%;mso-cellspacing:0in;mso-padding-alt:0in 0in 0in 0in'>
- <tr style='mso-yfti-irow:0;mso-yfti-firstrow:yes;height:9.0pt'>
-  <td style='padding:0in 0in 0in 0in;height:9.0pt'
-  background="http://opticks.org/confluence/images/border/border_bottom.gif">
-  <p class=MsoNormal style='mso-line-height-alt:9.0pt'><img border=0 width=1
-  height=1 id="_x0000_i1028" src="images/border/spacer.gif"></p>
-  </td>
- </tr>
- <tr style='mso-yfti-irow:1;mso-yfti-lastrow:yes'>
-  <td style='padding:0in 0in 0in 0in'>
-  <p class=MsoNormal align=center style='text-align:center'>Document generated
-  by Confluence on Oct 21, 2009 09:29</p>
-  </td>
- </tr>
-</table>
-
-<p class=MsoNormal><o:p>&nbsp;</o:p></p>
-
-</div>
+<ul>
+	<li>All submissions have to made by June 4, 2010</li>
+	<li>The winners will be announced on June 18, 2010</li>
+</ul>
 
 
-<script type="text/javascript">
-var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
-document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
-</script>
-<script type="text/javascript">
-try {
-var pageTracker = _gat._getTracker("UA-3479806-5");
-pageTracker._trackPageview();
-} catch(err) {}</script>
-</body>
+<h5><a name="OpticksOpenSourceProgrammingContest-Whatisthecontest%3F"></a>What is the contest?</h5>
+<p>The contest is to write an <a href="http://opticks.org/confluence/display/opticks">Opticks</a> extension. If you don't know what <a href="http://opticks.org/confluence/display/opticks">Opticks</a> is, look below to the next section. You can view a list of <a href="http://opticks.org/confluence/display/opticksExt">already available extensions</a> for Opticks. You can also learn about <a href="http://opticks.org/confluence/display/opticksSDK">what extensions can do</a>.</p>
 
+<p>We are looking for interesting extensions that are related to the core focus of Opticks, which is remote sensing, image analysis and video analysis. This can include hyper-spectral, multi-spectral, synthetic aperture radar, astronomical data, video data or even medical imagery.</p>
+
+<p>Here are some ideas for you:</p>
+<ul>
+	<li>Basic synthetic aperture RADAR (SAR) processing tools such as FFT analysis, image formation, and sub-aperture processing.</li>
+	<li>Video processing and object tracking tools such as background suppression, optical flow tracking, and shape recognition tracking.</li>
+	<li>Hyperspectral data point clustering and classification. (supervised or unsupervised)</li>
+	<li>Astronomical image processing tools such as noise removal and point source intensity classification.</li>
+	<li>Index all data in a directory or directories and place markers on a globe view (NASA World Wind, KDE marble, etc.) such that the user can click them to load the data.</li>
+	<li>If you have an idea and you're not sure if you're on the right track, you can talk to Opticks developers on our <a href="http://opticks.org/confluence/display/opticks/Mailing+Lists" title="Mailing Lists">developers' email list</a> and <a href="http://opticks.org/confluence/display/opticksChat">IRC chat channel</a>.</li>
+</ul>
+
+
+<h5><a name="OpticksOpenSourceProgrammingContest-WhatisOpticks%3F"></a>What is Opticks?</h5>
+<p>Opticks is a free and open source remote sensing application and development framework. Opticks is similar to commercial tools like ENVI, ERDAS Imagine, SOCET GXP, and RemoteView. Opticks can be used to load remote sensing data, usually imagery, and then perform analysis on that data to come to some conclusion. For example, Opticks can be used to work with hyper-spectral, multi-spectral, synthetic aperture radar, and motion imagery data. Opticks is also a development framework with a rich API and plug-in architecture that allows developers to build new remote sensing algorithms and to create new remote sensing products. The majority of Opticks is actually implemented using it's own API and plug-in architecture.</p>
+
+<p><b>Take the <a href="http://opticks.org/confluence/display/opticks/Feature+Tour+-+Your+Data" title="Feature Tour - Your Data">Feature Tour</a>.</b></p>
+
+<p>Ok, so why do you care? We think it's a pretty cool application. If you are interested in physics, this remote sensing stuff is pretty darn cool. And if you are a programmer, making all of this work on a desktop while processing large imagery (&gt; 4GB) exposes you to some pretty cool stuff as well.</p>
+
+<h5><a name="OpticksOpenSourceProgrammingContest-WhatprogramminglanguagewillIbeusing%3F"></a>What programming language will I be using?</h5>
+<p>Opticks extensions can be written in C&#43;&#43;, <a href="http://www.ittvis.com/ProductServices/IDL.aspx">IDL</a> and Python.</p>
+
+<p>Extensions written in C++ are the most powerful way to extend Opticks. In fact, most of capability provided by Opticks is implemented using the same <a href="http://opticks.org/confluence/display/opticksSDK">C++ SDK</a> you would be using.</p>
+
+<p>For those developers that have a stronger background in remote sensing and image analysis we also provide the ability to extend Opticks using <a href="http://www.ittvis.com/ProductServices/IDL.aspx">IDL</a> and Python. Using these two languages you are more restricted, but there is more than enough capability to create algorithms. You can <a href="http://opticks.org/confluence/display/opticksExtras/Sample+Python+Scripts" title="Sample Python Scripts">browse some sample algorithms</a>. Visit the <a href="http://opticks.org/confluence/display/opticksExt/IDL+Scripting" title="IDL Scripting">IDL Scripting page</a> and <a href="http://opticks.org/confluence/display/opticksExt/Python+Scripting" title="Python Scripting">Python Scripting page</a> for more details.</p>
+
+<h5><a name="OpticksOpenSourceProgrammingContest-HowdoIenter%3F"></a>How do I enter?</h5>
+<ol>
+	<li>All submissions must be open source including but not limited to the software, algorithms, techniques, and concepts associated with the entry and must be licensed under <a href="http://www.gnu.org/licenses/lgpl-2.1.html">GNU LGPL v2.1 license</a> or a compatible license.</li>
+	<li>Submissions must be made to the Opticks <a href="http://opticks.org/confluence/display/opticks/Mailing+Lists" title="Mailing Lists">developers' mailing list</a>. Submissions may be <tt>zip</tt>, <tt>tar.gz</tt>, or <tt>tar.bz2</tt> files with all source code and build files needed to build the extension. Alternately, a link to a publicly accessible source code repository (free services include: <a href="http://github.com">Github</a>, <a href="http://code.google.com">Google Code</a>, <a href="http://sourceforge.net">Sourceforge</a>, <a href="http://launchpad.net">Launchpad</a>, <a href="http://bitbucket.org/">bitbucket</a>) may be sent to the developers' mailing list. Binary builds of the extension or Opticks AEB install files are not required, but may be submitted as well.</li>
+	<li>Submissions must be received by the mailing list server by 11:59pm EDT on June 4th, 2010. It is suggested that you submit earlier. You may submit multiple extensions but, if many entries are submitted, one of your entries will be given priority. If a single entry is submitted multiple times, the most recent submission prior to the deadline will be used.</li>
+</ol>
+
+
+<h5><a name="OpticksOpenSourceProgrammingContest-Howdowepickthewinningsubmission%3F"></a>How do we pick the winning submission?</h5>
+<ol>
+	<li>The winner will be selected by three arbitrary and punctilious judges with no formal criteria. When making their decision, judges will account for:
+	<ol>
+		<li>interesting and novel capability</li>
+		<li>usefulness of the extension</li>
+		<li>end user documentation and code commenting</li>
+		<li>general code quality and readability</li>
+		<li>reuse and integration of existing Opticks functionality</li>
+	</ol>
+	</li>
+</ol>
+
+
+<p>The judges are Trevor Clarke, Kip Streithorst and David Sulgrove. All entrants will receive constructive feedback. Submissions which are deemed non-applicable will be ignored.</p>
+
+<h5><a name="OpticksOpenSourceProgrammingContest-Arethereanyotherrules%3F"></a>Are there any other rules?</h5>
+<p>Now that you mention it, there are:</p>
+<ol>
+	<li>The Opticks Open Source Programming Contest is open to individuals or teams, but not to corporate entities.</li>
+	<li>If you enter, you agree that members of the Opticks development team may publicize your name, likeness, and the description of work submitted for the contest.</li>
+	<li>There will be no compensation for submissions. The first and second place finishers will not be required to pay applicable shipping costs for their prizes.</li>
+	<li>This contest is not affiliated with any corporation.</li>
+	<li>Core developers and members of their immediate families are not eligible to enter:
+	<ul>
+		<li>Dustan Adkins &lt;dadkins&gt;</li>
+		<li>David Sulgrove &lt;dsulgrov&gt;</li>
+		<li>John Prikkel &lt;jprikkel&gt;</li>
+		<li>Kip Streithorst &lt;kstreith&gt;</li>
+		<li>Michael Considine &lt;mconsidi&gt;</li>
+		<li>Ryan Evans &lt;raevans&gt;</li>
+		<li>Richard Forehand &lt;rforehan&gt;</li>
+		<li>Trevor Clarke &lt;tclarke&gt;</li>
+		<li>Todd Johnson &lt;tjohnson&gt;</li>
+	</ul>
+	</li>
+</ol>
+
+
+				    					    <br/>
+                                                                    </div>
+				    
+                    			    </td>
+		    </tr>
+	    </table>
+	    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+			<tr>
+				<td height="12" background="http://opticks.org/confluence/images/border/border_bottom.gif"><img src="images/border/spacer.gif" width="1" height="1" border="0"/></td>
+			</tr>
+		    <tr>
+			    <td align="center"><font color="grey">Document generated by Confluence on Mar 22, 2010 13:43</font></td>
+		    </tr>
+	    </table>
+    </body>
 </html>
