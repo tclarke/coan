@@ -307,6 +307,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Rx.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\sift.c"
 				>
 			</File>
@@ -394,6 +398,10 @@
 						Outputs="$(BuildDir)\Moc\$(ProjectName)\moc_$(InputName).cpp"
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\Rx.h"
+				>
 			</File>
 			<File
 				RelativePath=".\sift.h"
