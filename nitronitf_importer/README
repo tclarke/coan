@@ -1,0 +1,5 @@
+This directory contains some alpha quality code for NITF import using the
+NITRO NITF library (http://nitro-nitf.sourceforge.net/).
+
+It was written as a test only and is far from complete but may be a usefull
+starting point for someone interested in writing a NITRO based NITF importer.
