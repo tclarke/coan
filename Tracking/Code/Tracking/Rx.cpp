@@ -12,6 +12,7 @@
 #include "BitMaskIterator.h"
 #include "DataAccessorImpl.h"
 #include "DataRequest.h"
+#include "DesktopServices.h"
 #include "ObjectResource.h"
 #include "PlugInArgList.h"
 #include "PlugInManagerServices.h"
@@ -23,34 +24,11 @@
 #include "RasterUtilities.h"
 #include "SpatialDataView.h"
 #include "Rx.h"
-#include <opencv/cv.h>
+#include "ThresholdLayer.h"
+#include <gsl/gsl_blas.h>
+#include <gsl/gsl_matrix.h>
 
 REGISTER_PLUGIN_BASIC(Tracking, Rx);
-
-namespace
-{
-int opticksToCvType(EncodingType t)
-{
-   switch(t)
-   {
-   case INT1SBYTE:
-      return CV_8S;
-   case INT1UBYTE:
-      return CV_8U;
-   case INT2SBYTES:
-      return CV_16S;
-   case INT2UBYTES:
-      return CV_16U;
-   case INT4SBYTES:
-      return CV_32S;
-   case FLT4BYTES:
-      return CV_32F;
-   case FLT8BYTES:
-      return CV_64F;
-   };
-   return -1;
-}
-}
 
 Rx::Rx()
 {
@@ -99,15 +77,14 @@ bool Rx::execute(PlugInArgList *pInArgList, PlugInArgList *pOutArgList)
    { // scope
       bool success = true;
       ExecutableResource covar("Covariance", std::string(), progress.getCurrentProgress(), isBatch());
-      bool cinv = false;
       success &= covar->getInArgList().setPlugInArgValue(DataElementArg(), pElement);
-      success &= covar->getInArgList().setPlugInArgValue("ComputeInverse", &cinv);
       if (isBatch())
       {
          success &= covar->getInArgList().setPlugInArgValue("AOI", pAoi);
       }
       success &= covar->execute();
-      pCov = covar->getOutArgList().getPlugInArgValue<RasterElement>("Covariance Matrix");
+      pCov = static_cast<RasterElement*>(
+         Service<ModelServices>()->getElement("Inverse Covariance Matrix", TypeConverter::toString<RasterElement>(), pElement));
       success &= pCov != NULL;
       if (!success)
       {
@@ -115,51 +92,117 @@ bool Rx::execute(PlugInArgList *pInArgList, PlugInArgList *pOutArgList)
          return false;
       }
    }
-   double* pCovData = reinterpret_cast<double*>(pCov->getRawData());
-
    const RasterDataDescriptor* pDesc = static_cast<const RasterDataDescriptor*>(pElement->getDataDescriptor());
-   BitMaskIterator iter((pAoi == NULL) ? NULL : pAoi->getSelectedPoints(), pElement);
+   const BitMask* pBitmask = (pAoi == NULL) ? NULL : pAoi->getSelectedPoints();
+   BitMaskIterator iter(pBitmask, pElement);
    FactoryResource<DataRequest> pReq;
    pReq->setInterleaveFormat(BIP);
    pReq->setRows(pDesc->getActiveRow(iter.getBoundingBoxStartRow()), pDesc->getActiveRow(iter.getBoundingBoxEndRow()));
    pReq->setColumns(pDesc->getActiveColumn(iter.getBoundingBoxStartColumn()), pDesc->getActiveColumn(iter.getBoundingBoxEndColumn()));
    DataAccessor acc(pElement->getDataAccessor(pReq.release()));
 
-   ModelResource<RasterElement> pResult(
-      RasterUtilities::createRasterElement("Anomalies", iter.getNumRows(), iter.getNumColumns(), FLT8BYTES, true, pElement));
+   ModelResource<RasterElement> pResult(static_cast<RasterElement*>(
+      Service<ModelServices>()->getElement("RX Results", TypeConverter::toString<RasterElement>(), pElement)));
+   if (pResult.get() != NULL && !isBatch())
+   {
+      Service<DesktopServices>()->showSuppressibleMsgDlg("RX Results Exists",
+         "The results data element already exists and will be replaced.",
+         MESSAGE_WARNING, "Rx/ReplaceResults");
+      Service<ModelServices>()->destroyElement(pResult.release());
+   }
+   pResult = ModelResource<RasterElement>(
+      RasterUtilities::createRasterElement("RX Results", iter.getNumSelectedRows(), iter.getNumSelectedColumns(), FLT8BYTES, true, pElement));
+   if (pResult.get() == NULL)
+   {
+      progress.report("Unable to create results.", 0, ERRORS, true);
+      return false;
+   }
    FactoryResource<DataRequest> pResReq;
    pResReq->setWritable(true);
-   DataAccessor resacc(pElement->getDataAccessor(pResReq.release()));
+   DataAccessor resacc(pResult->getDataAccessor(pResReq.release()));
    if (!acc.isValid() || !resacc.isValid())
    {
       progress.report("Unable to access data.", 0, ERRORS, true);
       return false;
    }
-   int bands = pDesc->getBandCount();
-   int srctype = opticksToCvType(pDesc->getDataType());
-   if (srctype == -1)
-   {
-      progress.report("Type not supported.", 0, ERRORS, true);
-      return false;
-   }
-   cv::Mat cov(bands, bands, CV_64F, pCovData);
-   int row = iter.getBoundingBoxStartRow();
-   while (iter != iter.end())
-   {
-      LocationType loc;
-      iter.getPixelLocation(loc);
-      if (loc.mY > row)
+   { // scope temp matrices
+      int bands = pDesc->getBandCount();
+      EncodingType encoding = pDesc->getDataType();
+      gsl_matrix covMat = {bands, bands, bands, reinterpret_cast<double*>(pCov->getRawData()), NULL, 0};
+      gsl_matrix* pPixelMat = gsl_matrix_alloc(bands, 1);
+      gsl_matrix* pTemp = gsl_matrix_alloc(1, bands);
+      gsl_matrix* pMuMat = gsl_matrix_calloc(bands, 1);
+
+      for (int row = iter.getBoundingBoxStartRow(); iter != iter.end(); ++iter)
       {
-         row = static_cast<int>(loc.mY);
-         progress.report("Calculating RX", row * 100 / iter.getNumRows(), NORMAL);
+         LocationType loc;
+         iter.getPixelLocation(loc);
+         if (loc.mY > iter.getBoundingBoxEndRow()) // work around a bug
+         {
+            break;
+         }
+         if (loc.mY > row)
+         {
+            row = static_cast<int>(loc.mY);
+            progress.report("Calculating means", row * 50 / iter.getNumSelectedRows(), NORMAL);
+         }
+         acc->toPixel(static_cast<int>(loc.mY), static_cast<int>(loc.mX));
+         VERIFY(acc.isValid());
+         for (int band = 0; band < bands; ++band)
+         {
+            double val = Service<ModelServices>()->getDataValue(encoding, acc->getColumn(), band);
+            gsl_matrix_set(pPixelMat, band, 0, val);
+         }
+         gsl_matrix_add(pMuMat, pPixelMat);
       }
-      acc->toPixel(static_cast<int>(loc.mX), static_cast<int>(loc.mY));
-      resacc->toPixel(static_cast<int>(loc.mX) - iter.getBoundingBoxStartColumn(), static_cast<int>(loc.mY) - iter.getBoundingBoxStartRow());
-      VERIFY(acc.isValid() && resacc.isValid());
-      cv::Mat src(bands, 1, srctype, acc->getColumn());
-      cv::Mat res(src.t() * cov * src);
-      //*reinterpret_cast<double*>(resacc->getColumn()) = res.at<double>(cv::Point(0, 0));
+      gsl_matrix_scale(pMuMat, 1.0 / iter.getCount());
+      iter.firstPixel();
+
+      for (int row = iter.getBoundingBoxStartRow(); iter != iter.end(); ++iter)
+      {
+         LocationType loc;
+         iter.getPixelLocation(loc);
+         if (loc.mY > iter.getBoundingBoxEndRow()) // work around a bug
+         {
+            break;
+         }
+         if (loc.mY > row)
+         {
+            row = static_cast<int>(loc.mY);
+            progress.report("Calculating RX", row * 49 / iter.getNumSelectedRows() + 50, NORMAL);
+         }
+         acc->toPixel(static_cast<int>(loc.mY), static_cast<int>(loc.mX));
+         resacc->toPixel(static_cast<int>(loc.mY) - iter.getBoundingBoxStartRow(), static_cast<int>(loc.mX) - iter.getBoundingBoxStartColumn());
+         VERIFY(acc.isValid() && resacc.isValid());
+
+         for (int band = 0; band < bands; ++band)
+         {
+            double val = Service<ModelServices>()->getDataValue(encoding, acc->getColumn(), band);
+            gsl_matrix_set(pPixelMat, band, 0, val);
+         }
+         gsl_matrix_sub(pPixelMat, pMuMat);
+         gsl_matrix resMat = {1, 1, 1, reinterpret_cast<double*>(resacc->getColumn()), NULL, 0};
+         gsl_matrix_set_zero(pTemp);
+         gsl_blas_dgemm(CblasTrans, CblasNoTrans, 1.0, pPixelMat, &covMat, 0.0, pTemp);
+         gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, pTemp, pPixelMat, 0.0, &resMat);
+      }
+      gsl_matrix_free(pTemp);
+      gsl_matrix_free(pPixelMat);
    }
+   if (!isBatch())
+   {
+      ThresholdLayer* pLayer = static_cast<ThresholdLayer*>(pView->createLayer(THRESHOLD, pResult.get()));
+      pLayer->setXOffset(iter.getBoundingBoxStartColumn());
+      pLayer->setYOffset(iter.getBoundingBoxStartRow());
+      pLayer->setPassArea(UPPER);
+      pLayer->setRegionUnits(STD_DEV);
+      pLayer->setFirstThreshold(pLayer->convertThreshold(STD_DEV, 2.0, RAW_VALUE));
+   }
+   if (pOutArgList != NULL)
+   {
+      pOutArgList->setPlugInArgValue<RasterElement>("Results", pResult.get());
+   }
+   pResult.release();
 
    progress.report("Complete", 100, NORMAL);
    progress.upALevel();
