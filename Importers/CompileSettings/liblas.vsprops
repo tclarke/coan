@@ -10,7 +10,6 @@
 	/>
 	<Tool
 		Name="VCLinkerTool"
-		AdditionalDependencies="liblas.lib"
 		AdditionalLibraryDirectories="$(LIBLAS)\lib\$(PlatformName)"
 	/>
 </VisualStudioPropertySheet>

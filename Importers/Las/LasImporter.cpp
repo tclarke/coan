@@ -54,89 +54,102 @@ std::vector<ImportDescriptor*> LasImporter::getImportDescriptors(const std::stri
 {
    std::vector<ImportDescriptor*> descriptors;
 
-   liblas::LASFile las(filename);
-   if (las.IsNull())
+   try
    {
-      return descriptors;
-   }
-   const liblas::LASHeader& header = las.GetHeader();
-   double width = header.GetMaxX() - header.GetMinX();
-   double height = header.GetMaxY() - header.GetMinY();
-   ImportDescriptorResource descZ(las.GetName(), TypeConverter::toString<RasterElement>());
-   ImportDescriptorResource descI(las.GetName(), TypeConverter::toString<RasterElement>(), NULL, false);
-   VERIFYRV(descZ.get() && descI.get(), descriptors);
-   std::vector<liblas::uint32_t> pointsByReturn = header.GetPointRecordsByReturnCount();
-   RasterDataDescriptor* pDataDescZ = RasterUtilities::generateRasterDataDescriptor(las.GetName()+":height", NULL,
-      static_cast<unsigned int>(std::ceil(width)), static_cast<unsigned int>(std::ceil(height)),
-      std::max<unsigned int>(1, pointsByReturn.size()), BSQ, FLT8BYTES, IN_MEMORY);
-   RasterDataDescriptor* pDataDescI = RasterUtilities::generateRasterDataDescriptor(las.GetName()+":intensity", NULL,
-      static_cast<unsigned int>(std::ceil(width)), static_cast<unsigned int>(std::ceil(height)),
-      std::max<unsigned int>(1, pointsByReturn.size()), BSQ, INT2UBYTES, IN_MEMORY);
-
-   std::vector<int> badValues;
-   badValues.push_back(0);
-   pDataDescZ->setBadValues(badValues);
-   pDataDescI->setBadValues(badValues);
-   VERIFYRV(pDataDescZ && pDataDescI, descriptors);
-   descZ->setDataDescriptor(pDataDescZ);
-   descI->setDataDescriptor(pDataDescI);
-
-   VERIFYRV(RasterUtilities::generateAndSetFileDescriptor(pDataDescZ, filename, "height", LITTLE_ENDIAN_ORDER), descriptors);
-   VERIFYRV(RasterUtilities::generateAndSetFileDescriptor(pDataDescI, filename, "intensity", LITTLE_ENDIAN_ORDER), descriptors);
-
-   DynamicObject* pMetadataZ = pDataDescZ->getMetadata();
-   DynamicObject* pMetadataI = pDataDescI->getMetadata();
-   VERIFYRV(pMetadataZ && pMetadataI, descriptors);
-   pMetadataZ->setAttributeByPath("LAS/Version", QString("%1.%2").arg(header.GetVersionMajor()).arg(header.GetVersionMinor()).toStdString());
-   pMetadataZ->setAttributeByPath("LAS/Creation DOY", header.GetCreationDOY());
-   pMetadataZ->setAttributeByPath("LAS/Creation Year", header.GetCreationYear());
-   pMetadataZ->setAttributeByPath("LAS/Point Format", header.GetDataFormatId() == liblas::LASHeader::ePointFormat0 ? 0 : 1);
-   pMetadataZ->setAttributeByPath("LAS/Point Count", header.GetPointRecordsCount());
-   pMetadataZ->setAttributeByPath("LAS/Points Per Return", pointsByReturn);
-   pMetadataZ->setAttributeByPath("LAS/Scale/X", header.GetScaleX());
-   pMetadataZ->setAttributeByPath("LAS/Scale/Y", header.GetScaleY());
-   pMetadataZ->setAttributeByPath("LAS/Scale/Z", header.GetScaleZ());
-   pMetadataZ->setAttributeByPath("LAS/Offset/X", header.GetOffsetX());
-   pMetadataZ->setAttributeByPath("LAS/Offset/Y", header.GetOffsetY());
-   pMetadataZ->setAttributeByPath("LAS/Offset/Z", header.GetOffsetZ());
-   //pMetadataZ->setAttributeByPath("LAS/Projection", header.GetProj4());
-   pMetadataI->merge(pMetadataZ);
-
-   RasterFileDescriptor* pFileDescZ = static_cast<RasterFileDescriptor*>(pDataDescZ->getFileDescriptor());
-   RasterFileDescriptor* pFileDescI = static_cast<RasterFileDescriptor*>(pDataDescI->getFileDescriptor());
-   std::vector<DimensionDescriptor> bandsToLoadZ;
-   std::vector<DimensionDescriptor> bandsToLoadI;
-   for (unsigned int bandNum = 0; bandNum < pointsByReturn.size(); bandNum++)
-   {
-      if (pointsByReturn[bandNum] > 0)
+      liblas::LASFile las(filename);
+      if (las.IsNull())
       {
-         bandsToLoadZ.push_back(pFileDescZ->getOnDiskBand(bandNum));
-         bandsToLoadI.push_back(pFileDescI->getOnDiskBand(bandNum));
+         return descriptors;
       }
-   }
-   if (bandsToLoadZ.empty())
-   {
-      bandsToLoadZ.push_back(pFileDescZ->getOnDiskBand(0));
-   }
-   if (bandsToLoadI.empty())
-   {
-      bandsToLoadI.push_back(pFileDescI->getOnDiskBand(0));
-   }
-   pDataDescZ->setBands(bandsToLoadZ);
-   pDataDescI->setBands(bandsToLoadI);
+      const liblas::LASHeader& header = las.GetHeader();
+      double width = header.GetMaxX() - header.GetMinX();
+      double height = header.GetMaxY() - header.GetMinY();
+      ImportDescriptorResource descZ(las.GetName(), TypeConverter::toString<RasterElement>());
+      ImportDescriptorResource descI(las.GetName(), TypeConverter::toString<RasterElement>(), NULL, false);
+      VERIFYRV(descZ.get() && descI.get(), descriptors);
+      std::vector<liblas::uint32_t> pointsByReturn = header.GetPointRecordsByReturnCount();
+      RasterDataDescriptor* pDataDescZ = RasterUtilities::generateRasterDataDescriptor(las.GetName()+":height", NULL,
+         static_cast<unsigned int>(std::ceil(width)), static_cast<unsigned int>(std::ceil(height)),
+         std::max<unsigned int>(1, pointsByReturn.size()), BSQ, FLT8BYTES, IN_MEMORY);
+      RasterDataDescriptor* pDataDescI = RasterUtilities::generateRasterDataDescriptor(las.GetName()+":intensity", NULL,
+         static_cast<unsigned int>(std::ceil(width)), static_cast<unsigned int>(std::ceil(height)),
+         std::max<unsigned int>(1, pointsByReturn.size()), BSQ, INT2UBYTES, IN_MEMORY);
 
-   descriptors.push_back(descZ.release());
-   descriptors.push_back(descI.release());
+      std::vector<int> badValues;
+      badValues.push_back(0);
+      pDataDescZ->setBadValues(badValues);
+      pDataDescI->setBadValues(badValues);
+      VERIFYRV(pDataDescZ && pDataDescI, descriptors);
+      descZ->setDataDescriptor(pDataDescZ);
+      descI->setDataDescriptor(pDataDescI);
+
+      VERIFYRV(RasterUtilities::generateAndSetFileDescriptor(pDataDescZ, filename, "height", LITTLE_ENDIAN_ORDER), descriptors);
+      VERIFYRV(RasterUtilities::generateAndSetFileDescriptor(pDataDescI, filename, "intensity", LITTLE_ENDIAN_ORDER), descriptors);
+
+      DynamicObject* pMetadataZ = pDataDescZ->getMetadata();
+      DynamicObject* pMetadataI = pDataDescI->getMetadata();
+      VERIFYRV(pMetadataZ && pMetadataI, descriptors);
+      pMetadataZ->setAttributeByPath("LAS/Version", QString("%1.%2").arg(header.GetVersionMajor()).arg(header.GetVersionMinor()).toStdString());
+      pMetadataZ->setAttributeByPath("LAS/Creation DOY", header.GetCreationDOY());
+      pMetadataZ->setAttributeByPath("LAS/Creation Year", header.GetCreationYear());
+      pMetadataZ->setAttributeByPath("LAS/Point Format", header.GetDataFormatId() == liblas::LASHeader::ePointFormat0 ? 0 : 1);
+      pMetadataZ->setAttributeByPath("LAS/Point Count", header.GetPointRecordsCount());
+      pMetadataZ->setAttributeByPath("LAS/Points Per Return", pointsByReturn);
+      pMetadataZ->setAttributeByPath("LAS/Scale/X", header.GetScaleX());
+      pMetadataZ->setAttributeByPath("LAS/Scale/Y", header.GetScaleY());
+      pMetadataZ->setAttributeByPath("LAS/Scale/Z", header.GetScaleZ());
+      pMetadataZ->setAttributeByPath("LAS/Offset/X", header.GetOffsetX());
+      pMetadataZ->setAttributeByPath("LAS/Offset/Y", header.GetOffsetY());
+      pMetadataZ->setAttributeByPath("LAS/Offset/Z", header.GetOffsetZ());
+      //pMetadataZ->setAttributeByPath("LAS/Projection", header.GetProj4());
+      pMetadataI->merge(pMetadataZ);
+
+      RasterFileDescriptor* pFileDescZ = static_cast<RasterFileDescriptor*>(pDataDescZ->getFileDescriptor());
+      RasterFileDescriptor* pFileDescI = static_cast<RasterFileDescriptor*>(pDataDescI->getFileDescriptor());
+      std::vector<DimensionDescriptor> bandsToLoadZ;
+      std::vector<DimensionDescriptor> bandsToLoadI;
+      for (unsigned int bandNum = 0; bandNum < pointsByReturn.size(); bandNum++)
+      {
+         if (pointsByReturn[bandNum] > 0)
+         {
+            bandsToLoadZ.push_back(pFileDescZ->getOnDiskBand(bandNum));
+            bandsToLoadI.push_back(pFileDescI->getOnDiskBand(bandNum));
+         }
+      }
+      if (bandsToLoadZ.empty())
+      {
+         bandsToLoadZ.push_back(pFileDescZ->getOnDiskBand(0));
+      }
+      if (bandsToLoadI.empty())
+      {
+         bandsToLoadI.push_back(pFileDescI->getOnDiskBand(0));
+      }
+      pDataDescZ->setBands(bandsToLoadZ);
+      pDataDescI->setBands(bandsToLoadI);
+
+      descriptors.push_back(descZ.release());
+      descriptors.push_back(descI.release());
+   }
+   catch(std::exception&)
+   {
+   }
    return descriptors;
 }
 
 unsigned char LasImporter::getFileAffinity(const std::string& filename)
 {
-   if (liblas::LASFile(filename).IsNull())
+   try
+   {
+      if (liblas::LASFile(filename).IsNull())
+      {
+         return CAN_NOT_LOAD;
+      }
+      return CAN_LOAD;
+   }
+   catch(std::exception&)
    {
       return CAN_NOT_LOAD;
    }
-   return CAN_LOAD;
 }
 
 bool LasImporter::getInputSpecification(PlugInArgList*& pInArgList)
