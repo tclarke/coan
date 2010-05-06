@@ -13,16 +13,16 @@
 #include "Animation.h"
 #include "AttachmentPtr.h"
 #include "ConfigurationSettings.h"
+#include "DataAccessor.h"
 #include "ExecutableShell.h"
 #include "RasterData.h"
 #include "RasterLayer.h"
 #include "TrackingUtils.h"
 #include <boost/any.hpp>
 
+class GraphicGroup;
 class RasterDataDescriptor;
 class RasterElement;
-struct kd_node;
-struct feature;
 
 class TrackingManager : public ExecutableShell
 {
@@ -51,11 +51,17 @@ private:
    const RasterDataDescriptor* mpDesc;
    RasterElement* mpElement;
 
-   DataPointerArgs mDpargs;
-   struct kd_node* mpKdRoot;
+   DataAccessor mBaseAcc;
    IplImageResource mpBaseFrame;
-   ca_ptr<struct feature> mpBaseFeatures;
-   DataElement* mpTemp;
+   IplImageResource mpEigImage;
+   IplImageResource mpTmpImage;
+   std::auto_ptr<CvPoint2D32f> mpBaseCorners;
+   IplImageResource mpBasePyramid;
+
+   char mpFeaturesFound[500];
+   float mpFeatureErrors[500];
+   GraphicGroup* mpGroup;
+   int mCornerCount;
 };
 
 #endif

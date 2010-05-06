@@ -7,11 +7,14 @@
  * http://www.gnu.org/licenses/lgpl.html
  */
 
+#include "AoiElement.h"
 #include "AppVerify.h"
+#include "BitMask.h"
 #include "CalculateSift.h"
 #include "DataAccessor.h"
 #include "DataAccessorImpl.h"
 #include "DataRequest.h"
+#include "LayerList.h"
 #include "PlugInArgList.h"
 #include "PlugInManagerServices.h"
 #include "PlugInRegistration.h"
@@ -31,6 +34,7 @@
 
 #include <opencv/cv.h>
 #include <stdarg.h>
+#include <opencv/highgui.h>
 
 REGISTER_PLUGIN_BASIC(Tracking, CalculateSift);
 
@@ -71,12 +75,9 @@ bool CalculateSift::getInputSpecification(PlugInArgList*& pArgList)
    VERIFY(pArgList->addArg<Progress>(ProgressArg()));
    VERIFY(pArgList->addArg<SpatialDataView>(ViewArg(), NULL));
    VERIFY(pArgList->addArg<RasterElement>(DataElementArg()));
-   VERIFY(pArgList->addArg<unsigned int>("Base Frame", 0, "The frame (active number) which is used as the basis for comparison."));
-   VERIFY(pArgList->addArg<unsigned int>("Current Frame", 1, "The frame (active number) which is being compared to 'Base Frame'."));
-   VERIFY(pArgList->addArg<unsigned int>("Start Row", "Optional sub-cube specification for the frames. (active numbers)"));
-   VERIFY(pArgList->addArg<unsigned int>("End Row", "Optional sub-cube specification for the frames. (active numbers)"));
-   VERIFY(pArgList->addArg<unsigned int>("Start Column", "Optional sub-cube specification for the frames. (active numbers)"));
-   VERIFY(pArgList->addArg<unsigned int>("End Column", "Optional sub-cube specification for the frames. (active numbers)"));
+   VERIFY(pArgList->addArg<unsigned int>("Base Frame", "The frame (active number) which is used as the basis for comparison."));
+   VERIFY(pArgList->addArg<unsigned int>("Current Frame", "The frame (active number) which is being compared to 'Base Frame'."));
+   VERIFY(pArgList->addArg<AoiElement>("AOI", "Optional sub-cube specification for the frames. Only the bounding box will be used and inverted AOIs will be ignored."));
    return true;
 }
 
@@ -104,25 +105,47 @@ bool CalculateSift::execute(PlugInArgList* pInArgList, PlugInArgList* pOutArgLis
       progress.report("Invalid raster element", 0, ERRORS, true);
       return false;
    }
+   RasterLayer* pLayer = (pView == NULL) ? NULL : static_cast<RasterLayer*>(pView->getLayerList()->getLayer(RASTER, pElement));
    unsigned int baseFrame=0, currentFrame=0;
-   if (!pInArgList->getPlugInArgValue("Base Frame", baseFrame) ||
-       !pInArgList->getPlugInArgValue("Current Frame", currentFrame))
+   if (!pInArgList->getPlugInArgValue("Base Frame", baseFrame))
    {
-      progress.report("Invalid frame specification", 0, ERRORS, true);
-      return false;
+      if (pLayer == NULL)
+      {
+         progress.report("Invalid frame specification", 0, ERRORS, true);
+         return false;
+      }
+      baseFrame = pLayer->getDisplayedBand(GRAY).getActiveNumber();
+      if (baseFrame == 0)
+      {
+         progress.report("If the current frame is frame 0, you must specify a base frame.", 0, ERRORS, true);
+         return false;
+      }
+      baseFrame--;
+   }
+   if (!pInArgList->getPlugInArgValue("Current Frame", currentFrame))
+   {
+      if (pLayer == NULL)
+      {
+         progress.report("Invalid frame specification", 0, ERRORS, true);
+         return false;
+      }
+      currentFrame = pLayer->getDisplayedBand(GRAY).getActiveNumber();
    }
 
+   progress.report("Using base frame " + StringUtilities::toDisplayString(baseFrame) + " and current frame " + StringUtilities::toDisplayString(currentFrame), 0, NORMAL, true);
    RasterDataDescriptor* pDesc = static_cast<RasterDataDescriptor*>(pElement->getDataDescriptor());
    if (pDesc->getDataType() != INT1UBYTE && pDesc->getDataType() != INT1SBYTE)
    {
       progress.report("Invalid data type, only 1-byte data is currently supported.", 0, ERRORS, true);
       return false;
    }
-   unsigned int startRow(0), endRow(pDesc->getRowCount() - 1), startCol(0), endCol(pDesc->getColumnCount() - 1);
-   bool hasSubcube = pInArgList->getPlugInArgValue("Start Row", startRow);
-   hasSubcube = pInArgList->getPlugInArgValue("End Row", endRow) || hasSubcube;
-   hasSubcube = pInArgList->getPlugInArgValue("Start Column", startCol) || hasSubcube;
-   hasSubcube = pInArgList->getPlugInArgValue("End Column", endCol) || hasSubcube;
+   int startRow(0), endRow(pDesc->getRowCount() - 1), startCol(0), endCol(pDesc->getColumnCount() - 1);
+   AoiElement* pAoi = pInArgList->getPlugInArgValue<AoiElement>("AOI");
+   bool hasSubcube = (pAoi != NULL);
+   if (hasSubcube)
+   {
+      pAoi->getSelectedPoints()->getMinimalBoundingBox(startCol, startRow, endCol, endRow);
+   }
    try
    {
       // Get acccessors for the two frames
@@ -167,7 +190,7 @@ bool CalculateSift::execute(PlugInArgList* pInArgList, PlugInArgList* pOutArgLis
          // subcube so we make a copy
          pBaseFrame = IplImageResource(width, height, 8, 1);
          pCurrentFrame = IplImageResource(width, height, 8, 1);
-         for (unsigned int row = startRow; row <= endRow; ++row)
+         for (int row = startRow; row <= endRow; ++row)
          {
             VERIFY(baseAcc.isValid() && currentAcc.isValid());
             memcpy((*pBaseFrame).imageData + ((*pBaseFrame).widthStep * (row - startRow)),
@@ -292,11 +315,22 @@ bool CalculateSift::execute(PlugInArgList* pInArgList, PlugInArgList* pOutArgLis
             cvWarpPerspective(pCurrentFrame, pXformed, pXform, CV_INTER_LINEAR | CV_WARP_FILL_OUTLIERS, cvScalarAll(0));
          }
          CvSize sz = cvGetSize(pXformed);
-         ModelResource<RasterElement> pOut(RasterUtilities::createRasterElement("Transformed", sz.height, sz.width, INT1UBYTE, true, pElement));
-         memcpy(pOut->getRawData(), (*pXformed).imageData, (*pXformed).imageSize);
-         static_cast<RasterDataDescriptor*>(pOut->getDataDescriptor())->setBadValues(std::vector<int>(1, 42));
-         pView->createLayer(RASTER, pOut.release());
+         ModelResource<RasterElement> pOut(static_cast<RasterElement*>(
+            Service<ModelServices>()->getElement("Transformed", TypeConverter::toString<RasterElement>(), pElement)));
+         bool created = pOut.get() == NULL;
+         if (created)
+         {
+            pOut = ModelResource<RasterElement>(RasterUtilities::createRasterElement("Transformed", sz.height, sz.width, INT1UBYTE, true, pElement));
+         }
+         uchar* pTmp = NULL;
+         cvGetRawData(pXformed, &pTmp);
+         memcpy(pOut->getRawData(), pTmp, sz.height * sz.width);
+         if (created)
+         {
+            RasterLayer* pLayer = static_cast<RasterLayer*>(pView->createLayer(RASTER, pOut.get()));
+         }
          cvReleaseMat(&pXform);
+         pOut.release();
       }
       else
       {

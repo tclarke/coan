@@ -192,15 +192,9 @@ IplImage& IplImageResource::operator*()
 
 IplImageResource& IplImageResource::operator=(IplImageResource& other)
 {
-   reset(other.get());
-   if (other.isShallow())
-   {
-      release();
-   }
-   else
-   {
-      take();
-   }
+   mShallow = other.mShallow;
+   mpImage = other.mpImage;
+   other.mShallow = true;
    other.mpImage = NULL;
    return *this;
 }

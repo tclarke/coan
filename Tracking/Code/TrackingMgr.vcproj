@@ -111,6 +111,10 @@
 			Name="Include"
 			>
 			<File
+				RelativePath=".\Include\HighResolutionTimer.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Include\TrackingVersion.h"
 				>
 			</File>
