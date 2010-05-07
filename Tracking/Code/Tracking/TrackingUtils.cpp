@@ -104,6 +104,79 @@ uint8_t calculateNeededLevels(uint32_t maxSubcubeSize,
    }
    return 0xff; // Invalid return
 }
+
+CvMat* ransac_affine(std::vector<std::pair<CvPoint2D32f, CvPoint2D32f> >& corr, int maxIter, float thresh, unsigned int numNeeded)
+{
+   if (corr.empty())
+   {
+      return NULL;
+   }
+   thresh = thresh * thresh; // calculating sqrt for each test is expensive, so we square the check value to change from RMS to MSE
+   unsigned int bestCount = 0;
+   CvMat* pBest = NULL;
+   CvMat* pTest = cvCreateMat(2, 3, CV_32F);
+   CvMat* pVer = cvCreateMat(3, 1, CV_32F);
+   CvMat* pVerRes = cvCreateMat(2, 1, CV_32F);
+   pVer->data.fl[2] = 1.0;
+   for (int it = 0; it < maxIter; ++it)
+   {
+      // build mss
+      int pMss[3];
+      pMss[0] = rand() % corr.size();
+      do
+      {
+         pMss[1] = rand() % corr.size();
+      }
+      while (pMss[1] == pMss[0]);
+      do
+      {
+         pMss[2] = rand() % corr.size();
+      }
+      while (pMss[2] == pMss[0] || pMss[2] == pMss[1]);
+      CvPoint2D32f pSrc[3] = {corr[pMss[0]].first, corr[pMss[1]].first, corr[pMss[2]].first};
+      CvPoint2D32f pDst[3] = {corr[pMss[0]].second, corr[pMss[1]].second, corr[pMss[2]].second};
+
+      cvGetAffineTransform(pSrc, pDst, pTest);
+
+      // test the mss
+      unsigned int fitCount = 0;
+      for (unsigned int j = 0; j < corr.size(); ++j)
+      {
+         if (j == pMss[0] || j == pMss[1] || j == pMss[2])
+         {
+            continue;
+         }
+         pVer->data.fl[0] = corr[j].first.x;
+         pVer->data.fl[1] = corr[j].first.y;
+         cvGEMM(pTest, pVer, 1.0, NULL, 0.0, pVerRes);
+         float tmpX = pVerRes->data.fl[0] - corr[j].second.x;
+         float tmpY = pVerRes->data.fl[1] - corr[j].second.y;
+         float mse = (tmpX * tmpX + tmpY * tmpY) / 2.0f;
+         if (mse < thresh)
+         {
+            // fits the affine transform
+            fitCount++;
+         }
+      }
+      if (fitCount >= numNeeded && fitCount > bestCount)
+      {
+         if (pBest == NULL)
+         {
+            pBest = pTest;
+            pTest = cvCreateMat(2, 3, CV_32F);
+         }
+         else
+         {
+            std::swap(pBest, pTest);
+         }
+         bestCount = fitCount;
+      }
+   }
+   cvReleaseMat(&pTest);
+   cvReleaseMat(&pVer);
+   cvReleaseMat(&pVerRes);
+   return pBest;
+}
 }
 
 IplImageResource::IplImageResource() : mpImage(NULL), mShallow(false)

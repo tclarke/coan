@@ -42,6 +42,7 @@ public:
 
 protected:
    void processFrame(Subject& subject, const std::string& signal, const boost::any& val);
+   void clearData(Subject& subject, const std::string& signal, const boost::any& val);
 
 private:
    void initializeFrame0();
@@ -62,6 +63,7 @@ private:
    float mpFeatureErrors[500];
    GraphicGroup* mpGroup;
    int mCornerCount;
+   RasterElement* mpRes;
 };
 
 #endif

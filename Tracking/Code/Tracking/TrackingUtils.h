@@ -83,6 +83,10 @@ bool calculateSubcubeBounds(subcubeid_t subcubeId, uint8_t& levels, Opticks::Pix
  */
 uint8_t calculateNeededLevels(uint32_t maxSubcubeSize, Opticks::PixelLocation maxBb, Opticks::PixelLocation minBb = Opticks::PixelLocation(0, 0));
 
+/**
+ * Determines the affine transform between a set of correspondances using RANSAC.
+ */
+CvMat* ransac_affine(std::vector<std::pair<CvPoint2D32f, CvPoint2D32f> >& corr, int maxIter, float thresh, unsigned int numNeeded);
 }
 
 /**
