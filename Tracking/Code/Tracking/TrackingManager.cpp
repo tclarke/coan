@@ -21,6 +21,7 @@
 #include "RasterElement.h"
 #include "RasterLayer.h"
 #include "SpatialDataView.h"
+#include "ThresholdLayer.h"
 #include "TrackingManager.h"
 #include "TrackingUtils.h"
 #include <time.h>
@@ -38,7 +39,15 @@ REGISTER_PLUGIN_BASIC(Tracking, TrackingManager);
 const char* TrackingManager::spPlugInName("TrackingManager");
 
 TrackingManager::TrackingManager() :
-      mpDesc(NULL), mpElement(NULL), mBaseAcc(NULL, NULL), mpBaseCorners(new CvPoint2D32f[MAX_CORNERS]), mpGroup(NULL), mCornerCount(MAX_CORNERS), mpRes(NULL)
+      mPaused(false),
+      mpDesc(NULL),
+      mpElement(NULL),
+      mBaseAcc(NULL, NULL),
+      mpBaseCorners(new CvPoint2D32f[MAX_CORNERS]),
+      mpGroup(NULL),
+      mCornerCount(MAX_CORNERS),
+      mpRes(NULL),
+      mpRes2(NULL)
 {
    mpAnimation.addSignal(SIGNAL_NAME(Animation, FrameChanged), Slot(this, &TrackingManager::processFrame));
    mpLayer.addSignal(SIGNAL_NAME(Subject, Deleted), Slot(this, &TrackingManager::clearData));
@@ -86,10 +95,19 @@ void TrackingManager::setTrackedLayer(RasterLayer* pLayer)
    mBaseAcc = DataAccessor(NULL, NULL);
    initializeFrame0();
 }
+
+void TrackingManager::setPauseState(bool state)
+{
+   mPaused = state;
+}
 #include "HighResolutionTimer.h"
 #include "MessageLogResource.h"
 void TrackingManager::processFrame(Subject& subject, const std::string& signal, const boost::any& val)
 {
+   if (mPaused)
+   {
+      return;
+   }
    VERIFYNRV(mpLayer.get());
    double tat = 0.0;
    try
@@ -146,25 +164,48 @@ void TrackingManager::processFrame(Subject& subject, const std::string& signal, 
       {
 #ifdef FORWARD_XFORM
          IplImageResource pXform(width, height, 8, 1);
+         IplImageResource pTemp(width, height, 8, 1);
          IplImageResource pRes(width, height, 8, 1, reinterpret_cast<char*>(mpRes->getRawData()));
-         cvWarpAffine(mpBaseFrame, pXform, pMapMatrix);
-         cvSmooth(pXform, pRes, CV_MEDIAN, 5, 5);
-         //IplImageResource pBlurred(width, height, 8, 1);
-         cvSmooth(pCurFrame, pCurFrame, CV_MEDIAN, 5, 5);
-         /*cvAbsDiff(pXform, pCurFrame, pXform);
-         cvAdaptiveThreshold(pXform, pRes, 100, CV_ADAPTIVE_THRESH_MEAN_C, CV_THRESH_BINARY_INV);
-         cvDilate(pRes, pXform, NULL, 2);
-         cvErode(pXform, pBlurred, NULL, 4);
-         cvDilate(pBlurred, pRes, NULL, 2);*/
+         IplImageResource pRes2(width, height, 8, 1, reinterpret_cast<char*>(mpRes2->getRawData()));
+         cvCopy(pCurFrame, pXform); // initialize to the current frame so any "offsets" have a consistent background
+         cvWarpAffine(mpBaseFrame, pXform, pMapMatrix, CV_INTER_LINEAR); // warp the base frame to the new position
+         //cvSmooth(pXform, pRes, CV_MEDIAN, 5, 5);
+         //cvSmooth(pCurFrame, pXform, CV_MEDIAN, 5, 5);
+         cvCopy(pXform, mpBaseFrame);
+         mpElement->updateData();
+         cvCopy(pXform, pRes);
+         cvCopy(pCurFrame, pTemp);
+
+         // threhold the results
+         cvThreshold(pTemp, pTemp, 15, 255, CV_THRESH_BINARY);
+         cvThreshold(pRes, pRes, 15, 255, CV_THRESH_BINARY);
+         // erode to remove some noise
+         cvErode(pTemp, pTemp);
+         cvErode(pRes,pRes);
+         // difference the frames
+         cvSub(pTemp, pRes, pRes2);
+         cvSub(pRes, pTemp, pRes);
+         //cvAbsDiff(pTemp, pRes, pRes2);
+         //cvAbsDiff(pRes, pTemp, pRes);
+         // remove final small differences with an open
+         cvErode(pRes,pRes, NULL, 3);
+         cvDilate(pRes,pRes,NULL,3);
+         cvErode(pRes2,pRes2, NULL, 3);
+         cvDilate(pRes2,pRes2,NULL,3);
          if (mpRes != NULL)
          {
             mpRes->updateData();
+         }
+         if (mpRes2 != NULL)
+         {
+            mpRes2->updateData();
          }
 #else
          IplImageResource pXform(width, height, 8, 1);
          cvWarpAffine(pCurFrame, pXform, pMapMatrix);
          cvSmooth(pXform, pCurFrame, CV_MEDIAN, 5, 5);
 #endif
+
          cvReleaseMat(&pMapMatrix);
       }
 
@@ -250,10 +291,23 @@ void TrackingManager::initializeFrame0()
 #endif
 
       mpRes = NULL;
+      mpRes2 = NULL;
 #ifdef FORWARD_XFORM
       RasterElementArgs args={mpDesc->getRowCount(), mpDesc->getColumnCount(), 1, 0, 1, 1, mpElement, 0, NULL};
       mpRes = static_cast<RasterElement*>(createRasterElement("Temp", args));
-      static_cast<SpatialDataView*>(mpLayer->getView())->createLayer(RASTER, mpRes);
+      ThresholdLayer* pThresh = static_cast<ThresholdLayer*>(
+         static_cast<SpatialDataView*>(mpLayer->getView())->createLayer(THRESHOLD, mpRes));
+      pThresh->setColor(ColorType(128, 0, 0));
+      pThresh->setSymbol(BOX);
+      pThresh->setPassArea(UPPER);
+      pThresh->setFirstThreshold(128);
+      mpRes2 = static_cast<RasterElement*>(createRasterElement("Temp2", args));
+      ThresholdLayer* pThresh2 = static_cast<ThresholdLayer*>(
+         static_cast<SpatialDataView*>(mpLayer->getView())->createLayer(THRESHOLD, mpRes2));
+      pThresh2->setColor(ColorType(0, 128, 0));
+      pThresh2->setSymbol(BOX);
+      pThresh2->setPassArea(UPPER);
+      pThresh2->setFirstThreshold(128);
 #endif
    }
    catch (cv::Exception&) {}

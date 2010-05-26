@@ -19,6 +19,7 @@
 #include "SpatialDataView.h"
 #include "SpatialDataWindow.h"
 #include "TrackingManager.h"
+#include <QtGui/QCheckBox>
 #include <QtGui/QComboBox>
 #include <QtGui/QHBoxLayout>
 #include <QtGui/QPushButton>
@@ -38,6 +39,10 @@ OpticalFlowWidget::OpticalFlowWidget(QWidget* pParent) : LabeledSectionGroup(pPa
    QPushButton* pRefresh = new QPushButton("Refresh", pSelectWidget);
    pSelectLayout->addWidget(pRefresh);
    VERIFYNR(connect(pRefresh, SIGNAL(clicked()), this, SLOT(updateDataSelect())));
+
+   QCheckBox* pPause = new QCheckBox("Pause", pSelectWidget);
+   pSelectLayout->addWidget(pPause);
+   VERIFYNR(connect(pPause, SIGNAL(toggled(bool)), this, SLOT(updatePause(bool))));
 
    pSelectLayout->addStretch(10);
    LabeledSection* pDataSelectSection = new LabeledSection("Data Set", this);
@@ -84,5 +89,14 @@ void OpticalFlowWidget::trackIndex(int idx)
    if (!manager.empty())
    {
       static_cast<TrackingManager*>(manager.front())->setTrackedLayer(pLayer);
+   }
+}
+
+void OpticalFlowWidget::updatePause(bool state)
+{
+   std::vector<PlugIn*> manager = Service<PlugInManagerServices>()->getPlugInInstances(TrackingManager::spPlugInName);
+   if (!manager.empty())
+   {
+      static_cast<TrackingManager*>(manager.front())->setPauseState(state);
    }
 }

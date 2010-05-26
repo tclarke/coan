@@ -26,6 +26,7 @@ public:
 protected slots:
    void updateDataSelect();
    void trackIndex(int idx);
+   void updatePause(bool state);
 
 private:
    QComboBox* mpDataSelect;

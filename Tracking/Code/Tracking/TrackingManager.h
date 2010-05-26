@@ -39,6 +39,7 @@ public:
    virtual bool execute(PlugInArgList* pInArgList, PlugInArgList* pOutArgList);
 
    void setTrackedLayer(RasterLayer* pLayer);
+   void setPauseState(bool state);
 
 protected:
    void processFrame(Subject& subject, const std::string& signal, const boost::any& val);
@@ -47,6 +48,7 @@ protected:
 private:
    void initializeFrame0();
 
+   bool mPaused;
    AttachmentPtr<RasterLayer> mpLayer;
    AttachmentPtr<Animation> mpAnimation;
    const RasterDataDescriptor* mpDesc;
@@ -64,6 +66,7 @@ private:
    GraphicGroup* mpGroup;
    int mCornerCount;
    RasterElement* mpRes;
+   RasterElement* mpRes2;
 };
 
 #endif
