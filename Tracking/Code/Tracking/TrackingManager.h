@@ -20,6 +20,7 @@
 #include "TrackingUtils.h"
 #include <boost/any.hpp>
 
+class AoiElement;
 class GraphicGroup;
 class RasterDataDescriptor;
 class RasterElement;
@@ -40,6 +41,7 @@ public:
 
    void setTrackedLayer(RasterLayer* pLayer);
    void setPauseState(bool state);
+   void setFocus(LocationType loc, int maxSize);
 
 protected:
    void processFrame(Subject& subject, const std::string& signal, const boost::any& val);
@@ -67,6 +69,9 @@ private:
    int mCornerCount;
    RasterElement* mpRes;
    RasterElement* mpRes2;
+   AoiElement* mpFocus;
+   Opticks::PixelLocation mMinBb;
+   Opticks::PixelLocation mMaxBb;
 };
 
 #endif

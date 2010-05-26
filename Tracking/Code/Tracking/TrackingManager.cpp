@@ -8,6 +8,8 @@
  */
 
 #include "AnnotationElement.h"
+#include "AoiElement.h"
+#include "AoiLayer.h"
 #include "ApiUtilities.h"
 #include "DataAccessor.h"
 #include "DataAccessorImpl.h"
@@ -32,7 +34,7 @@
 REGISTER_PLUGIN_BASIC(Tracking, TrackingManager);
 
 #define FORWARD_XFORM
-#define SHOW_FLOW_VECTORS
+//#define SHOW_FLOW_VECTORS
 
 #define MAX_CORNERS 500
 
@@ -100,8 +102,29 @@ void TrackingManager::setPauseState(bool state)
 {
    mPaused = state;
 }
-#include "HighResolutionTimer.h"
-#include "MessageLogResource.h"
+
+void TrackingManager::setFocus(LocationType loc, int maxSize)
+{
+   if (mpDesc == NULL)
+   {
+      return;
+   }
+   LocationType dloc;
+   mpLayer->translateScreenToData(loc.mX, loc.mY, dloc.mX, dloc.mY);
+   Opticks::PixelLocation minBb(0,0);
+   Opticks::PixelLocation maxBb(mpDesc->getColumnCount(), mpDesc->getRowCount());
+   uint8_t level = TrackingUtils::calculateNeededLevels(maxSize, maxBb, minBb);
+   TrackingUtils::subcubeid_t id = TrackingUtils::calculateSubcubeId(dloc, level, maxBb, minBb);
+   TrackingUtils::calculateSubcubeBounds(id, level, maxBb, minBb);
+   mpFocus->clearPoints();
+   GraphicObject* pRect = mpFocus->getGroup()->addObject(RECTANGLE_OBJECT);
+   pRect->setBoundingBox(LocationType(minBb.mX, minBb.mY), LocationType(maxBb.mX, maxBb.mY));
+   pRect->setFillState(false);
+   mMinBb = minBb;
+   mMaxBb = maxBb;
+   initializeFrame0();
+}
+
 void TrackingManager::processFrame(Subject& subject, const std::string& signal, const boost::any& val)
 {
    if (mPaused)
@@ -112,7 +135,6 @@ void TrackingManager::processFrame(Subject& subject, const std::string& signal, 
    double tat = 0.0;
    try
    {
-      HrTimer::Resource ta(&tat);
       unsigned int curFrame = mpAnimation->getCurrentFrame()->mFrameNumber;
       int width = mpDesc->getColumnCount();
       int height = mpDesc->getRowCount();
@@ -169,16 +191,14 @@ void TrackingManager::processFrame(Subject& subject, const std::string& signal, 
          IplImageResource pRes2(width, height, 8, 1, reinterpret_cast<char*>(mpRes2->getRawData()));
          cvCopy(pCurFrame, pXform); // initialize to the current frame so any "offsets" have a consistent background
          cvWarpAffine(mpBaseFrame, pXform, pMapMatrix, CV_INTER_LINEAR); // warp the base frame to the new position
-         //cvSmooth(pXform, pRes, CV_MEDIAN, 5, 5);
-         //cvSmooth(pCurFrame, pXform, CV_MEDIAN, 5, 5);
          cvCopy(pXform, mpBaseFrame);
          mpElement->updateData();
-         cvCopy(pXform, pRes);
-         cvCopy(pCurFrame, pTemp);
+         cvSmooth(pXform, pRes, CV_MEDIAN, 5, 5);
+         cvSmooth(pCurFrame, pTemp, CV_MEDIAN, 5, 5);
 
          // threhold the results
-         cvThreshold(pTemp, pTemp, 15, 255, CV_THRESH_BINARY);
-         cvThreshold(pRes, pRes, 15, 255, CV_THRESH_BINARY);
+         cvThreshold(pCurFrame, pTemp, 15, 255, CV_THRESH_BINARY);
+         cvThreshold(pXform, pRes, 15, 255, CV_THRESH_BINARY);
          // erode to remove some noise
          cvErode(pTemp, pTemp);
          cvErode(pRes,pRes);
@@ -224,17 +244,11 @@ void TrackingManager::processFrame(Subject& subject, const std::string& signal, 
    {
       int tmp = err.code;
    }
-   MessageResource msg("Time to process frame", "coan", "tracking");
-   msg->addProperty("Time (ms)", tat);
 }
 
 void TrackingManager::clearData(Subject& subject, const std::string& signal, const boost::any& val)
 {
-   RasterLayer* pLayer = dynamic_cast<RasterLayer*>(&subject);
-   if (pLayer == mpLayer.get())
-   {
-      setTrackedLayer(NULL);
-   }
+   setTrackedLayer(NULL);
 }
 
 void TrackingManager::initializeFrame0()
@@ -292,7 +306,7 @@ void TrackingManager::initializeFrame0()
 
       mpRes = NULL;
       mpRes2 = NULL;
-#ifdef FORWARD_XFORM
+
       RasterElementArgs args={mpDesc->getRowCount(), mpDesc->getColumnCount(), 1, 0, 1, 1, mpElement, 0, NULL};
       mpRes = static_cast<RasterElement*>(createRasterElement("Temp", args));
       ThresholdLayer* pThresh = static_cast<ThresholdLayer*>(
@@ -308,7 +322,18 @@ void TrackingManager::initializeFrame0()
       pThresh2->setSymbol(BOX);
       pThresh2->setPassArea(UPPER);
       pThresh2->setFirstThreshold(128);
-#endif
+
+      mpFocus = static_cast<AoiElement*>(
+         Service<ModelServices>()->getElement("Focus", TypeConverter::toString<AoiElement>(), mpElement));
+      if (mpFocus == NULL)
+      {
+         mpFocus = static_cast<AoiElement*>(
+            Service<ModelServices>()->createElement("Focus", TypeConverter::toString<AoiElement>(), mpElement));
+         AoiLayer* pLayer = static_cast<AoiLayer*>(
+            static_cast<SpatialDataView*>(mpLayer->getView())->createLayer(AOI_LAYER, mpFocus));
+         pLayer->setSymbol(BOX);
+         pLayer->setColor(ColorType(0, 0, 128));
+      }
    }
    catch (cv::Exception&) {}
 }

@@ -10,10 +10,14 @@
 #ifndef OPTICALFLOWWIDGET_H__
 #define OPTICALFLOWWIDGET_H__
 
+#include "AnimationToolBar.h"
+#include "AttachmentPtr.h"
 #include "LabeledSectionGroup.h"
 #include <boost/any.hpp>
 
+class MouseMode;
 class QComboBox;
+class QSpinBox;
 
 class OpticalFlowWidget : public LabeledSectionGroup
 {
@@ -24,12 +28,19 @@ public:
    virtual ~OpticalFlowWidget();
 
 protected slots:
-   void updateDataSelect();
-   void trackIndex(int idx);
    void updatePause(bool state);
+   void activateSelectMode();
+
+protected:
+   bool eventFilter(QObject* pObj, QEvent* pEvent);
 
 private:
-   QComboBox* mpDataSelect;
+   void updateAnimation(Subject& subject, const std::string& signal, const boost::any& val);
+
+   AttachmentPtr<AnimationToolBar> mpToolbar;
+   MouseMode* mpSelectMode;
+   MouseMode* mpActiveMode;
+   QSpinBox* mpMaxSize;
 };
 
 #endif
