@@ -11,31 +11,43 @@
 #include "AoiElement.h"
 #include "AoiLayer.h"
 #include "ApiUtilities.h"
+#include "ColorMap.h"
+#include "ColorType.h"
 #include "DataAccessor.h"
 #include "DataAccessorImpl.h"
 #include "DataRequest.h"
 #include "GraphicGroup.h"
 #include "GraphicObject.h"
 #include "LayerList.h"
+#include "MessageLogResource.h"
 #include "PlugInRegistration.h"
+#include "PseudocolorLayer.h"
 #include "RasterDataDescriptor.h"
 #include "RasterData.h"
 #include "RasterElement.h"
 #include "RasterLayer.h"
 #include "SpatialDataView.h"
+#include "StringUtilities.h"
 #include "ThresholdLayer.h"
 #include "TrackingManager.h"
 #include "TrackingUtils.h"
 #include <time.h>
 #include <opencv/cv.h>
-#include <opencv/highgui.h>
+#include <BlobResult.h>
 #include <vector>
 
 REGISTER_PLUGIN_BASIC(Tracking, TrackingManager);
 
-#define FORWARD_XFORM
+// Define this to generate an annotation layer showing the optical flow vectors
+// This will slow down processing quite a bit.
 //#define SHOW_FLOW_VECTORS
 
+// Define this to calculate connected components on the object results
+#define CONNECTED
+
+// Maximum number of corners to use when calculating optical flow.
+// Higher numbers may result in more accurate calculations but may also slow down calculations.
+// There's a point where increasing this number does nothing as there are only so many strong corners in a frame.
 #define MAX_CORNERS 500
 
 const char* TrackingManager::spPlugInName("TrackingManager");
@@ -174,17 +186,12 @@ void TrackingManager::processFrame(Subject& subject, const std::string& signal, 
             pObj->setBoundingBox(LocationType(mpBaseCorners.get()[i].x, mpBaseCorners.get()[i].y),
                LocationType(pCurCorners.get()[i].x, pCurCorners.get()[i].y));
          }
-#ifdef FORWARD_XFORM
          corr.push_back(std::make_pair(mpBaseCorners.get()[i], pCurCorners.get()[i]));
-#else
-         corr.push_back(std::make_pair(pCurCorners.get()[i], mpBaseCorners.get()[i]));
-#endif
       }
       srand((unsigned int)time(NULL));
       CvMat* pMapMatrix = TrackingUtils::ransac_affine(corr, 15, 5.0f, 5);
       if (pMapMatrix != NULL)
       {
-#ifdef FORWARD_XFORM
          IplImageResource pXform(width, height, 8, 1);
          IplImageResource pTemp(width, height, 8, 1);
          IplImageResource pRes(width, height, 8, 1, reinterpret_cast<char*>(mpRes->getRawData()));
@@ -205,13 +212,29 @@ void TrackingManager::processFrame(Subject& subject, const std::string& signal, 
          // difference the frames
          cvSub(pTemp, pRes, pRes2);
          cvSub(pRes, pTemp, pRes);
-         //cvAbsDiff(pTemp, pRes, pRes2);
-         //cvAbsDiff(pRes, pTemp, pRes);
          // remove final small differences with an open
          cvErode(pRes,pRes, NULL, 3);
          cvDilate(pRes,pRes,NULL,3);
          cvErode(pRes2,pRes2, NULL, 3);
          cvDilate(pRes2,pRes2,NULL,3);
+#ifdef CONNECTED
+         {
+         CBlobResult blobs(pRes, NULL, 0);
+         for (int bidx = 0; bidx < blobs.GetNumBlobs(); ++bidx)
+         {
+            CBlob blob(blobs.GetBlob(bidx));
+            blob.FillBlob(pRes, CV_RGB(bidx+1,bidx+1,bidx+1));
+         }
+         }
+         {
+         CBlobResult blobs(pRes2, NULL, 0);
+         for (int bidx = 0; bidx < blobs.GetNumBlobs(); ++bidx)
+         {
+            CBlob blob(blobs.GetBlob(bidx));
+            blob.FillBlob(pRes2, CV_RGB(bidx+1,bidx+1,bidx+1));
+         }
+         }
+#endif
          if (mpRes != NULL)
          {
             mpRes->updateData();
@@ -220,11 +243,6 @@ void TrackingManager::processFrame(Subject& subject, const std::string& signal, 
          {
             mpRes2->updateData();
          }
-#else
-         IplImageResource pXform(width, height, 8, 1);
-         cvWarpAffine(pCurFrame, pXform, pMapMatrix);
-         cvSmooth(pXform, pCurFrame, CV_MEDIAN, 5, 5);
-#endif
 
          cvReleaseMat(&pMapMatrix);
       }
@@ -277,7 +295,7 @@ void TrackingManager::initializeFrame0()
       {
          return;
       }
-      // Wrap the accessors with OpenCV data structures.
+      // Wrap the accessors with OpenCV data structures and create some temporary arrays.
       mpBaseFrame = IplImageResource(width, height, 8, 1, reinterpret_cast<char*>(mBaseAcc->getColumn()));
 
       mpEigImage = IplImageResource(width, height, IPL_DEPTH_32F, 1);
@@ -292,6 +310,7 @@ void TrackingManager::initializeFrame0()
 
       mpGroup = NULL;
 #ifdef SHOW_FLOW_VECTORS
+      // Create elements and views to show the optical flow vectors
       ModelResource<AnnotationElement> pAnno(static_cast<AnnotationElement*>(
          Service<ModelServices>()->getElement("Flow Vectors", TypeConverter::toString<AnnotationElement>(), mpElement)));
       bool created = pAnno.get() == NULL;
@@ -304,25 +323,39 @@ void TrackingManager::initializeFrame0()
       pAnno.release();
 #endif
 
+      // Create elements and views to show identified objects
       mpRes = NULL;
       mpRes2 = NULL;
 
-      RasterElementArgs args={mpDesc->getRowCount(), mpDesc->getColumnCount(), 1, 0, 1, 1, mpElement, 0, NULL};
-      mpRes = static_cast<RasterElement*>(createRasterElement("Temp", args));
+      RasterElementArgs args={mpDesc->getRowCount(), mpDesc->getColumnCount(), 1, 0, 1, 1, mpElement, 0, NULL}; // BSQ, uchar (ushort)
+      mpRes = static_cast<RasterElement*>(createRasterElement("Current Objects", args));
+#ifdef CONNECTED
+      RasterLayer* pPseudo = static_cast<RasterLayer*>(
+         static_cast<SpatialDataView*>(mpLayer->getView())->createLayer(RASTER, mpRes));
+      mpRes2 = static_cast<RasterElement*>(createRasterElement("Base Objects", args));
+      RasterLayer* pPseudo2 = static_cast<RasterLayer*>(
+         static_cast<SpatialDataView*>(mpLayer->getView())->createLayer(RASTER, mpRes2));
+      pPseudo->setStretchUnits(GRAYSCALE_MODE, RAW_VALUE);
+      pPseudo->setStretchValues(GRAY, 0, 47);
+      pPseudo2->setStretchUnits(GRAYSCALE_MODE, RAW_VALUE);
+      pPseudo2->setStretchValues(GRAY, 0, 47);
+#else
       ThresholdLayer* pThresh = static_cast<ThresholdLayer*>(
          static_cast<SpatialDataView*>(mpLayer->getView())->createLayer(THRESHOLD, mpRes));
       pThresh->setColor(ColorType(128, 0, 0));
       pThresh->setSymbol(BOX);
       pThresh->setPassArea(UPPER);
       pThresh->setFirstThreshold(128);
-      mpRes2 = static_cast<RasterElement*>(createRasterElement("Temp2", args));
+      mpRes2 = static_cast<RasterElement*>(createRasterElement("Base Objects", args));
       ThresholdLayer* pThresh2 = static_cast<ThresholdLayer*>(
          static_cast<SpatialDataView*>(mpLayer->getView())->createLayer(THRESHOLD, mpRes2));
       pThresh2->setColor(ColorType(0, 128, 0));
       pThresh2->setSymbol(BOX);
       pThresh2->setPassArea(UPPER);
       pThresh2->setFirstThreshold(128);
+#endif
 
+      // Create an AOI to define a sub-area for processing.
       mpFocus = static_cast<AoiElement*>(
          Service<ModelServices>()->getElement("Focus", TypeConverter::toString<AoiElement>(), mpElement));
       if (mpFocus == NULL)
@@ -335,5 +368,14 @@ void TrackingManager::initializeFrame0()
          pLayer->setColor(ColorType(0, 0, 128));
       }
    }
-   catch (cv::Exception&) {}
+   catch (const cv::Exception& exc)
+   {
+      MessageResource msg("OpenCV error occurred.", "tracking", "{b16ae5e9-ef7e-474f-9c45-8a061aa3cda2}");
+      msg->addProperty("Code", exc.code);
+      msg->addProperty("Error", exc.err);
+      msg->addProperty("Function", exc.func);
+      msg->addProperty("File", exc.file);
+      msg->addProperty("Line", exc.line);
+      msg->finalize(Message::Failure);
+   }
 }

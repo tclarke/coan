@@ -54,7 +54,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="highgui200.lib"
+				AdditionalDependencies="highgui200.lib cvblobslibd.lib"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -182,7 +182,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="highgui200.lib"
+				AdditionalDependencies="cvblobslib.lib highgui200.lib"
 			/>
 			<Tool
 				Name="VCALinkTool"
