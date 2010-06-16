@@ -48,6 +48,7 @@ protected:
    void clearData(Subject& subject, const std::string& signal, const boost::any& val);
 
 private:
+   void initializeDataset();
    void initializeFrame0();
 
    bool mPaused;

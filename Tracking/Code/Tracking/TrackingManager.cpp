@@ -27,6 +27,7 @@
 #include "RasterElement.h"
 #include "RasterLayer.h"
 #include "SpatialDataView.h"
+#include "Statistics.h"
 #include "StringUtilities.h"
 #include "ThresholdLayer.h"
 #include "TrackingManager.h"
@@ -35,6 +36,7 @@
 #include <opencv/cv.h>
 #include <BlobResult.h>
 #include <vector>
+#include "HighResolutionTimer.h"
 
 REGISTER_PLUGIN_BASIC(Tracking, TrackingManager);
 
@@ -44,6 +46,9 @@ REGISTER_PLUGIN_BASIC(Tracking, TrackingManager);
 
 // Define this to calculate connected components on the object results
 #define CONNECTED
+
+// Define the threshold for locating objects
+#define OBJECT_THRESHOLD 15
 
 // Maximum number of corners to use when calculating optical flow.
 // Higher numbers may result in more accurate calculations but may also slow down calculations.
@@ -107,7 +112,7 @@ void TrackingManager::setTrackedLayer(RasterLayer* pLayer)
    mpBaseCorners.reset(NULL);
    mpBaseFrame.reset(NULL);
    mBaseAcc = DataAccessor(NULL, NULL);
-   initializeFrame0();
+   initializeDataset();
 }
 
 void TrackingManager::setPauseState(bool state)
@@ -134,6 +139,8 @@ void TrackingManager::setFocus(LocationType loc, int maxSize)
    pRect->setFillState(false);
    mMinBb = minBb;
    mMaxBb = maxBb;
+   mMaxBb.mX--;
+   mMaxBb.mY--;
    initializeFrame0();
 }
 
@@ -144,14 +151,19 @@ void TrackingManager::processFrame(Subject& subject, const std::string& signal, 
       return;
    }
    VERIFYNRV(mpLayer.get());
-   double tat = 0.0;
    try
    {
       unsigned int curFrame = mpAnimation->getCurrentFrame()->mFrameNumber;
-      int width = mpDesc->getColumnCount();
-      int height = mpDesc->getRowCount();
+      int width = (*mpBaseFrame).width;
+      int height = (*mpBaseFrame).height;
+      bool fullScene = (width == mpDesc->getColumnCount() && height == mpDesc->getRowCount());
 
       FactoryResource<DataRequest> req;
+      if (!fullScene)
+      {
+         req->setRows(mpDesc->getActiveRow(mMinBb.mY), mpDesc->getActiveRow(mMaxBb.mY), height);
+         req->setColumns(mpDesc->getActiveColumn(mMinBb.mX), mpDesc->getActiveColumn(mMaxBb.mX), width);
+      }
       req->setBands(mpDesc->getActiveBand(curFrame), mpDesc->getActiveBand(curFrame), 1);
       req->setInterleaveFormat(BSQ);
       DataAccessor curAcc = mpElement->getDataAccessor(req.release());
@@ -160,7 +172,24 @@ void TrackingManager::processFrame(Subject& subject, const std::string& signal, 
       {
          return;
       }
-      IplImageResource pCurFrame(width, height, 8, 1, reinterpret_cast<char*>(curAcc->getColumn()));
+      IplImageResource pCurFrame(NULL);
+      if (fullScene)
+      {
+         pCurFrame = IplImageResource(width, height, 8, 1, reinterpret_cast<char*>(curAcc->getColumn()));
+      }
+      else
+      {
+         pCurFrame = IplImageResource(width, height, 8, 1);
+         for (int row = 0; row < height; ++row)
+         {
+            if (row > 0)
+            {
+               curAcc->nextRow();
+               VERIFYNRV(curAcc.isValid());
+            }
+            memcpy((*pCurFrame).imageData + (row * width), curAcc->getRow(), (*pCurFrame).width);
+         }
+      }
       CvSize pyr_sz = cvSize((*mpBaseFrame).width + 8, (*mpBaseFrame).height / 3);
       IplImageResource pCurPyramid(pyr_sz.width, pyr_sz.height, IPL_DEPTH_32F, 1);
       std::auto_ptr<CvPoint2D32f> pCurCorners(new CvPoint2D32f[MAX_CORNERS]);
@@ -199,13 +228,15 @@ void TrackingManager::processFrame(Subject& subject, const std::string& signal, 
          cvCopy(pCurFrame, pXform); // initialize to the current frame so any "offsets" have a consistent background
          cvWarpAffine(mpBaseFrame, pXform, pMapMatrix, CV_INTER_LINEAR); // warp the base frame to the new position
          cvCopy(pXform, mpBaseFrame);
-         mpElement->updateData();
+         /*double t1v(0.0),t2v(0.0);
+         {HrTimer::Resource t1(&t1v);
+         {HrTimer::Resource t2(&t2v);*/
          cvSmooth(pXform, pRes, CV_MEDIAN, 5, 5);
          cvSmooth(pCurFrame, pTemp, CV_MEDIAN, 5, 5);
 
          // threhold the results
-         cvThreshold(pCurFrame, pTemp, 15, 255, CV_THRESH_BINARY);
-         cvThreshold(pXform, pRes, 15, 255, CV_THRESH_BINARY);
+         cvThreshold(pCurFrame, pTemp, OBJECT_THRESHOLD, 255, CV_THRESH_BINARY);
+         cvThreshold(pXform, pRes, OBJECT_THRESHOLD, 255, CV_THRESH_BINARY);
          // erode to remove some noise
          cvErode(pTemp, pTemp);
          cvErode(pRes,pRes);
@@ -217,6 +248,7 @@ void TrackingManager::processFrame(Subject& subject, const std::string& signal, 
          cvDilate(pRes,pRes,NULL,3);
          cvErode(pRes2,pRes2, NULL, 3);
          cvDilate(pRes2,pRes2,NULL,3);
+         /*}*/
 #ifdef CONNECTED
          {
          CBlobResult blobs(pRes, NULL, 0);
@@ -234,7 +266,26 @@ void TrackingManager::processFrame(Subject& subject, const std::string& signal, 
             blob.FillBlob(pRes2, CV_RGB(bidx+1,bidx+1,bidx+1));
          }
          }
+         /*}
+         MessageResource msg("Timer Results", "timer", "timer");
+         msg->addProperty("Total", t1v);
+         msg->addProperty("Diff", t2v);*/
 #endif
+         if (!fullScene)
+         {
+            mBaseAcc->toPixel(mMinBb.mY, mMinBb.mX);
+            VERIFYNRV(mBaseAcc.isValid());
+            for (int row = 0; row < height; ++row)
+            {
+               if (row > 0)
+               {
+                  mBaseAcc->nextRow();
+                  VERIFYNRV(mBaseAcc.isValid());
+               }
+               memcpy(mBaseAcc->getRow(), (*mpBaseFrame).imageData + (row * width), (*mpBaseFrame).width);
+            }
+         }
+         mpElement->updateData();
          if (mpRes != NULL)
          {
             mpRes->updateData();
@@ -269,6 +320,57 @@ void TrackingManager::clearData(Subject& subject, const std::string& signal, con
    setTrackedLayer(NULL);
 }
 
+void TrackingManager::initializeDataset()
+{
+   if (mpLayer.get() == NULL)
+   {
+      mpElement = NULL;
+      mpDesc = NULL;
+      return;
+   }
+   VERIFYNRV(mpElement = static_cast<RasterElement*>(mpLayer->getDataElement()));
+   VERIFYNRV(mpDesc = static_cast<RasterDataDescriptor*>(mpElement->getDataDescriptor()));
+   if (mpDesc->getBytesPerElement() != 1)
+   {
+      // only 8-bit supported right now
+      mpElement = NULL;
+      mpDesc = NULL;
+      return;
+   }
+
+   mpGroup = NULL;
+#ifdef SHOW_FLOW_VECTORS
+   // Create elements and views to show the optical flow vectors
+   ModelResource<AnnotationElement> pAnno(static_cast<AnnotationElement*>(
+      Service<ModelServices>()->getElement("Flow Vectors", TypeConverter::toString<AnnotationElement>(), mpElement)));
+   bool created = pAnno.get() == NULL;
+   if (created)
+   {
+      pAnno = ModelResource<AnnotationElement>("Flow Vectors", mpElement);
+      static_cast<SpatialDataView*>(mpLayer->getView())->createLayer(ANNOTATION, pAnno.get());
+   }
+   mpGroup = pAnno->getGroup();
+   pAnno.release();
+#endif
+
+   // Create an AOI to define a sub-area for processing.
+   mpFocus = static_cast<AoiElement*>(
+      Service<ModelServices>()->getElement("Focus", TypeConverter::toString<AoiElement>(), mpElement));
+   if (mpFocus == NULL)
+   {
+      mpFocus = static_cast<AoiElement*>(
+         Service<ModelServices>()->createElement("Focus", TypeConverter::toString<AoiElement>(), mpElement));
+      AoiLayer* pLayer = static_cast<AoiLayer*>(
+         static_cast<SpatialDataView*>(mpLayer->getView())->createLayer(AOI_LAYER, mpFocus));
+      pLayer->setSymbol(BOX);
+      pLayer->setColor(ColorType(0, 0, 128));
+   }
+   mMinBb = Opticks::PixelLocation(0, 0);
+   mMaxBb = Opticks::PixelLocation(mpDesc->getColumnCount()-1, mpDesc->getRowCount()-1);
+
+   initializeFrame0();
+}
+#include <QtCore/QtDebug>
 void TrackingManager::initializeFrame0()
 {
    if (mpLayer.get() == NULL)
@@ -279,14 +381,18 @@ void TrackingManager::initializeFrame0()
    }
    try
    {
-      VERIFYNRV(mpElement = static_cast<RasterElement*>(mpLayer->getDataElement()));
-      VERIFYNRV(mpDesc = static_cast<RasterDataDescriptor*>(mpElement->getDataDescriptor()));
       unsigned int baseFrame = mpLayer->getDisplayedBand(GRAY).getActiveNumber();
 
-      int width = mpDesc->getColumnCount();
-      int height = mpDesc->getRowCount();
+      int width = mMaxBb.mX - mMinBb.mX + 1;
+      int height = mMaxBb.mY - mMinBb.mY + 1;
+      bool fullScene = (width == mpDesc->getColumnCount() && height == mpDesc->getRowCount());
 
       FactoryResource<DataRequest> baseRequest;
+      if (!fullScene)
+      {
+         baseRequest->setRows(mpDesc->getActiveRow(mMinBb.mY), mpDesc->getActiveRow(mMaxBb.mY), height);
+         baseRequest->setColumns(mpDesc->getActiveColumn(mMinBb.mX), mpDesc->getActiveColumn(mMaxBb.mX), width);
+      }
       baseRequest->setBands(mpDesc->getActiveBand(baseFrame), mpDesc->getActiveBand(baseFrame), 1);
       baseRequest->setInterleaveFormat(BSQ);
       mBaseAcc = mpElement->getDataAccessor(baseRequest.release());
@@ -296,7 +402,23 @@ void TrackingManager::initializeFrame0()
          return;
       }
       // Wrap the accessors with OpenCV data structures and create some temporary arrays.
-      mpBaseFrame = IplImageResource(width, height, 8, 1, reinterpret_cast<char*>(mBaseAcc->getColumn()));
+      if (fullScene)
+      {
+         mpBaseFrame = IplImageResource(width, height, 8, 1, reinterpret_cast<char*>(mBaseAcc->getColumn()));
+      }
+      else
+      {
+         mpBaseFrame = IplImageResource(width, height, 8, 1);
+         for (int row = 0; row < height; ++row)
+         {
+            if (row > 0)
+            {
+               mBaseAcc->nextRow();
+               VERIFYNRV(mBaseAcc.isValid());
+            }
+            memcpy((*mpBaseFrame).imageData + (row * width), mBaseAcc->getRow(), (*mpBaseFrame).width);
+         }
+      }
 
       mpEigImage = IplImageResource(width, height, IPL_DEPTH_32F, 1);
       mpTmpImage = IplImageResource(width, height, IPL_DEPTH_32F, 1);
@@ -308,40 +430,48 @@ void TrackingManager::initializeFrame0()
       CvSize pyr_sz = cvSize((*mpBaseFrame).width + 8, (*mpBaseFrame).height / 3);
       mpBasePyramid = IplImageResource(pyr_sz.width, pyr_sz.height, IPL_DEPTH_32F, 1);
 
-      mpGroup = NULL;
-#ifdef SHOW_FLOW_VECTORS
-      // Create elements and views to show the optical flow vectors
-      ModelResource<AnnotationElement> pAnno(static_cast<AnnotationElement*>(
-         Service<ModelServices>()->getElement("Flow Vectors", TypeConverter::toString<AnnotationElement>(), mpElement)));
-      bool created = pAnno.get() == NULL;
-      if (created)
-      {
-         pAnno = ModelResource<AnnotationElement>("Flow Vectors", mpElement);
-         static_cast<SpatialDataView*>(mpLayer->getView())->createLayer(ANNOTATION, pAnno.get());
-      }
-      mpGroup = pAnno->getGroup();
-      pAnno.release();
-#endif
-
       // Create elements and views to show identified objects
       mpRes = NULL;
       mpRes2 = NULL;
 
-      RasterElementArgs args={mpDesc->getRowCount(), mpDesc->getColumnCount(), 1, 0, 1, 1, mpElement, 0, NULL}; // BSQ, uchar (ushort)
+      RasterElementArgs args={height, width, 1, 0, 1, 1, mpElement, 0, NULL}; // BSQ, uchar (ushort)
+      DataElement* pTmp = Service<ModelServices>()->getElement("Current Objects", TypeConverter::toString<RasterElement>(), mpElement);
+      if (pTmp != NULL)
+      {
+         Service<ModelServices>()->destroyElement(pTmp);
+      }
       mpRes = static_cast<RasterElement*>(createRasterElement("Current Objects", args));
+#pragma message(__FILE__ "(" STRING(__LINE__) ") : warning : Work around for OPTICKS-932 (tclarke)")
+      std::vector<int> badValues(1, 0);
+      mpRes->getStatistics()->setBadValues(badValues);
 #ifdef CONNECTED
       RasterLayer* pPseudo = static_cast<RasterLayer*>(
          static_cast<SpatialDataView*>(mpLayer->getView())->createLayer(RASTER, mpRes));
+      pPseudo->setXOffset(mMinBb.mX);
+      pPseudo->setYOffset(mMinBb.mY);
+      pTmp = Service<ModelServices>()->getElement("Base Objects", TypeConverter::toString<RasterElement>(), mpElement);
+      if (pTmp != NULL)
+      {
+         Service<ModelServices>()->destroyElement(pTmp);
+      }
       mpRes2 = static_cast<RasterElement*>(createRasterElement("Base Objects", args));
+      mpRes2->getStatistics()->setBadValues(badValues);
       RasterLayer* pPseudo2 = static_cast<RasterLayer*>(
          static_cast<SpatialDataView*>(mpLayer->getView())->createLayer(RASTER, mpRes2));
+      pPseudo2->setXOffset(mMinBb.mX);
+      pPseudo2->setYOffset(mMinBb.mY);
       pPseudo->setStretchUnits(GRAYSCALE_MODE, RAW_VALUE);
       pPseudo->setStretchValues(GRAY, 0, 47);
       pPseudo2->setStretchUnits(GRAYSCALE_MODE, RAW_VALUE);
       pPseudo2->setStretchValues(GRAY, 0, 47);
+      ColorMap cmap("C:/Opticks/COAN/Tracking/Release/SupportFiles/ColorTables/pseudocolor.clu");
+      pPseudo->setColorMap(cmap.getName(), cmap.getTable());
+      pPseudo2->setColorMap(cmap.getName(), cmap.getTable());
 #else
       ThresholdLayer* pThresh = static_cast<ThresholdLayer*>(
          static_cast<SpatialDataView*>(mpLayer->getView())->createLayer(THRESHOLD, mpRes));
+      pThresh->setXOffset(mMinBb.mX);
+      pThresh->setYOffset(mMinBb.mY);
       pThresh->setColor(ColorType(128, 0, 0));
       pThresh->setSymbol(BOX);
       pThresh->setPassArea(UPPER);
@@ -349,24 +479,13 @@ void TrackingManager::initializeFrame0()
       mpRes2 = static_cast<RasterElement*>(createRasterElement("Base Objects", args));
       ThresholdLayer* pThresh2 = static_cast<ThresholdLayer*>(
          static_cast<SpatialDataView*>(mpLayer->getView())->createLayer(THRESHOLD, mpRes2));
+      pThresh2->setXOffset(mMinBb.mX);
+      pThresh2->setYOffset(mMinBb.mY);
       pThresh2->setColor(ColorType(0, 128, 0));
       pThresh2->setSymbol(BOX);
       pThresh2->setPassArea(UPPER);
       pThresh2->setFirstThreshold(128);
 #endif
-
-      // Create an AOI to define a sub-area for processing.
-      mpFocus = static_cast<AoiElement*>(
-         Service<ModelServices>()->getElement("Focus", TypeConverter::toString<AoiElement>(), mpElement));
-      if (mpFocus == NULL)
-      {
-         mpFocus = static_cast<AoiElement*>(
-            Service<ModelServices>()->createElement("Focus", TypeConverter::toString<AoiElement>(), mpElement));
-         AoiLayer* pLayer = static_cast<AoiLayer*>(
-            static_cast<SpatialDataView*>(mpLayer->getView())->createLayer(AOI_LAYER, mpFocus));
-         pLayer->setSymbol(BOX);
-         pLayer->setColor(ColorType(0, 0, 128));
-      }
    }
    catch (const cv::Exception& exc)
    {
