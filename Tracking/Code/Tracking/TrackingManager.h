@@ -19,8 +19,11 @@
 #include "RasterLayer.h"
 #include "TrackingUtils.h"
 #include <boost/any.hpp>
+#include <boost/graph/graph_traits.hpp>
+#include <boost/graph/adjacency_list.hpp>
 
 class AoiElement;
+class CBlobResult;
 class GraphicGroup;
 class RasterDataDescriptor;
 class RasterElement;
@@ -43,20 +46,49 @@ public:
    void setPauseState(bool state);
    void setFocus(LocationType loc, int maxSize);
 
+   struct TrackVertexProps
+   {
+      TrackVertexProps() : mFrameNum(-1), mCentroidA(0,0), mCentroidB(0,0), mTexture(0.0), mDispersion(0.0) {}
+
+      int mFrameNum;                     // frame number where this objects was found
+      Opticks::PixelLocation mCentroidA; // position when this is the "current" frame (pre-transform)
+      Opticks::PixelLocation mCentroidB; // position when this is the "base" frame (post-transform)
+      float mTexture;                    // grayscale texture
+      float mDispersion;                 // grayscale dispersion
+      // optional HSI sig goes here
+   };
+   struct TrackEdgeProps
+   {
+      TrackEdgeProps() : mVelocity(0,0) {}
+
+      Opticks::Location<int, 2> mVelocity; // previous frame's centroid B to this frame's centroid A
+   };
+   typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS, TrackVertexProps, TrackEdgeProps> TrackGraph;
+   typedef boost::graph_traits<TrackGraph>::vertex_descriptor TrackVertex;
+   typedef boost::graph_traits<TrackGraph>::edge_descriptor TrackEdge;
+
 protected:
    void processFrame(Subject& subject, const std::string& signal, const boost::any& val);
    void clearData(Subject& subject, const std::string& signal, const boost::any& val);
+   std::vector<TrackVertex> updateTrackObjects(CBlobResult& blobs, IplImage* pFrame, bool current);
+   void matchTracks(const std::vector<TrackVertex>& curObjs);
 
 private:
    void initializeDataset();
    void initializeFrame0();
 
-   bool mPaused;
-   AttachmentPtr<RasterLayer> mpLayer;
-   AttachmentPtr<Animation> mpAnimation;
-   const RasterDataDescriptor* mpDesc;
-   RasterElement* mpElement;
+   TrackGraph mTracks;
 
+   bool mCalcBaseObjects; // should the base objects be calculated or results from the previous iteration used?
+   std::vector<TrackVertex> mBaseObjects;
+   bool mPaused;
+   AttachmentPtr<RasterLayer> mpLayer; // tracked layer
+   AttachmentPtr<Animation> mpAnimation; // tracked animation
+   const RasterDataDescriptor* mpDesc; // tracked element descriptor
+   RasterElement* mpElement; // tracked element
+
+   // base frame information, passed to the next iteration
+   int mBaseFrameNum;
    DataAccessor mBaseAcc;
    IplImageResource mpBaseFrame;
    IplImageResource mpEigImage;
@@ -64,12 +96,20 @@ private:
    std::auto_ptr<CvPoint2D32f> mpBaseCorners;
    IplImageResource mpBasePyramid;
 
+   // pass feature state to the next iteration
    char mpFeaturesFound[500];
    float mpFeatureErrors[500];
-   GraphicGroup* mpGroup;
+
+   int mCurrentFrameNum;
+   GraphicGroup* mpGroup; // draw flow vectors
+   GraphicGroup* mpTracks; // draw tracks
+
    int mCornerCount;
-   RasterElement* mpRes;
-   RasterElement* mpRes2;
+
+   RasterElement* mpRes; // base frame object blobs
+   RasterElement* mpRes2; // current frame object blobs
+
+   // sub-frame AOI and bounding box information
    AoiElement* mpFocus;
    Opticks::PixelLocation mMinBb;
    Opticks::PixelLocation mMaxBb;

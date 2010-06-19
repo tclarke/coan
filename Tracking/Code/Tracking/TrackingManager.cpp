@@ -16,6 +16,7 @@
 #include "DataAccessor.h"
 #include "DataAccessorImpl.h"
 #include "DataRequest.h"
+#include "DesktopServices.h"
 #include "GraphicGroup.h"
 #include "GraphicObject.h"
 #include "LayerList.h"
@@ -32,13 +33,17 @@
 #include "ThresholdLayer.h"
 #include "TrackingManager.h"
 #include "TrackingUtils.h"
-#include <time.h>
 #include <opencv/cv.h>
 #include <BlobResult.h>
+#include <map>
+#include <set>
+#include <time.h>
 #include <vector>
-#include "HighResolutionTimer.h"
+#include <QtCore/QtDebug>
 
 REGISTER_PLUGIN_BASIC(Tracking, TrackingManager);
+
+#define SQR(x) ((x) * (x))
 
 // Define this to generate an annotation layer showing the optical flow vectors
 // This will slow down processing quite a bit.
@@ -55,15 +60,25 @@ REGISTER_PLUGIN_BASIC(Tracking, TrackingManager);
 // There's a point where increasing this number does nothing as there are only so many strong corners in a frame.
 #define MAX_CORNERS 500
 
+namespace
+{
+static const int CodeDeltas[8][2] =
+{ {1, 0}, {1, -1}, {0, -1}, {-1, -1}, {-1, 0}, {-1, 1}, {0, 1}, {1, 1} };
+}
+
 const char* TrackingManager::spPlugInName("TrackingManager");
 
 TrackingManager::TrackingManager() :
+      mCalcBaseObjects(true),
       mPaused(false),
       mpDesc(NULL),
       mpElement(NULL),
+      mBaseFrameNum(-1),
       mBaseAcc(NULL, NULL),
       mpBaseCorners(new CvPoint2D32f[MAX_CORNERS]),
+      mCurrentFrameNum(-1),
       mpGroup(NULL),
+      mpTracks(NULL),
       mCornerCount(MAX_CORNERS),
       mpRes(NULL),
       mpRes2(NULL)
@@ -154,6 +169,7 @@ void TrackingManager::processFrame(Subject& subject, const std::string& signal, 
    try
    {
       unsigned int curFrame = mpAnimation->getCurrentFrame()->mFrameNumber;
+      mCurrentFrameNum = curFrame;
       int width = (*mpBaseFrame).width;
       int height = (*mpBaseFrame).height;
       bool fullScene = (width == mpDesc->getColumnCount() && height == mpDesc->getRowCount());
@@ -226,51 +242,70 @@ void TrackingManager::processFrame(Subject& subject, const std::string& signal, 
          IplImageResource pRes(width, height, 8, 1, reinterpret_cast<char*>(mpRes->getRawData()));
          IplImageResource pRes2(width, height, 8, 1, reinterpret_cast<char*>(mpRes2->getRawData()));
          cvCopy(pCurFrame, pXform); // initialize to the current frame so any "offsets" have a consistent background
-         cvWarpAffine(mpBaseFrame, pXform, pMapMatrix, CV_INTER_LINEAR); // warp the base frame to the new position
-         cvCopy(pXform, mpBaseFrame);
-         /*double t1v(0.0),t2v(0.0);
-         {HrTimer::Resource t1(&t1v);
-         {HrTimer::Resource t2(&t2v);*/
-         cvSmooth(pXform, pRes, CV_MEDIAN, 5, 5);
-         cvSmooth(pCurFrame, pTemp, CV_MEDIAN, 5, 5);
+         cvWarpAffine(mpBaseFrame, pXform, pMapMatrix, CV_INTER_LINEAR); // warp the base frame to the current camera position
+         cvCopy(pXform, mpBaseFrame); // copy the transformed base frame back to the raster element
+         cvSmooth(pXform, pRes, CV_MEDIAN, 5, 5); // smooth the base frame to remove high frequency noise
+         cvSmooth(pCurFrame, pTemp, CV_MEDIAN, 5, 5); // smooth the current frame to remove high frequency noise
 
          // threhold the results
-         cvThreshold(pCurFrame, pTemp, OBJECT_THRESHOLD, 255, CV_THRESH_BINARY);
-         cvThreshold(pXform, pRes, OBJECT_THRESHOLD, 255, CV_THRESH_BINARY);
+         cvThreshold(pCurFrame, pTemp, OBJECT_THRESHOLD, 255, CV_THRESH_BINARY); // threshold the current frame
+         cvThreshold(pXform, pRes, OBJECT_THRESHOLD, 255, CV_THRESH_BINARY); // threshold the base frame
          // erode to remove some noise
-         cvErode(pTemp, pTemp);
-         cvErode(pRes,pRes);
+         cvErode(pTemp, pTemp); // erode the current frame
+         cvErode(pRes,pRes); // erode the base frame
          // difference the frames
-         cvSub(pTemp, pRes, pRes2);
-         cvSub(pRes, pTemp, pRes);
+         cvSub(pTemp, pRes, pRes2); // subtract the base from the current and store in res2
+         cvSub(pRes, pTemp, pRes);  // subtract the current from the base and store in res
          // remove final small differences with an open
-         cvErode(pRes,pRes, NULL, 3);
+         cvErode(pRes,pRes, NULL, 3); // open the current frame
          cvDilate(pRes,pRes,NULL,3);
-         cvErode(pRes2,pRes2, NULL, 3);
+
+         cvErode(pRes2,pRes2, NULL, 3); // open the base frame
          cvDilate(pRes2,pRes2,NULL,3);
-         /*}*/
+
+         std::vector<TrackVertex> curObjs;
+         { // scope blobs
+            CBlobResult blobs(pRes, NULL, 0);
 #ifdef CONNECTED
-         {
-         CBlobResult blobs(pRes, NULL, 0);
-         for (int bidx = 0; bidx < blobs.GetNumBlobs(); ++bidx)
-         {
-            CBlob blob(blobs.GetBlob(bidx));
-            blob.FillBlob(pRes, CV_RGB(bidx+1,bidx+1,bidx+1));
-         }
-         }
-         {
-         CBlobResult blobs(pRes2, NULL, 0);
-         for (int bidx = 0; bidx < blobs.GetNumBlobs(); ++bidx)
-         {
-            CBlob blob(blobs.GetBlob(bidx));
-            blob.FillBlob(pRes2, CV_RGB(bidx+1,bidx+1,bidx+1));
-         }
-         }
-         /*}
-         MessageResource msg("Timer Results", "timer", "timer");
-         msg->addProperty("Total", t1v);
-         msg->addProperty("Diff", t2v);*/
+            for (int bidx = 0; bidx < blobs.GetNumBlobs(); ++bidx)
+            {
+               CBlob blob(blobs.GetBlob(bidx));
+               blob.FillBlob(pRes, CV_RGB(bidx+1,bidx+1,bidx+1));
+            }
 #endif
+            curObjs = updateTrackObjects(blobs, pCurFrame, true);
+         } // scope blobs
+         { // scope blobs
+            CBlobResult blobs(pRes2, NULL, 0);
+#ifdef CONNECTED
+            for (int bidx = 0; bidx < blobs.GetNumBlobs(); ++bidx)
+            {
+               CBlob blob(blobs.GetBlob(bidx));
+               blob.FillBlob(pRes2, CV_RGB(bidx+1,bidx+1,bidx+1));
+            }
+#endif
+            if (mCalcBaseObjects)
+            {
+               mBaseObjects = updateTrackObjects(blobs, mpBaseFrame, false);
+            }
+            else
+            {
+               // apply affine transform to the coords
+               for (size_t idx = 0; idx < mBaseObjects.size(); ++idx)
+               {
+                  mTracks[mBaseObjects[idx]].mCentroidB.mX =
+                     (mTracks[mBaseObjects[idx]].mCentroidA.mX * cvGetReal2D(pMapMatrix, 0, 0)) +
+                     (mTracks[mBaseObjects[idx]].mCentroidA.mY * cvGetReal2D(pMapMatrix, 0, 1)) +
+                     cvGetReal2D(pMapMatrix, 0, 2);
+                  mTracks[mBaseObjects[idx]].mCentroidB.mY =
+                     (mTracks[mBaseObjects[idx]].mCentroidA.mX * cvGetReal2D(pMapMatrix, 1, 0)) +
+                     (mTracks[mBaseObjects[idx]].mCentroidA.mY * cvGetReal2D(pMapMatrix, 1, 1)) +
+                     cvGetReal2D(pMapMatrix, 1, 2);
+               }
+            }
+         } // scope blobs
+         matchTracks(curObjs);
+
          if (!fullScene)
          {
             mBaseAcc->toPixel(mMinBb.mY, mMinBb.mX);
@@ -296,6 +331,7 @@ void TrackingManager::processFrame(Subject& subject, const std::string& signal, 
          }
 
          cvReleaseMat(&pMapMatrix);
+         mBaseObjects = curObjs;
       }
 
       // prep for next frame
@@ -303,15 +339,17 @@ void TrackingManager::processFrame(Subject& subject, const std::string& signal, 
       mpBaseCorners.reset(pCurCorners.release());
       mpBaseFrame = pCurFrame;
       mBaseAcc = curAcc;
+      mBaseFrameNum = mCurrentFrameNum;
 
       mCornerCount = MAX_CORNERS;
       cvGoodFeaturesToTrack(mpBaseFrame, mpEigImage, mpTmpImage, mpBaseCorners.get(), &mCornerCount, 0.01, 5.0);
       cvFindCornerSubPix(mpBaseFrame, mpBaseCorners.get(), mCornerCount, cvSize(10, 10), cvSize(-1, -1), cvTermCriteria(CV_TERMCRIT_ITER|CV_TERMCRIT_EPS, 20, 0.03));
 
+      mCalcBaseObjects = false;
    }
    catch (cv::Exception& err)
    {
-      int tmp = err.code;
+      Service<DesktopServices>()->showMessageBox("OpenCV Error", err.err + "\n" + err.file + ":" + StringUtilities::toDisplayString(err.line) + "\n" + err.func);
    }
 }
 
@@ -339,7 +377,9 @@ void TrackingManager::initializeDataset()
    }
 
    mpGroup = NULL;
+   mpTracks = NULL;
 #ifdef SHOW_FLOW_VECTORS
+   {
    // Create elements and views to show the optical flow vectors
    ModelResource<AnnotationElement> pAnno(static_cast<AnnotationElement*>(
       Service<ModelServices>()->getElement("Flow Vectors", TypeConverter::toString<AnnotationElement>(), mpElement)));
@@ -351,7 +391,21 @@ void TrackingManager::initializeDataset()
    }
    mpGroup = pAnno->getGroup();
    pAnno.release();
+   }
 #endif
+   {
+   // Create elements and views to show the optical flow vectors
+   ModelResource<AnnotationElement> pTrackAnno(static_cast<AnnotationElement*>(
+      Service<ModelServices>()->getElement("Object Tracks", TypeConverter::toString<AnnotationElement>(), mpElement)));
+   bool created = pTrackAnno.get() == NULL;
+   if (created)
+   {
+      pTrackAnno = ModelResource<AnnotationElement>("Object Tracks", mpElement);
+      static_cast<SpatialDataView*>(mpLayer->getView())->createLayer(ANNOTATION, pTrackAnno.get());
+   }
+   mpTracks = pTrackAnno->getGroup();
+   pTrackAnno.release();
+   }
 
    // Create an AOI to define a sub-area for processing.
    mpFocus = static_cast<AoiElement*>(
@@ -370,7 +424,7 @@ void TrackingManager::initializeDataset()
 
    initializeFrame0();
 }
-#include <QtCore/QtDebug>
+
 void TrackingManager::initializeFrame0()
 {
    if (mpLayer.get() == NULL)
@@ -382,6 +436,8 @@ void TrackingManager::initializeFrame0()
    try
    {
       unsigned int baseFrame = mpLayer->getDisplayedBand(GRAY).getActiveNumber();
+      mBaseFrameNum = baseFrame;
+      mCurrentFrameNum = -1;
 
       int width = mMaxBb.mX - mMinBb.mX + 1;
       int height = mMaxBb.mY - mMinBb.mY + 1;
@@ -467,25 +523,9 @@ void TrackingManager::initializeFrame0()
       ColorMap cmap("C:/Opticks/COAN/Tracking/Release/SupportFiles/ColorTables/pseudocolor.clu");
       pPseudo->setColorMap(cmap.getName(), cmap.getTable());
       pPseudo2->setColorMap(cmap.getName(), cmap.getTable());
-#else
-      ThresholdLayer* pThresh = static_cast<ThresholdLayer*>(
-         static_cast<SpatialDataView*>(mpLayer->getView())->createLayer(THRESHOLD, mpRes));
-      pThresh->setXOffset(mMinBb.mX);
-      pThresh->setYOffset(mMinBb.mY);
-      pThresh->setColor(ColorType(128, 0, 0));
-      pThresh->setSymbol(BOX);
-      pThresh->setPassArea(UPPER);
-      pThresh->setFirstThreshold(128);
-      mpRes2 = static_cast<RasterElement*>(createRasterElement("Base Objects", args));
-      ThresholdLayer* pThresh2 = static_cast<ThresholdLayer*>(
-         static_cast<SpatialDataView*>(mpLayer->getView())->createLayer(THRESHOLD, mpRes2));
-      pThresh2->setXOffset(mMinBb.mX);
-      pThresh2->setYOffset(mMinBb.mY);
-      pThresh2->setColor(ColorType(0, 128, 0));
-      pThresh2->setSymbol(BOX);
-      pThresh2->setPassArea(UPPER);
-      pThresh2->setFirstThreshold(128);
 #endif
+
+      mCalcBaseObjects = true;
    }
    catch (const cv::Exception& exc)
    {
@@ -497,4 +537,137 @@ void TrackingManager::initializeFrame0()
       msg->addProperty("Line", exc.line);
       msg->finalize(Message::Failure);
    }
+}
+
+std::vector<TrackingManager::TrackVertex> TrackingManager::updateTrackObjects(CBlobResult& blobs, IplImage* pFrame, bool current)
+{
+   // Get contour points for each blob
+   std::vector<TrackVertex> objects;
+   for (int blobi = 0; blobi < blobs.GetNumBlobs(); ++blobi)
+   {
+      std::map<int, std::set<int> > pts;
+      CBlob blob = blobs.GetBlob(blobi);
+      CBlobContour* pCon = blob.GetExternalContour();
+      CvTreeNodeIterator iter;
+      cvInitTreeNodeIterator(&iter, pCon->GetContourPoints(), 0);
+      CvSeq* pContour;
+      while((pContour = reinterpret_cast<CvSeq*>(cvNextTreeNode(&iter))) != 0 )
+      {
+         CvSeqReader reader;
+         int count = pContour->total;
+         int elem_type = CV_MAT_TYPE(pContour->flags);
+         cvStartReadSeq(pContour, &reader, 0);
+         if (CV_IS_SEQ_CHAIN_CONTOUR(pContour))
+         {
+            cv::Point pt = ((CvChain*)pContour)->origin;
+            char prev_code = reader.ptr ? reader.ptr[0] : '\0';
+
+            for (int i = 0; i < count; i++)
+            {
+               char code;
+               CV_READ_SEQ_ELEM(code, reader);
+
+               if (code != prev_code)
+               {
+                  prev_code = code;
+                  pts[pt.y].insert(pt.x);
+               }
+
+               pt.x += CodeDeltas[(int)code][0];
+               pt.y += CodeDeltas[(int)code][1];
+            }
+         }
+         else if (CV_IS_SEQ_POLYLINE(pContour) && elem_type == CV_32SC2)
+         {
+            cv::Point pt1, pt2;
+            int shift = 0;
+
+            count -= !CV_IS_SEQ_CLOSED(pContour);
+            CV_READ_SEQ_ELEM(pt1, reader);
+            pts[pt1.y].insert(pt1.x);
+
+            for(int i = 0; i < count; i++)
+            {
+               CV_READ_SEQ_ELEM(pt2, reader);
+               pts[pt2.y].insert(pt2.x);
+               pt1 = pt2;
+            }
+         }
+      }
+      // Fill the contour and calculate some properties
+      Opticks::PixelLocation centroid(0,0);
+      std::vector<cv::Point> filledPoints;
+      for (std::map<int, std::set<int> >::iterator ptiter = pts.begin(); ptiter != pts.end(); ++ptiter)
+      {
+         int startCol = -1;
+         for (std::set<int>::iterator coliter = ptiter->second.begin(); coliter != ptiter->second.end(); ++coliter)
+         {
+            if (startCol == -1)
+            {
+               startCol = *coliter;
+            }
+            else
+            {
+               for (int col = startCol; col <= *coliter; ++col)
+               {
+                  filledPoints.push_back(cv::Point(col, ptiter->first));
+                  centroid.mX += col;
+                  centroid.mY += ptiter->first;
+               }
+               startCol = -1;
+            }
+         }
+      }
+      centroid.mX /= filledPoints.size();
+      centroid.mY /= filledPoints.size();
+      double tmpNum = 0.0, tmpDen = 0.0;
+      for (std::vector<cv::Point>::iterator ptiter = filledPoints.begin(); ptiter != filledPoints.end(); ++ptiter)
+      {
+         double val = cvGetReal2D(pFrame, ptiter->y, ptiter->x);
+         tmpNum += sqrt((double)SQR(ptiter->x - centroid.mX) +
+                        SQR(ptiter->y - centroid.mY)) * val;
+         tmpDen += val;
+      }
+      TrackVertex obj;
+      if (current || mCalcBaseObjects)
+      {
+         obj = boost::add_vertex(mTracks);
+         mTracks[obj].mFrameNum = current ? mCurrentFrameNum : mBaseFrameNum;
+         mTracks[obj].mDispersion = static_cast<float>(tmpNum / tmpDen);
+      }
+      else
+      {
+         // locate the correct item.
+      }
+      if (current)
+      {
+         mTracks[obj].mCentroidA = centroid;
+      }
+      else
+      {
+         mTracks[obj].mCentroidB = centroid;
+      }
+      objects.push_back(obj);
+   }
+   return objects;
+}
+
+void TrackingManager::matchTracks(const std::vector<TrackVertex>& curObjs)
+{
+   if (mpTracks != NULL)
+   {
+      mpTracks->removeAllObjects(true);
+   }
+   for (std::vector<TrackVertex>::const_iterator base = mBaseObjects.begin(); base != mBaseObjects.end(); ++base)
+   {
+      for (std::vector<TrackVertex>::const_iterator cur = curObjs.begin(); cur != curObjs.end(); ++cur)
+      {
+         TrackEdge e = boost::add_edge(*base, *cur, mTracks).first;
+         mTracks[e].mVelocity.mX = mTracks[*cur].mCentroidA.mX - mTracks[*base].mCentroidB.mX;
+         mTracks[e].mVelocity.mY = mTracks[*cur].mCentroidA.mY - mTracks[*base].mCentroidB.mY;
+      }
+   }
+   // diff in velocity
+   // ang = atan(A.y/A.x) - atan(B.y/B.x); if (ang > 180) ang = 360 - ang
+   // mag = fabs(A.distance() - B.distance())
 }
