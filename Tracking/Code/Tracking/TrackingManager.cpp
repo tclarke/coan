@@ -40,6 +40,7 @@
 #include <time.h>
 #include <vector>
 #include <QtCore/QtDebug>
+#include <opencv/highgui.h>
 
 REGISTER_PLUGIN_BASIC(Tracking, TrackingManager);
 
@@ -59,6 +60,9 @@ REGISTER_PLUGIN_BASIC(Tracking, TrackingManager);
 // Higher numbers may result in more accurate calculations but may also slow down calculations.
 // There's a point where increasing this number does nothing as there are only so many strong corners in a frame.
 #define MAX_CORNERS 500
+
+// Maximum change in location allowed before a track is considered...lower values shrink the possible search space for matching objects
+#define MAX_SPEED 150
 
 namespace
 {
@@ -660,11 +664,61 @@ void TrackingManager::matchTracks(const std::vector<TrackVertex>& curObjs)
    }
    for (std::vector<TrackVertex>::const_iterator base = mBaseObjects.begin(); base != mBaseObjects.end(); ++base)
    {
+      std::pair<TrackTraits::in_edge_iterator, TrackTraits::in_edge_iterator> edges = boost::in_edges(*base, mTracks);
+      bool hasInVel = false;
+      Opticks::Location<int, 2> inVel(0, 0);
+      double inVelAng = 0.0;
+      if (edges.first != edges.second)
+      {
+         inVel = mTracks[*(edges.first)].mVelocity;
+         inVelAng = atan((double)inVel.mY / inVel.mX);
+         hasInVel = true;
+      }
+      // add connections which meet certain minimum criteria
+      TrackEdge minE;
+      float minCost = 999999999999999;
       for (std::vector<TrackVertex>::const_iterator cur = curObjs.begin(); cur != curObjs.end(); ++cur)
       {
-         TrackEdge e = boost::add_edge(*base, *cur, mTracks).first;
-         mTracks[e].mVelocity.mX = mTracks[*cur].mCentroidA.mX - mTracks[*base].mCentroidB.mX;
-         mTracks[e].mVelocity.mY = mTracks[*cur].mCentroidA.mY - mTracks[*base].mCentroidB.mY;
+         Opticks::Location<int, 2> vel(mTracks[*cur].mCentroidA.mX - mTracks[*base].mCentroidB.mX,
+                                       mTracks[*cur].mCentroidA.mY - mTracks[*base].mCentroidB.mY);
+         double velDiff = 0.0;
+         if (hasInVel)
+         {
+            velDiff = fabs(inVelAng - atan((double)vel.mY / vel.mX));
+         }
+         if (vel.length() < MAX_SPEED)
+         {
+            TrackEdge e = boost::add_edge(*base, *cur, mTracks).first;
+            mTracks[e].mVelocity = vel;
+            mTracks[e].mVelDiff = velDiff;
+            mTracks[e].mSpeedDiff = fabs(vel.length() - inVel.length());
+            mTracks[e].mDiffDispersion = fabs(mTracks[*base].mDispersion - mTracks[*cur].mDispersion);
+            mTracks[e].mCost = mTracks[e].mDiffDispersion * 0.2
+                             + mTracks[e].mVelDiff * 0.5
+                             + mTracks[e].mSpeedDiff * 0.3;
+            if (mTracks[e].mCost < minCost)
+            {
+               minCost = mTracks[e].mCost;
+               minE = e;
+            }
+         }
+      }
+      TrackTraits::edge_iterator ei, eitmp, ei_end;
+      for (boost::tie(ei, ei_end) = boost::edges(mTracks); ei != ei_end;)
+      {
+         eitmp = ei;
+         ++eitmp;
+         if (*ei != minE)
+         {
+            boost::remove_edge(*ei, mTracks);
+         }
+         else
+         {
+            LocationType start(mTracks[boost::source(*ei, mTracks)].mCentroidB.mX, mTracks[boost::source(*ei, mTracks)].mCentroidB.mY);
+            LocationType stop(mTracks[boost::target(*ei, mTracks)].mCentroidA.mX, mTracks[boost::target(*ei, mTracks)].mCentroidA.mY);
+            mpTracks->addObject(LINE_OBJECT)->setBoundingBox(start, stop);
+         }
+         ei = eitmp;
       }
    }
    // diff in velocity

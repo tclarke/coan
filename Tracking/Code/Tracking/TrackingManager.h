@@ -59,11 +59,16 @@ public:
    };
    struct TrackEdgeProps
    {
-      TrackEdgeProps() : mVelocity(0,0) {}
+      TrackEdgeProps() : mVelocity(0,0), mVelDiff(0.0), mSpeedDiff(0.0), mDiffDispersion(0.0) {}
 
       Opticks::Location<int, 2> mVelocity; // previous frame's centroid B to this frame's centroid A
+      float mVelDiff;                      // angular difference between this velocity vector and the previous location's  
+      float mSpeedDiff;                    // magnitude difference between this velocity vector and the previous location's  
+      float mDiffDispersion;               // difference in dispersion values
+      float mCost;                         // total "cost" of this track
    };
-   typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS, TrackVertexProps, TrackEdgeProps> TrackGraph;
+   typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS, TrackVertexProps, TrackEdgeProps> TrackGraph;
+   typedef boost::graph_traits<TrackGraph> TrackTraits;
    typedef boost::graph_traits<TrackGraph>::vertex_descriptor TrackVertex;
    typedef boost::graph_traits<TrackGraph>::edge_descriptor TrackEdge;
 
