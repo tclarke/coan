@@ -1,6 +1,6 @@
 /*
  * The information in this file is
- * Copyright(c) 2010 Ball Aerospace & Technologies Corporation
+ * Copyright(c) 2010 Trevor R.H. Clarke
  * and is subject to the terms and conditions of the
  * GNU Lesser General Public License Version 2.1
  * The license text is available from   
@@ -48,7 +48,7 @@ REGISTER_PLUGIN_BASIC(Tracking, TrackingManager);
 
 // Define this to generate an annotation layer showing the optical flow vectors
 // This will slow down processing quite a bit.
-//#define SHOW_FLOW_VECTORS
+#define SHOW_FLOW_VECTORS
 
 // Define this to calculate connected components on the object results
 #define CONNECTED
