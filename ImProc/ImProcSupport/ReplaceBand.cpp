@@ -7,6 +7,9 @@
  */
 
 #include "AppVerify.h"
+#include "DataAccessor.h"
+#include "DataAccessorImpl.h"
+#include "DataRequest.h"
 #include "ImProcVersion.h"
 #include "RasterDataDescriptor.h"
 #include "RasterElement.h"

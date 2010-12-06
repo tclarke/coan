@@ -13,6 +13,9 @@
 #include "MultiThreadedAlgorithm.h"
 #include "ProgressTracker.h"
 
+class RasterDataDescriptor;
+class RasterElement;
+
 class ColorSpaceConversionShell : public AlgorithmShell
 {
 public:

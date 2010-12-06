@@ -6,6 +6,9 @@
  * http://www.gnu.org/licenses/lgpl.html
  */
 
+#include "DataAccessor.h"
+#include "DataAccessorImpl.h"
+#include "DataRequest.h"
 #include "ImProcVersion.h"
 #include "GcpLayer.h"
 #include "GcpList.h"
@@ -25,7 +28,7 @@
 #include "switchOnEncoding.h"
 #include "Undo.h"
 
-#include <QtGui/QDialog.h>
+#include <QtGui/QDialog>
 
 REGISTER_PLUGIN_BASIC(ImProcSupport, Rescale);
 
