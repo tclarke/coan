@@ -11,6 +11,7 @@ env.Tool('qwt', toolpath=TOOLPATH)
 # build sources
 ####
 srcs = map(lambda x,bd=build_dir: '%s/%s' % (bd,x), glob.glob("*.cpp"))
+srcs.append(env.Qrc("%s/resources/video.qrc" % build_dir))
 objs = env.SharedObject(srcs)
 
 ####
