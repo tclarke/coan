@@ -8,6 +8,9 @@
 
 #include "AppVerify.h"
 #include "ColorSpaceConversionShell.h"
+#include "DataAccessor.h"
+#include "DataAccessorImpl.h"
+#include "DataRequest.h"
 #include "GcpLayer.h"
 #include "GcpList.h"
 #include "ImProcVersion.h"

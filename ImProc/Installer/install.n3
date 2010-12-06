@@ -5,13 +5,16 @@
 <urn:aebl:install-manifest>
    aebl:id "improc@coan.sf.net" ;
    aebl:name "ImProc" ;
-   aebl:version "1.0a" ;
+   aebl:version "1.1a" ;
    aebl:type "2" ;
    aebl:description "General image processing functionality." ;
-   aebl:creator "Trevor R.H. Clarke <tclarke@ballforge.net>" ;
+   aebl:creator "Trevor R.H. Clarke <tclarke@ball.com>" ;
    aebl:homepageURL "http://coan.sourceforge.net" ;
    aebl:licenseURL "aeb:///license/lgpl-2.1.txt" ;
    aebl:targetApplication [
       aebl:id "opticks@ballforge.net" ;
-      aebl:minVersion "4.3.0" ;
-      aebl:maxVersion "4.3.*" ] .
+      aebl:minVersion "4.5.0" ;
+      aebl:maxVersion "4.5.*" ] ;
+   aebl:targetPlatform "win32-x86-msvc8.1-release" ;
+   aebl:targetPlatform "win64-x86-msvc8.1-release" ;
+   aebl:targetPlatform "linux-x86_64-gcc4-release" .

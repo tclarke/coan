@@ -6,6 +6,9 @@
  * http://www.gnu.org/licenses/lgpl.html
  */
 
+#include "DataAccessor.h"
+#include "DataAccessorImpl.h"
+#include "DataRequest.h"
 #include "ImProcVersion.h"
 #include "NormalizeData.h"
 #include "PlugInArgList.h"

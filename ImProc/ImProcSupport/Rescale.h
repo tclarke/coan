@@ -14,6 +14,10 @@
 #include "MultiThreadedAlgorithm.h"
 #include "ProgressTracker.h"
 
+class DataAccessor;
+class RasterDataDescriptor;
+class RasterElement;
+
 enum InterpTypeEnum { NEAREST, BILINEAR, BICUBIC };
 typedef EnumWrapper<InterpTypeEnum> InterpType;
 
