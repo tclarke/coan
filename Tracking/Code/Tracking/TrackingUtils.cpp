@@ -187,9 +187,9 @@ IplImageResource::IplImageResource(IplImage* pImage) : mpImage(pImage), mShallow
 {
 }
 
-IplImageResource::IplImageResource(IplImageResource& other)
+IplImageResource::IplImageResource(const IplImageResource& other)
 {
-   reset(other.get());
+   reset(const_cast<IplImage*>(other.get()));
    if (other.isShallow())
    {
       release();
@@ -198,7 +198,7 @@ IplImageResource::IplImageResource(IplImageResource& other)
    {
       take();
    }
-   other.mpImage = NULL;
+   const_cast<IplImageResource&>(other).mpImage = NULL;
 }
 
 IplImageResource::IplImageResource(int width, int height, int depth, int channels) : mShallow(false)
@@ -217,7 +217,7 @@ IplImageResource::~IplImageResource()
    reset(NULL);
 }
 
-bool IplImageResource::isShallow()
+bool IplImageResource::isShallow() const
 {
    return mShallow;
 }
@@ -237,6 +237,11 @@ void IplImageResource::reset(IplImage* pImage)
 }
 
 IplImage* IplImageResource::get()
+{
+   return mpImage;
+}
+
+const IplImage* IplImageResource::get() const
 {
    return mpImage;
 }
@@ -263,12 +268,12 @@ IplImage& IplImageResource::operator*()
    return *get();
 }
 
-IplImageResource& IplImageResource::operator=(IplImageResource& other)
+IplImageResource& IplImageResource::operator=(const IplImageResource& other)
 {
    mShallow = other.mShallow;
    mpImage = other.mpImage;
-   other.mShallow = true;
-   other.mpImage = NULL;
+   const_cast<IplImageResource&>(other).mShallow = true;
+   const_cast<IplImageResource&>(other).mpImage = NULL;
    return *this;
 }
 

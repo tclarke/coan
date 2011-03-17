@@ -1,0 +1,155 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{0E4F3050-1A54-11DF-8A39-0800200C9A66}</ProjectGuid>
+    <RootNamespace>Tracking</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(OPTICKS_CODE_DIR)\application\CompileSettings\32bitSettings.props" />
+    <Import Project="..\CompileSettings\TrackingMacros.props" />
+    <Import Project="$(OPTICKS_CODE_DIR)\application\CompileSettings\AllCommonSettings-Release-32bit.props" />
+    <Import Project="$(OPTICKS_CODE_DIR)\application\CompileSettings\Qt-Release.props" />
+    <Import Project="$(OPTICKS_CODE_DIR)\application\CompileSettings\Xerces-Release.props" />
+    <Import Project="$(OPTICKS_CODE_DIR)\application\CompileSettings\PlugInCommonSettings.props" />
+    <Import Project="$(OPTICKS_CODE_DIR)\application\CompileSettings\opencv-release.props" />
+    <Import Project="$(OPTICKS_CODE_DIR)\application\CompileSettings\SimpleApiLib.props" />
+    <Import Project="..\CompileSettings\cvBlobsLib-release.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(OPTICKS_CODE_DIR)\application\CompileSettings\32bitSettings.props" />
+    <Import Project="..\CompileSettings\TrackingMacros.props" />
+    <Import Project="$(OPTICKS_CODE_DIR)\application\CompileSettings\AllCommonSettings-Debug-32bit.props" />
+    <Import Project="$(OPTICKS_CODE_DIR)\application\CompileSettings\Qt-Debug.props" />
+    <Import Project="$(OPTICKS_CODE_DIR)\application\CompileSettings\Xerces-Debug.props" />
+    <Import Project="$(OPTICKS_CODE_DIR)\application\CompileSettings\PlugInCommonSettings.props" />
+    <Import Project="$(OPTICKS_CODE_DIR)\application\CompileSettings\opencv-debug.props" />
+    <Import Project="$(OPTICKS_CODE_DIR)\application\CompileSettings\SimpleApiLib.props" />
+    <Import Project="..\CompileSettings\cvBlobsLib-debug.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(OPTICKS_CODE_DIR)\application\CompileSettings\64bitSettings.props" />
+    <Import Project="..\CompileSettings\TrackingMacros.props" />
+    <Import Project="$(OPTICKS_CODE_DIR)\application\CompileSettings\AllCommonSettings-Release-64bit.props" />
+    <Import Project="$(OPTICKS_CODE_DIR)\application\CompileSettings\Qt-Release.props" />
+    <Import Project="$(OPTICKS_CODE_DIR)\application\CompileSettings\Xerces-Release.props" />
+    <Import Project="$(OPTICKS_CODE_DIR)\application\CompileSettings\PlugInCommonSettings.props" />
+    <Import Project="$(OPTICKS_CODE_DIR)\application\CompileSettings\opencv-release.props" />
+    <Import Project="$(OPTICKS_CODE_DIR)\application\CompileSettings\SimpleApiLib.props" />
+    <Import Project="..\CompileSettings\cvBlobsLib-release.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(OPTICKS_CODE_DIR)\application\CompileSettings\64bitSettings.props" />
+    <Import Project="..\CompileSettings\TrackingMacros.props" />
+    <Import Project="$(OPTICKS_CODE_DIR)\application\CompileSettings\AllCommonSettings-Debug-64bit.props" />
+    <Import Project="$(OPTICKS_CODE_DIR)\application\CompileSettings\Qt-Debug.props" />
+    <Import Project="$(OPTICKS_CODE_DIR)\application\CompileSettings\Xerces-Debug.props" />
+    <Import Project="$(OPTICKS_CODE_DIR)\application\CompileSettings\PlugInCommonSettings.props" />
+    <Import Project="$(OPTICKS_CODE_DIR)\application\CompileSettings\opencv-debug.props" />
+    <Import Project="$(OPTICKS_CODE_DIR)\application\CompileSettings\SimpleApiLib.props" />
+    <Import Project="..\CompileSettings\cvBlobsLib-debug.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Link>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Link>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Link>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Link>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="ModuleManager.cpp" />
+    <ClCompile Include="OpticalFlow.cpp" />
+    <ClCompile Include="OpticalFlowWidget.cpp" />
+    <ClCompile Include="TrackingManager.cpp" />
+    <ClCompile Include="TrackingUtils.cpp" />
+    <ClCompile Include="$(BuildDir)\Moc\$(ProjectName)\moc_OpticalFlowWidget.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="OpticalFlowWidget.h">
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Moc%27ing %(Filename).h...</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">"$(QTBIN)\moc.exe" "%(FullPath)" -o "$(BuildDir)\Moc\$(ProjectName)\moc_%(Filename).cpp"
+</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(BuildDir)\Moc\$(ProjectName)\moc_%(Filename).cpp;%(Outputs)</Outputs>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Moc%27ing %(Filename).h...</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"$(QTBIN)\moc.exe" "%(FullPath)" -o "$(BuildDir)\Moc\$(ProjectName)\moc_%(Filename).cpp"
+</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(BuildDir)\Moc\$(ProjectName)\moc_%(Filename).cpp;%(Outputs)</Outputs>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Moc%27ing %(Filename).h...</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">"$(QTBIN)\moc.exe" "%(FullPath)" -o "$(BuildDir)\Moc\$(ProjectName)\moc_%(Filename).cpp"
+</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(BuildDir)\Moc\$(ProjectName)\moc_%(Filename).cpp;%(Outputs)</Outputs>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Moc%27ing %(Filename).h...</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(QTBIN)\moc.exe" "%(FullPath)" -o "$(BuildDir)\Moc\$(ProjectName)\moc_%(Filename).cpp"
+</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(BuildDir)\Moc\$(ProjectName)\moc_%(Filename).cpp;%(Outputs)</Outputs>
+    </CustomBuild>
+    <ClInclude Include="OpticalFlow.h" />
+    <ClInclude Include="TrackingManager.h" />
+    <ClInclude Include="TrackingUtils.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

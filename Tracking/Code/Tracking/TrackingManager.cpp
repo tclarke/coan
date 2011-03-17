@@ -525,8 +525,8 @@ void TrackingManager::initializeFrame0()
       pPseudo2->setStretchUnits(GRAYSCALE_MODE, RAW_VALUE);
       pPseudo2->setStretchValues(GRAY, 0, 47);
       ColorMap cmap("C:/Opticks/COAN/Tracking/Release/SupportFiles/ColorTables/pseudocolor.clu");
-      pPseudo->setColorMap(cmap.getName(), cmap.getTable());
-      pPseudo2->setColorMap(cmap.getName(), cmap.getTable());
+      pPseudo->setColorMap(cmap);
+      pPseudo2->setColorMap(cmap);
 #endif
 
       mCalcBaseObjects = true;
@@ -676,7 +676,7 @@ void TrackingManager::matchTracks(const std::vector<TrackVertex>& curObjs)
       }
       // add connections which meet certain minimum criteria
       TrackEdge minE;
-      float minCost = 999999999999999;
+      float minCost = std::numeric_limits<float>::max();
       for (std::vector<TrackVertex>::const_iterator cur = curObjs.begin(); cur != curObjs.end(); ++cur)
       {
          Opticks::Location<int, 2> vel(mTracks[*cur].mCentroidA.mX - mTracks[*base].mCentroidB.mX,

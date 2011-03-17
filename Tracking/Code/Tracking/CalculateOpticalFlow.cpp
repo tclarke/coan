@@ -30,6 +30,7 @@
 #include "StringUtilities.h"
 #include "TrackingUtils.h"
 
+#include <memory>
 #include <opencv/cv.h>
 #include <stdarg.h>
 #include <opencv/highgui.h>

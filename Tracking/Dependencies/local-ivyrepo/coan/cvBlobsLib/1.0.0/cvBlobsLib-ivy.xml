@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ivy-module version="2.0">
+   <info organisation="coan" module="cvBlobsLib" revision="1.0.0" status="release" publication="20110214090140">
+      <description>cvBlobsLib 8.3</description>
+   </info>          
+   <configurations>
+      <conf name="common" visibility="private"/>
+      <conf name="win32" extends="common"/>
+      <conf name="win32-debug" extends="common"/>
+      <conf name="win32-debug-pdbs" extends="win32-debug"/>
+      <conf name="win64" extends="common"/>
+      <conf name="win64-debug" extends="common"/>
+      <conf name="win64-debug-pdbs" extends="win64-debug"/>
+      <conf name="solaris-sparc64" extends="common"/>
+      <conf name="linux64" extends="common"/>
+      <conf name="source"/>
+   </configurations>
+   <publications>
+      <artifact name="cvBlobsLib-common" type="tar.bz2" conf="common"/>
+      <artifact name="cvBlobsLib-win32-release" type="tar.bz2" conf="win32"/>
+      <artifact name="cvBlobsLib-win32-debug" type="tar.bz2" conf="win32-debug"/>
+      <artifact name="cvBlobsLib-source" type="tar.bz2" conf="source"/>
+   </publications>
+</ivy-module>

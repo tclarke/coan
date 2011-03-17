@@ -11,11 +11,17 @@ import zipfile
 import re
 import datetime
 import string
+import tarfile
+import new
 
-aeb_platform_mappings = {'win32':'win32-x86-msvc8.1-release',
-                         'win64':'win64-x86-msvc8.1-release',
-                         'win32-debug':'win32-x86-msvc8.1-debug',
-                         'win64-debug':'win64-x86-msvc8.1-debug'}
+aeb_platform_mappings = {'win32':'win32-x86-msvc10.0-release',
+                         'win32-debug':'win32-x86-msvc10.0-debug',
+                         'win64':'win64-x86-msvc10.0-release',
+                         'win64-debug':'win64-x86-msvc10.0-debug',
+                         'solaris':'solaris-sparc-studio12-release',
+                         'solaris-debug':'solaris-sparc-studio12-debug',
+                         'linux':'linux-x86_64-gcc4-release',
+                         'linux-debug':'linux-x86_64-gcc4-debug'}
 
 def execute_process(args, bufsize=0, executable=None, preexec_fn=None,
       close_fds=None, shell=False, cwd=None, env=None,
@@ -163,15 +169,11 @@ class Builder:
         if self.verbosity > 1:
             print "Done updating version number"
 
-    def build_executable(self, clean_build_first, build_opticks, concurrency):
-        #No return code, throw exception or ScriptException
-        if build_opticks == "none":
-            return
-
+    def build_executable(self, clean_build_first, concurrency):
         if self.verbosity > 1:
             print "Building Tracking plug-ins..."
         buildenv = os.environ
-        buildenv["OPTICKSDEPENDENCIES"] = self.depend_path
+        buildenv["TRACKINGDEPENDENCIES"] = self.depend_path
         buildenv["OPTICKS_CODE_DIR"] = self.opticks_code_dir
 
         if self.verbosity >= 1:
@@ -180,11 +182,11 @@ class Builder:
         if clean_build_first:
             if self.verbosity > 1:
                 print "Cleaning compilation..."
-            self.compile_code(buildenv, build_opticks, True, concurrency)
+            self.compile_code(buildenv, True, concurrency)
             if self.verbosity > 1:
                 print "Done cleaning compilation"
 
-        self.compile_code(buildenv, build_opticks, False, concurrency)
+        self.compile_code(buildenv, False, concurrency)
         if self.verbosity > 1:
             print "Done building Tracking plug-ins"
 
@@ -198,19 +200,14 @@ class Builder:
         copy_files_in_dir(opticks_plugin_path, extension_plugin_path, plugin_suffixes)
         if self.verbosity > 1:
             print "Done copying Opticks plug-ins"
-            print "Copying dependency files"
-        extension_bin_path = join(self.get_binaries_dir(), "Bin")
-        copy_files_in_dir(join(self.depend_path, "opencv", "bin", self.platform), extension_bin_path, [".dll"])
-        if self.verbosity > 1:
-            print "Done copying dependency files"
 
         extension_bin_path = join(self.get_binaries_dir(), "Bin")
         if not os.path.exists(extension_bin_path):
             os.makedirs(extension_bin_path)
-        extension_dep_file = join(extension_bin_path, "Tracking.dep")
+        extension_dep_file = join(extension_bin_path, "tracking.dep")
         if not os.path.exists(extension_dep_file):
             if self.verbosity > 1:
-                print "Creating Tracking.dep file..."
+                print "Creating tracking.dep file..."
             extension_dep = open(extension_dep_file, "w")
             extension_dep.write("!depV1 { deployment: { "\
                 "AppHomePath: $E(OPTICKS_HOME), "\
@@ -219,7 +216,7 @@ class Builder:
                 "PlugInPath: ../PlugIns } } ")
             extension_dep.close()
             if self.verbosity > 1:
-                print "Done creating Tracking.dep file"
+                print "Done creating tracking.dep file"
 
         app_setting_dir = join("Code", "Build", "ApplicationUserSettings")
         if not os.path.exists(app_setting_dir):
@@ -230,92 +227,12 @@ class Builder:
             if self.verbosity > 1:
                 print "Done creating ApplicationUserSettings folder"
 
-class WindowsBuilder(Builder):
-    def __init__(self, dependencies, opticks_code_dir, build_in_debug,
-                 opticks_build_dir, visualstudio, verbosity):
-        Builder.__init__(self, dependencies, opticks_code_dir, build_in_debug,
-            opticks_build_dir, verbosity)
-        self.vs_path = visualstudio
-
-    def compile_code(self, env, target, clean, concurrency):
-        solution_file = os.path.abspath("Code/Tracking.sln")
-        self.build_in_visual_studio(solution_file, target,
-            self.build_debug_mode, self.is_64_bit, concurrency,
-            self.vs_path, env, clean)
-
-    def get_plugin_dir(self):
-        return os.path.abspath(join(self.opticks_build_dir,
-            "Binaries-%s-%s" % (self.platform, self.mode), "PlugIns"))
-
-    def get_binaries_dir(self):
-        if self.platform == "Win32":
-            arch = "32"
-        elif self.platform == "x64":
-            arch = "64"
-        build_dir = os.path.join(os.path.abspath("Code"), "Build")
-        return os.path.abspath(join(build_dir,
-            "Binaries-%s-%s" % (self.platform, self.mode)))
-
-    def prep_to_run(self):
-        self.prep_to_run_helper([".dll", ".exe"])
-
-    def build_in_visual_studio(self, solutionfile, debug,
-                               build_64_bit, concurrency, vspath,
-                               environ, clean):
-        if debug:
-            mode = "Debug"
-        else:
-            mode = "Release"
-        if build_64_bit:
-            mode += "|x64"
-        else:
-            mode += "|Win32"
-
-        msdev_exec = join(vspath, "vc", "vcpackages", "vcbuild.exe")
-        arguments = [msdev_exec, solutionfile]
-        if clean:
-            arguments.append("/clean")
-        arguments.append("/error:[ERROR]")
-        arguments.append("/warning:[WARNING]")
-        arguments.append("/M%s" % (concurrency))
-        arguments.append(mode)
-        ret_code = execute_process(arguments,
-                                 env=environ)
-        if ret_code != 0:
-            raise ScriptException("Visual Studio did not compile project")
-
-class Windows32bitBuilder(WindowsBuilder):
-    platform = "Win32"
-    def __init__(self, dependencies, opticks_code_dir, build_in_debug,
-                 opticks_build_dir, visualstudio, verbosity):
-        WindowsBuilder.__init__(self, dependencies, opticks_code_dir, build_in_debug,
-            opticks_build_dir, visualstudio, verbosity)
-        self.is_64_bit = False
-
-class Windows64bitBuilder(WindowsBuilder):
-    platform = "x64"
-    def __init__(self, dependencies, opticks_code_dir, build_in_debug,
-                 opticks_build_dir, visualstudio, verbosity):
-        WindowsBuilder.__init__(self, dependencies, opticks_code_dir, build_in_debug,
-            opticks_build_dir, visualstudio, verbosity)
-        self.is_64_bit = True
-
-class SolarisBuilder(Builder):
-    platform = "solaris-sparc"
-    def __init__(self, dependencies, opticks_code_dir, build_in_debug,
-                 opticks_build_dir, verbosity):
-        Builder.__init__(self, dependencies, opticks_code_dir, build_in_debug,
-            opticks_build_dir, verbosity)
-
-    def compile_code(self, env, target, clean, concurrency):
-        #Build extension plugins
-        self.run_scons(os.path.abspath("."), self.build_debug_mode,
-            concurrency, env, clean, [])
-
     def run_scons(self, path, debug, concurrency, environ,
                   clean, extra_args=None):
         scons_exec = "scons"
-        arguments = [scons_exec, "--directory=Code", "--no-cache"]
+        if is_windows():
+            scons_exec += ".bat"
+        arguments = [scons_exec, "--directory=Code"]
         arguments.append("-j%s" % (concurrency))
         if clean:
             arguments.append("-c")
@@ -329,6 +246,98 @@ class SolarisBuilder(Builder):
         if ret_code != 0:
             raise ScriptException("Scons did not compile project")
 
+class WindowsBuilder(Builder):
+    def __init__(self, dependencies, opticks_code_dir, build_in_debug,
+                 opticks_build_dir, msbuild, use_scons, verbosity):
+        Builder.__init__(self, dependencies, opticks_code_dir, build_in_debug,
+            opticks_build_dir, verbosity)
+        self.msbuild_path = msbuild 
+        self.use_scons = use_scons
+
+    def compile_code(self, env, clean, concurrency):
+        if self.use_scons:
+            args = ["all"]
+            if self.is_64_bit:
+                args.append("BITS=64")
+            else:
+                args.append("BITS=32")
+            if self.build_debug_mode:
+                args.append("SDKDEBUG=YES")
+            self.run_scons(os.path.abspath("."), self.build_debug_mode,
+                concurrency, env, clean, args)
+        else:
+            solution_file = os.path.abspath("Code/Tracking.sln")
+            self.build_in_msbuild(solution_file,
+                self.build_debug_mode, self.is_64_bit, concurrency,
+                self.msbuild_path, env, clean)
+
+    def get_plugin_dir(self):
+        return os.path.abspath(join(self.opticks_build_dir,
+            "Binaries-%s-%s" % (self.platform, self.mode), "PlugIns"))
+
+    def get_binaries_dir(self):
+        build_dir = os.path.join(os.path.abspath("Code"), "Build")
+        return os.path.abspath(join(build_dir,
+            "Binaries-%s-%s" % (self.platform, self.mode)))
+
+    def prep_to_run(self):
+        self.prep_to_run_helper([".dll", ".exe"])
+
+    def build_in_msbuild(self, solutionfile, debug,
+                         build_64_bit, concurrency, msbuildpath,
+                         environ, clean):
+        if not os.path.exists(msbuildpath):
+            raise ScriptException("MS Build path is invalid")
+
+        if debug:
+            config = "Debug"
+        else:
+            config = "Release"
+        if build_64_bit:
+            platform = "x64"
+        else:
+            platform = "Win32"
+
+        msbuild_exec = join(msbuildpath, "msbuild.exe")
+        arguments = [msbuild_exec, solutionfile]
+        if clean:
+            arguments.append("/target:clean")
+        arguments.append("/m:%s" % concurrency)
+        arguments.append("/p:Platform=%s" % platform)
+        arguments.append("/p:Configuration=%s" % config)
+        ret_code = execute_process(arguments,
+                                 env=environ)
+        if ret_code != 0:
+            raise ScriptException("Visual Studio did not compile project")
+
+class Windows32bitBuilder(WindowsBuilder):
+    platform = "Win32"
+    def __init__(self, dependencies, opticks_code_dir, build_in_debug,
+                 opticks_build_dir, msbuild, use_scons, verbosity):
+        WindowsBuilder.__init__(self, dependencies, opticks_code_dir, build_in_debug,
+            opticks_build_dir, msbuild, use_scons, verbosity)
+        self.is_64_bit = False
+
+class Windows64bitBuilder(WindowsBuilder):
+    platform = "x64"
+    def __init__(self, dependencies, opticks_code_dir, build_in_debug,
+                 opticks_build_dir, msbuild, use_scons, verbosity):
+        WindowsBuilder.__init__(self, dependencies, opticks_code_dir, build_in_debug,
+            opticks_build_dir, msbuild, use_scons, verbosity)
+        self.is_64_bit = True
+
+class SolarisBuilder(Builder):
+    platform = "solaris-sparc"
+    def __init__(self, dependencies, opticks_code_dir, build_in_debug,
+                 opticks_build_dir, verbosity):
+        Builder.__init__(self, dependencies, opticks_code_dir, build_in_debug,
+            opticks_build_dir, verbosity)
+
+    def compile_code(self, env, clean, concurrency):
+        #Build extension plugins
+        self.run_scons(os.path.abspath("."), self.build_debug_mode,
+            concurrency, env, clean, ["all"])
+
     def get_plugin_dir(self):
         return os.path.abspath(join(self.opticks_build_dir,
             "Binaries-solaris-sparc-%s" % (self.mode), "PlugIns"))
@@ -340,8 +349,25 @@ class SolarisBuilder(Builder):
     def prep_to_run(self):
         self.prep_to_run_helper([".so"])
 
-def read_version_h():
-    version_path = join("Code", "Include", "TrackingVersion.h")
+class LinuxBuilder(SolarisBuilder):
+    platform = "linux-x86_64"
+    def __init__(self, dependencies, opticks_code_dir, build_in_debug,
+                 opticks_build_dir, verbosity):
+        SolarisBuilder.__init__(self, dependencies, opticks_code_dir, build_in_debug,
+            opticks_build_dir, verbosity)
+
+    def get_plugin_dir(self):
+        return os.path.abspath(join(self.opticks_build_dir,
+            "Binaries-%s-%s" % (self.platform, self.mode), "PlugIns"))
+
+    def get_binaries_dir(self):
+        return os.path.abspath(join("Code", "Build", "Binaries-%s-%s" % (self.platform, self.mode)))
+
+def read_version_h(path=None):
+    if path is None:
+        version_path = join("Code", "Include", "TrackingVersion.h")
+    else:
+        version_path = path
     version_file = open(version_path, "rt")
     version_info = version_file.readlines()
     version_file.close()
@@ -369,9 +395,97 @@ def update_version_h(fields_to_replace):
     version_file.close()
 
 def build_installer(aeb_platforms=[], aeb_output=None,
-                    depend_path=None, sdk_version=None, verbosity=None,
-                    solaris_dir=None):
-    raise ScriptException("Installer not supported.")
+                    verbosity=None, solaris_dir=None, opticks_code_dir=None):
+    if len(aeb_platforms) == 0:
+        raise ScriptException("Invalid AEB platform specification. Valid values are: %s." % ", ".join(aeb_platform_mapping.keys()))
+    if verbosity > 1:
+        print "Loading metadata template..."
+
+    manifest = dict()
+    version_info = read_version_h()
+    manifest["version"] = version_info["TRACKING_VERSION_NUMBER"][1:-1]
+    manifest["name"] = version_info["TRACKING_NAME"][1:-1]
+    manifest["description"] = version_info["TRACKING_NAME_LONG"][1:-1]
+    aebl_platform_str = ""
+    for platform in aeb_platforms:
+        aebl_platform_str += "<aebl:targetPlatform>%s</aebl:targetPlatform>\n" % (platform)
+    manifest["target_platforms"] = aebl_platform_str
+    opticks_version_info = read_version_h(os.path.abspath(join(opticks_code_dir, "application", "Interfaces", "OpticksVersion.h")))
+    opticks_version = opticks_version_info["OPTICKS_VERSION"][1:-1]
+    parts = opticks_version.split(".")
+    min_version = opticks_version
+    max_version = opticks_version
+    if len(parts) >= 2:
+        if parts[1].isdigit() and len(parts) >= 3:
+            max_version = ".".join(parts[:2]) + ".*"
+    manifest["opticks_min_version"] = min_version
+    manifest["opticks_max_version"] = max_version
+
+    rdf_path = join(os.path.abspath("Installer"), "install.rdf")
+    rdf_file = open(rdf_path, "r")
+    rdf_contents = rdf_file.read()
+    rdf_file.close()
+
+    install_rdf = string.Template(rdf_contents).substitute(manifest)
+
+    out_path = os.path.abspath(join("Installer","Tracking.aeb"))
+    if aeb_output is not None:
+       out_path = os.path.abspath(aeb_output)
+    out_dir = os.path.dirname(out_path)
+    if not os.path.exists(out_dir):
+       os.makedirs(out_dir)
+    if verbosity > 1:
+        print "Saving updated metadata to AEB %s..." % out_path
+
+    if verbosity > 1:
+        print "Building installation tree..."
+    zfile = zipfile.ZipFile(out_path, "w", zipfile.ZIP_DEFLATED)
+
+    #platform independent items
+
+    #AEB required stuff
+    zfile.writestr("install.rdf", install_rdf)
+    copy_file_to_zip(os.path.abspath("Installer"), "license", "lgpl-2.1.txt", zfile)
+
+    #DefaultSettings folder
+    default_settings_path = os.path.join("Release", "DefaultSettings")
+    target_default_settings_path = os.path.join("content", "DefaultSettings")
+    copy_file_to_zip(default_settings_path, target_default_settings_path, "120-TrackingOptions.cfg", zfile)
+
+    #platform dependent items
+    for plat in aeb_platforms:
+        if verbosity > 0:
+            print "Adding platform dependent files for %s..." % plat
+        plat_parts = plat.split('-')
+        if plat_parts[0].startswith('win'):
+            bin_dir = join(os.path.abspath("Code"), "Build")
+            if plat_parts[0] == "win32":
+                bin_dir = join(bin_dir, "Binaries-%s-%s" % (Windows32bitBuilder.platform, plat_parts[-1]))
+            else:
+                bin_dir = join(bin_dir, "Binaries-%s-%s" % (Windows64bitBuilder.platform, plat_parts[-1]))
+            plugin_path = join(bin_dir, "PlugIns")
+            target_plugin_path = join("platform", plat, "PlugIns")
+
+            #PlugIns folder
+            copy_file_to_zip(plugin_path, target_plugin_path, "Tracking.dll", zfile)
+        elif plat_parts[0] == 'solaris' or plat_parts[0] == 'linux':
+            prefix_dir = os.path.abspath(".")
+            if is_windows():
+                if not(solaris_dir) or not(os.path.exists(solaris_dir)):
+                    raise ScriptException("You must use the --solaris-dir "\
+                        "command-line argument to build an AEB using "\
+                        "any of the solaris platforms.")
+                prefix_dir = os.path.abspath(solaris_dir)
+            bin_dir = os.path.join(prefix_dir, "Code", "Build", "Binaries-%s-%s-%s" % (plat_parts[0], plat_parts[1], plat_parts[-1]))
+            plugin_path = join(bin_dir, "PlugIns")
+            target_plugin_path = join("platform", plat, "PlugIns")
+
+            #PlugIns folder
+            copy_file_to_zip(plugin_path, target_plugin_path, "Tracking.so", zfile)
+        else:
+            raise ScriptException("Unknown AEB platform %s" % plat)
+    zfile.close()
+
 
 def print_env(environ):
     print "Environment is currently set to"
@@ -425,7 +539,7 @@ def copy_files_in_dir_to_zip(src_dir, dst_dir, zfile, suffixes_to_match=None, en
 
 def copy_file_to_zip(src_dir, dst_dir, filename, zfile):
     dst_file = join(dst_dir, filename)
-    zfile.writestr(dst_file, open(join(src_dir, filename), "rb").read())
+    zfile.write(join(src_dir, filename), dst_file)
 
 def main(args):
     #chdir to the directory where the script resides
@@ -437,10 +551,8 @@ def main(args):
     options.add_option("--opticks-code-dir",
         dest="opticks_code_dir", action="store", type="string")
     if is_windows():
-        vs_path = "C:\\Program Files (x86)\\Microsoft Visual Studio 8"
-        if not os.path.exists(vs_path):
-            vs_path = "C:\\Program Files\\Microsoft Visual Studio 8"
-        options.add_option("--visualstudio", dest="visualstudio",
+        msbuild_path = "C:\\Windows\\Microsoft.NET\Framework\\v4.0.30319"
+        options.add_option("--msbuild", dest="msbuild",
             action="store", type="string")
         options.add_option("--arch", dest="arch", action="store",
             type="choice", choices=["32","64"])
@@ -452,8 +564,14 @@ def main(args):
                  "option should point to a directory that contains a "\
                  "checked out and compiled copy of this extension on "\
                  "Solaris.")
-        options.set_defaults(visualstudio=vs_path, arch="64",
-            solaris_dir=None)
+        options.add_option("--use-scons", action="store_true",
+            dest="use_scons",
+            help="If provided, compile using Scons "\
+                 "on Windows instead of using vcbuild. Use "\
+                 "if you don't have Visual C++ installed. "\
+                 "The default is to use vcbuild")
+        options.set_defaults(msbuild=msbuild_path, arch="64",
+            solaris_dir=None, use_scons=False)
     options.add_option("-m", "--mode", dest="mode",
         action="store", type="choice", choices=["debug", "release"])
     options.add_option("--clean", dest="clean", action="store_true")
@@ -461,7 +579,6 @@ def main(args):
     options.add_option("--prep", dest="prep", action="store_true")
     options.add_option("--build-installer", dest="build_installer", action="store")
     options.add_option("--aeb-output", dest="aeb_output", action="store")
-    options.add_option("--sdk-version", dest="sdk_version", action="store")
     options.add_option("--concurrency", dest="concurrency", action="store")
     options.add_option("-q", "--quiet", help="Print fewer messages",
         action="store_const", dest="verbosity", const=0)
@@ -484,16 +601,16 @@ def main(args):
         action="store", type="string")
     options.set_defaults(mode="release", clean=False,
         build_extension=False,
-        sdk_verson=None,
-        prep=False, concurrency=1, verbosity=1,
+        prep=False, concurrency=1, verbosity=1, 
         update_version_scheme="none")
     options = options.parse_args(args[1:])[0]
     if not(is_windows()):
         options.solaris_dir = None
+        options.use_scons = True
 
     builder = None
     try:
-        opticks_depends = os.environ.get("OPTICKSDEPENDENCIES", None)
+        opticks_depends = os.environ.get("TRACKINGDEPENDENCIES", None)
         if options.dependencies:
             #allow the -d command-line option to override
             #environment variable
@@ -528,7 +645,7 @@ def main(args):
                aeb_output = options.aeb_output
             aeb_platforms = []
             if options.build_installer == "all":
-                 aeb_platforms = aeb_platform_mappings.values()
+                aeb_platforms = aeb_platform_mappings.values()
             else:
                 plats = options.build_installer.split(',')
                 for plat in plats:
@@ -537,9 +654,9 @@ def main(args):
                         aeb_platforms.append(aeb_platform_mappings[plat])
                     else:
                         aeb_platforms.append(plat)
-            build_installer(aeb_platforms,
-                aeb_output, opticks_depends, options.sdk_version,
-                options.verbosity, options.solaris_dir)
+            build_installer(aeb_platforms, aeb_output,
+                options.verbosity,
+                options.solaris_dir, opticks_code_dir)
             if options.verbosity > 1:
                 print "Done building installer"
             return 0
@@ -550,24 +667,25 @@ def main(args):
             build_in_debug = False
 
         if not is_windows():
-            builder = SolarisBuilder(opticks_depends, opticks_code_dir, build_in_debug,
-                opticks_build_dir, options.verbosity)
+            if sys.platform == 'linux2':
+                builder = LinuxBuilder(opticks_depends, opticks_code_dir, build_in_debug,
+                    opticks_build_dir, options.verbosity)
+            else:
+                builder = SolarisBuilder(opticks_depends, opticks_code_dir, build_in_debug,
+                    opticks_build_dir, options.verbosity)
         else:
-            if not os.path.exists(options.visualstudio):
-                raise ScriptException("Visual Studio path is invalid")
-
             if options.arch == "32":
                 builder = Windows32bitBuilder(opticks_depends, opticks_code_dir,
                     build_in_debug, opticks_build_dir,
-                    options.visualstudio, options.verbosity)
+                    options.msbuild, options.use_scons, options.verbosity)
             if options.arch == "64":
                 builder = Windows64bitBuilder(opticks_depends, opticks_code_dir,
                     build_in_debug, opticks_build_dir,
-                    options.visualstudio, options.verbosity)
+                    options.msbuild, options.use_scons, options.verbosity)
 
         builder.update_version_number(options.update_version_scheme,
             options.new_version)
-                
+
         if options.build_extension:
            builder.build_executable(options.clean,
                options.concurrency)

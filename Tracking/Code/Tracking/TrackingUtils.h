@@ -155,18 +155,19 @@ class IplImageResource
 public:
    IplImageResource();
    IplImageResource(IplImage* pImage);
-   IplImageResource(IplImageResource& other);
+   IplImageResource(const IplImageResource& other);
    IplImageResource(int width, int height, int depth, int channels);
    IplImageResource(int width, int height, int depth, int channels, char* pData);
    ~IplImageResource();
-   bool isShallow();
+   bool isShallow() const;
    void reset(IplImage* pImage);
    IplImage* get();
+   const IplImage* get() const;
    IplImage* release();
    IplImage* take();
    operator IplImage*();
    IplImage& operator*();
-   IplImageResource& operator=(IplImageResource& other);
+   IplImageResource& operator=(const IplImageResource& other);
 
 private:
    IplImage* mpImage;

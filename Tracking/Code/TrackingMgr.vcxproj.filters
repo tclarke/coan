@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Include">
+      <UniqueIdentifier>{ae209eed-25a5-409c-8da1-d06eb261b5f7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="DefaultSettings">
+      <UniqueIdentifier>{a95e4bce-ca53-4c8e-b28c-08dabb1f778d}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Include\HighResolutionTimer.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\TrackingVersion.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\Release\DefaultSettings\120-Tracking.cfg">
+      <Filter>DefaultSettings</Filter>
+    </None>
+  </ItemGroup>
+</Project>
