@@ -1,0 +1,4 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<RunApp>
+	<App key="opticks" target="%ProgramFiles%\Opticks\4.5.0\Bin\Opticks.exe" args="" />
+</RunApp>

@@ -1,0 +1,6 @@
+C:\Users\Administrator\Downloads\RunAppUrlProtocol\bin\Debug\RegisteredApps.xml
+C:\Users\Administrator\Downloads\RunAppUrlProtocol\bin\Debug\RunAppUrlProtocol.exe
+C:\Users\Administrator\Downloads\RunAppUrlProtocol\bin\Debug\RunAppUrlProtocol.pdb
+C:\Users\Administrator\Downloads\RunAppUrlProtocol\obj\Debug\ResolveAssemblyReference.cache
+C:\Users\Administrator\Downloads\RunAppUrlProtocol\obj\Debug\RunAppUrlProtocol.exe
+C:\Users\Administrator\Downloads\RunAppUrlProtocol\obj\Debug\RunAppUrlProtocol.pdb

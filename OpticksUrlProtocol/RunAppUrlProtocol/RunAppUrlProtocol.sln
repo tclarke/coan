@@ -1,0 +1,24 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RunAppUrlProtocol", "RunAppUrlProtocol.csproj", "{1B41C38F-04E3-4F3E-AE97-87F9DB98E862}"
+EndProject
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "UrlProtocolInstaller", "..\UrlProtocolInstaller\UrlProtocolInstaller.vdproj", "{50EEF791-9585-4A1F-9374-EC86FA8353C6}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1B41C38F-04E3-4F3E-AE97-87F9DB98E862}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1B41C38F-04E3-4F3E-AE97-87F9DB98E862}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1B41C38F-04E3-4F3E-AE97-87F9DB98E862}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1B41C38F-04E3-4F3E-AE97-87F9DB98E862}.Release|Any CPU.Build.0 = Release|Any CPU
+		{50EEF791-9585-4A1F-9374-EC86FA8353C6}.Debug|Any CPU.ActiveCfg = Debug
+		{50EEF791-9585-4A1F-9374-EC86FA8353C6}.Release|Any CPU.ActiveCfg = Release
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
