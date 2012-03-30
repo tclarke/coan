@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ivy-module version="2.0">
+   <info organisation="coan" module="libraw" revision="1.0.0" status="release" publication="20120330115059">
+      <description>LibRaw 0.14.5</description>
+   </info>          
+   <configurations>
+      <conf name="common" visibility="private"/>
+      <conf name="win32" extends="common"/>
+      <conf name="win32-debug" extends="common"/>
+      <conf name="win32-debug-pdbs" extends="win32-debug"/>
+      <conf name="win64" extends="common"/>
+      <conf name="win64-debug" extends="common"/>
+      <conf name="win64-debug-pdbs" extends="win64-debug"/>
+      <conf name="solaris-sparc64" extends="common"/>
+      <conf name="linux64" extends="common"/>
+      <conf name="source"/>
+   </configurations>
+   <publications>
+      <artifact name="libraw-common" type="tar.bz2" conf="common"/>
+      <artifact name="libraw-win64-release" type="tar.bz2" conf="win64"/>
+      <artifact name="libraw-win32-release" type="tar.bz2" conf="win32"/>
+      <artifact name="libraw-linux64" type="tar.bz2" conf="linux64"/>
+   </publications>
+</ivy-module>
