@@ -1,0 +1,36 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ImProcMgr", "ImProcMgr.vcxproj", "{43F98D00-183B-11E0-AC64-0800200C9A66}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ColorSpace", "ColorSpace\ColorSpace.vcxproj", "{B3AF9BBF-FAB6-4DA4-9A2D-D2E678BCEC8D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Debug|x64 = Debug|x64
+		Release|Win32 = Release|Win32
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{43F98D00-183B-11E0-AC64-0800200C9A66}.Debug|Win32.ActiveCfg = Debug|Win32
+		{43F98D00-183B-11E0-AC64-0800200C9A66}.Debug|Win32.Build.0 = Debug|Win32
+		{43F98D00-183B-11E0-AC64-0800200C9A66}.Debug|x64.ActiveCfg = Debug|x64
+		{43F98D00-183B-11E0-AC64-0800200C9A66}.Debug|x64.Build.0 = Debug|x64
+		{43F98D00-183B-11E0-AC64-0800200C9A66}.Release|Win32.ActiveCfg = Release|Win32
+		{43F98D00-183B-11E0-AC64-0800200C9A66}.Release|Win32.Build.0 = Release|Win32
+		{43F98D00-183B-11E0-AC64-0800200C9A66}.Release|x64.ActiveCfg = Release|x64
+		{43F98D00-183B-11E0-AC64-0800200C9A66}.Release|x64.Build.0 = Release|x64
+		{B3AF9BBF-FAB6-4DA4-9A2D-D2E678BCEC8D}.Debug|Win32.ActiveCfg = Debug|Win32
+		{B3AF9BBF-FAB6-4DA4-9A2D-D2E678BCEC8D}.Debug|Win32.Build.0 = Debug|Win32
+		{B3AF9BBF-FAB6-4DA4-9A2D-D2E678BCEC8D}.Debug|x64.ActiveCfg = Debug|x64
+		{B3AF9BBF-FAB6-4DA4-9A2D-D2E678BCEC8D}.Debug|x64.Build.0 = Debug|x64
+		{B3AF9BBF-FAB6-4DA4-9A2D-D2E678BCEC8D}.Release|Win32.ActiveCfg = Release|Win32
+		{B3AF9BBF-FAB6-4DA4-9A2D-D2E678BCEC8D}.Release|Win32.Build.0 = Release|Win32
+		{B3AF9BBF-FAB6-4DA4-9A2D-D2E678BCEC8D}.Release|x64.ActiveCfg = Release|x64
+		{B3AF9BBF-FAB6-4DA4-9A2D-D2E678BCEC8D}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

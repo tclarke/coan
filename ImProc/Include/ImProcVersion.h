@@ -12,7 +12,7 @@
 #define IMPROC_NAME "IMPROC"
 #define IMPROC_NAME_LONG "General image processing functionality."
 #define IMPROC_COPYRIGHT ""
-#define IMPROC_VERSION_NUMBER "0.1"
+#define IMPROC_VERSION_NUMBER "1.0"
 #define IMPROC_IS_PRODUCTION_RELEASE false
 
 #endif
